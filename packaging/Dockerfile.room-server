@@ -3,48 +3,74 @@ FROM apitable/node:v16.15.0 AS deps
 
 WORKDIR /app
 
+COPY .yarn ./.yarn
+
 # install packages can use cache
-COPY ./pnpm-workspace.yaml ./package.json ./pnpm-lock.yaml ./common-tsconfig.json ./
-COPY ./patches/ ./patches
+COPY ./.yarnrc.yml ./package.json ./yarn.lock ./common-tsconfig.json ./
 
 COPY packages/i18n-lang/package.json ./packages/i18n-lang/
 
 COPY packages/core/package.json ./packages/core/
 
-COPY packages/databus-wasm-web/package.json ./packages/databus-wasm-web/
-COPY packages/databus-wasm-nodejs/package.json ./packages/databus-wasm-nodejs/
+COPY packages/room-native-api/package.json ./packages/room-native-api/
 
 COPY packages/room-server/package.json ./packages/room-server/
 
-RUN pnpm install --filter @apitable/room-server --filter root
+RUN yarn workspaces focus @apitable/room-server root
 
 # stage builder
-FROM apitable/node:v16.15.0 AS builder
+FROM apitable/room-server-builder:v16.15.0 AS builder
 
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/patches ./patches
-COPY --from=deps /app/packages/i18n-lang/node_modules ./packages/i18n-lang/node_modules
-COPY --from=deps /app/packages/core/node_modules ./packages/core/node_modules
 COPY --from=deps /app/packages/room-server/node_modules ./packages/room-server/node_modules
 
-COPY ./pnpm-workspace.yaml ./package.json ./pnpm-lock.yaml ./common-tsconfig.json ./nx.json ./
+COPY .yarn ./.yarn
+
+COPY ./.yarnrc.yml ./package.json ./yarn.lock ./common-tsconfig.json ./
 
 COPY packages/i18n-lang ./packages/i18n-lang
 
-COPY packages/databus-wasm-web ./packages/databus-wasm-web
-COPY packages/databus-wasm-nodejs ./packages/databus-wasm-nodejs
-
 COPY packages/core ./packages/core
+
+COPY packages/room-native-api ./packages/room-native-api
 
 COPY packages/room-server ./packages/room-server
 
-RUN pnpm run build:sr
+# Setup Rust environment
+RUN mkdir -p /rustup ~/.cargo
+ENV RUSTUP_HOME=/rustup
+ENV CARGO_HOME=/root/.cargo
+ENV PATH=/root/.cargo/bin:$PATH
+
+# Install Rust toolchain
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | \
+    RUSTUP_INIT_SKIP_PATH_CHECK=yes \
+    sh -s -- --profile minimal \
+             --default-toolchain nightly \
+             --no-modify-path \
+             -y && \
+    rustup target add aarch64-unknown-linux-gnu && \
+    rustup component add rust-std-aarch64-unknown-linux-gnu
+
+# Set default toolchain
+RUN rustup default nightly
+
+# Configure Cargo for cross compilation
+RUN mkdir -p ~/.cargo && \
+    echo '[target.aarch64-unknown-linux-gnu]' > ~/.cargo/config.toml && \
+    echo 'linker = "aarch64-linux-gnu-gcc"' >> ~/.cargo/config.toml
+
+RUN yarn build:sr
+
+# RUN yarn build:room-native-api:arm64
+
+RUN rm -rf packages/room-native-api/target
 
 ARG KEEP_DEV_DEP
 
-RUN if [ "$KEEP_DEV_DEP" = "" ] ; then pnpm install --filter @apitable/room-server; fi
+RUN if [ "$KEEP_DEV_DEP" = "" ] ; then yarn workspaces focus @apitable/room-server --production; fi
 
 # stage runner
 FROM apitable/node:v16.15.0 AS runner
@@ -61,7 +87,8 @@ COPY --from=builder /app/packages/room-server/app-config.json /root/
 COPY --from=builder /app /app
 
 RUN npm install pm2@latest --global  \
-    && rm -fr packages/*/src
+    && rm -fr packages/*/src \
+    && rm -fr packages/room-native-api/src
 
 COPY packages/i18n-lang/src/config ./packages/i18n-lang/src/config
 
@@ -72,7 +99,7 @@ EXPOSE 3333
 EXPOSE 3334
 # socket:notification
 EXPOSE 3002
-# socket:workdoc
+# socket:datasheet
 EXPOSE 3006
 # socket:room
 EXPOSE 3005
