@@ -18,24 +18,26 @@
 
 package com.apitable.shared.listener.event;
 
-import com.apitable.shared.listener.enums.FieldPermissionChangeEvent;
-import com.apitable.workspace.ro.FieldControlProp;
 import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import com.apitable.shared.listener.enums.FieldPermissionChangeEvent;
+import com.apitable.workspace.ro.FieldControlProp;
+
 import org.springframework.context.ApplicationEvent;
 
 /**
  * <p>
- * Field Permission Event.
+ * Field Permission Event
  * </p>
  *
  * @author Chambers
  */
-@Getter
 public class FieldPermissionEvent extends ApplicationEvent {
 
     private static final long serialVersionUID = 4958921396891987695L;
@@ -47,9 +49,6 @@ public class FieldPermissionEvent extends ApplicationEvent {
         this.arg = arg;
     }
 
-    /**
-     * argument.
-     */
     @Getter
     @Setter
     @NoArgsConstructor
@@ -80,4 +79,7 @@ public class FieldPermissionEvent extends ApplicationEvent {
         private Boolean includeExtend;
     }
 
+    public Arg getArg() {
+        return arg;
+    }
 }

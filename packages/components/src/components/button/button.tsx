@@ -55,7 +55,7 @@ export const Button = React.forwardRef(({
         </span>
       )}
       {prefixIcon && (
-        <IconSpanStyled existIcon={Boolean(prefixIcon)} position='prefix' size={size}>
+        <IconSpanStyled existIcon={Boolean(prefixIcon)} position='prefix'>
           {PrefixIcon}
         </IconSpanStyled>
       )}
@@ -63,7 +63,7 @@ export const Button = React.forwardRef(({
         {children}
       </TextSpanStyled>
       {suffixIcon && (
-        <IconSpanStyled existIcon={Boolean(suffixIcon)} position='suffix' size={size}>
+        <IconSpanStyled existIcon={Boolean(suffixIcon)} position='suffix'>
           {SuffixIcon}
         </IconSpanStyled>
       )}

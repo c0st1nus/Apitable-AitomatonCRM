@@ -16,11 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { IRemoteChangeset } from '@apitable/core';
 import { Injectable } from '@nestjs/common';
-import { ICommonData } from 'database/ot/interfaces/ot.interface';
+import { IRemoteChangeset } from '@apitable/core';
 import { isEmpty } from 'lodash';
 import { DatasheetRecordSubscriptionEntity } from './entities/datasheet.record.subscription.entity';
+import { ICommonData } from 'database/ot/interfaces/ot.interface';
+import { EntityManager } from 'typeorm';
 
 @Injectable()
 export class DatasheetRecordSubscriptionBaseService {
@@ -52,6 +53,7 @@ export class DatasheetRecordSubscriptionBaseService {
   }
 
   public async handleRecordAutoSubscriptions(
+    _manager: EntityManager,
     _commonData: ICommonData,
     _resultSet: { [key: string]: any },
   ) {

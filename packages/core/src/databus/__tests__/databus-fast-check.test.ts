@@ -1,6 +1,6 @@
 import { MockDataBus, resetDataLoader } from 'databus/__tests__/mock.databus';
 import { ResourceType } from 'types';
-import { CollaCommandName } from 'commands/enum';
+import { CollaCommandName } from 'commands';
 import { ExecuteResult } from 'command_manager';
 import * as fc from 'fast-check';
 import * as console from 'console';

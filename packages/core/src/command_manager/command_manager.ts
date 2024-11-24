@@ -17,8 +17,7 @@
  */
 
 import { ErrorCode, ErrorType, IError } from 'types/error_types';
-import { COLLA_COMMAND_MAP, ICollaCommandOptions } from '../commands';
-import { CollaCommandName } from '../commands/enum';
+import { COLLA_COMMAND_MAP, CollaCommandName, ICollaCommandOptions } from '../commands';
 import { CollaCommand, ICollaCommandDef, ICollaCommandDefExecuteResult, ICollaCommandDefExecuteSuccessResult } from './command';
 import {
   ExecuteFailReason,
@@ -29,12 +28,9 @@ import {
   ICollaCommandOptionsBase,
 } from './types';
 import { IOperation } from 'engine/ot/interface';
-import { IReduxState } from '../exports/store/interfaces';
-import { getActiveDatasheetId } from 'modules/database/store/selectors/resource/datasheet/base';
-
+import { IReduxState, Selectors } from '../exports/store';
 import { AnyAction, Store } from 'redux';
-import { LinkedDataConformanceMaintainer } from 'model/linked_data_conformance_maintainer';
-import { MemberFieldMaintainer } from 'model/member_maintainer';
+import { LinkedDataConformanceMaintainer, MemberFieldMaintainer } from 'model';
 import { FieldType, ResourceType } from 'types';
 import { CellFormatChecker } from 'cell_format_checker';
 import { LinkIntegrityChecker } from 'link_integrity_checker/link_integrity_checker';
@@ -126,13 +122,11 @@ export class CollaCommandManager {
 
     if ('resourceId' in options) {
       resourceId = options.resourceId;
-      if(options.resourceType) {
-        resourceType = options.resourceType;
-      }
+      resourceType = options.resourceType;
     }
 
     if (!resourceId) {
-      resourceId = getActiveDatasheetId(this._getContext().state)!;
+      resourceId = Selectors.getActiveDatasheetId(this._getContext().model)!;
     }
 
     return {
@@ -184,8 +178,8 @@ export class CollaCommandManager {
       return ret;
     }
 
-    const flushedActions = context.ldcMaintainer.flushLinkedActions(context.state);
-    const memberFieldAction = context.memberFieldMaintainer.flushMemberAction(context.state);
+    const flushedActions = context.ldcMaintainer.flushLinkedActions(context.model);
+    const memberFieldAction = context.memberFieldMaintainer.flushMemberAction(context.model);
 
     if (memberFieldAction.length) {
       ret.actions.push(...memberFieldAction);
@@ -202,7 +196,7 @@ export class CollaCommandManager {
   private _getContext(): ICollaCommandExecuteContext {
     // Each time the context is executed, a new maintainer is initialized to maintain the data consistency of the associated field cell
     return {
-      state: this.store.getState(),
+      model: this.store.getState(),
       ldcMaintainer: new LinkedDataConformanceMaintainer(),
       memberFieldMaintainer: new MemberFieldMaintainer(),
       fieldMapSnapshot: {},

@@ -15,21 +15,21 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { DeepPartial, getConnection } from 'typeorm';
+import { DatabaseConfigService } from 'shared/services/config/database.config.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule } from '@nestjs/config';
+import { Test, TestingModule } from '@nestjs/testing';
+import { DeepPartial } from 'typeorm';
 import { NodeShareSettingRepository } from './node.share.setting.repository';
 import { NodeShareSettingEntity } from '../entities/node.share.setting.entity';
-import { Test, TestingModule } from '@nestjs/testing';
-import { ConfigModule } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { DatabaseConfigService } from '../../shared/services/config/database.config.service';
-import { clearDatabase } from '../../shared/testing/test-util';
 
 describe('Test NodeShareSettingRepository', () => {
-  let moduleFixture: TestingModule;
+  let module: TestingModule;
   let repository: NodeShareSettingRepository;
+  let entity: NodeShareSettingEntity;
 
-  beforeEach(async() => {
-    moduleFixture = await Test.createTestingModule({
+  beforeAll(async() => {
+    module = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({ isGlobal: true }),
         TypeOrmModule.forRootAsync({
@@ -38,9 +38,10 @@ describe('Test NodeShareSettingRepository', () => {
         TypeOrmModule.forFeature([NodeShareSettingRepository]),
       ],
     }).compile();
-    // clear database
-    await clearDatabase(getConnection());
-    repository = moduleFixture.get<NodeShareSettingRepository>(NodeShareSettingRepository);
+    repository = module.get<NodeShareSettingRepository>(NodeShareSettingRepository);
+  });
+
+  beforeEach(async() => {
     const nodeShareSetting: DeepPartial<NodeShareSettingEntity> = {
       id: '2023',
       nodeId: 'datasheetId',
@@ -49,13 +50,17 @@ describe('Test NodeShareSettingRepository', () => {
       allowSave: true,
     };
     const record = repository.create(nodeShareSetting);
-    await repository.save(record);
+    entity = await repository.save(record);
   });
 
   afterEach(async() => {
-    await moduleFixture.close();
+    await repository.delete(entity.id);
   });
-  
+
+  afterAll(async() => {
+    await repository.manager.connection.close();
+  });
+
   it('should be return share setting by share id', async() => {
     const shareSetting = await repository.selectByShareId('shareId');
     expect(shareSetting?.nodeId).toEqual('datasheetId');

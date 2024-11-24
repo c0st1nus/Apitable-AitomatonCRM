@@ -29,18 +29,18 @@ export const AlertWrapper = styled.div.attrs(applyDefaultTheme) <IAlertWrapper>`
   padding: ${props => props.title ? '16px' : '8px 16px'};
   width: 100%;
   box-sizing: border-box;
-  border-radius: 4px;
+  border-radius: 6px;
   ${props => {
     const colorMap = {
-      default: props.theme.color.primaryColor,
-      error: props.theme.color.errorColor,
-      warning: props.theme.color.warningColor,
-      success: props.theme.color.successColor,
+      default: props.theme.palette.primary,
+      error: props.theme.palette.danger,
+      warning: props.theme.palette.warning,
+      success: props.theme.palette.success,
     };
     const color = colorMap[props.type];
     // const opacity = props.theme.palette.type === 'light' ? 0.1 : 0.9;
     return css`
-      background: ${rgba2hex(Color(color).alpha(0.1).string(), props.theme.color.bgCommonHigh)};
+      background: ${rgba2hex(Color(color).alpha(0.1).string(), props.theme.palette.background.primary)};
       border: 1px solid ${color};
     `;
   }}

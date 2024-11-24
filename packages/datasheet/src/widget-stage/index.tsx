@@ -16,9 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React from 'react';
-import ReactDOM from 'react-dom';
-// eslint-disable-next-line no-restricted-imports
 import * as components from '@apitable/components';
 import * as core from '@apitable/core';
 import * as icons from '@apitable/icons';
@@ -27,6 +24,8 @@ import 'focus-options-polyfill';
 import 'get-root-node-polyfill/implement';
 import 'normalize.css';
 import { getEnvVariables } from 'pc/utils/env';
+import React from 'react';
+import ReactDOM from 'react-dom';
 import 'regenerator-runtime/runtime';
 import 'resize-observer-polyfill/dist/ResizeObserver.global';
 import { Main } from './main/main';
@@ -54,11 +53,9 @@ import { ThemeWrap } from './theme_wrap';
 initTheme();
 
 const WidgetStage = () => {
-  return (
-    <ThemeWrap>
-      <Main />
-    </ThemeWrap>
-  );
+  return <ThemeWrap>
+    <Main />
+  </ThemeWrap>;
 };
 
 export default WidgetStage;

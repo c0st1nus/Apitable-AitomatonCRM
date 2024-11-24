@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Modal as AntdMobileModal } from 'antd-mobile';
-import * as React from 'react';
 import { colorVars } from '@apitable/components';
 import { Strings, t } from '@apitable/core';
+import { Modal as AntdMobileModal } from 'antd-mobile';
+import * as React from 'react';
 import promptFunc from './prompt';
 
 export interface IModalFuncProps {
@@ -39,21 +39,38 @@ export interface IModal {
 }
 
 export function confirm(props: IModalFuncProps) {
-  const { title, content, onOk, onCancel, okText, cancelText } = props;
-
-  return AntdMobileModal.show({
+  const {
     title,
     content,
-    closeOnAction: true,
-    actions: [
-      { text: cancelText || t(Strings.cancel), onClick: onCancel, key: cancelText || t(Strings.cancel) },
-      { text: okText || t(Strings.confirm), onClick: onOk, style: { color: colorVars.primaryColor }, key: okText || t(Strings.confirm) },
-    ],
-  });
+    onOk,
+    onCancel,
+    okText,
+    cancelText,
+  } = props;
+
+  return AntdMobileModal.show(
+    {
+      title,
+      content,
+      closeOnAction: true,
+      actions: [
+        { text: cancelText || t(Strings.cancel), onClick: onCancel, key: cancelText || t(Strings.cancel) },
+        { text: okText || t(Strings.confirm), onClick: onOk, style: { color: colorVars.primaryColor }, key: okText || t(Strings.confirm) },
+      ],
+    },
+  );
 }
 
 export function prompt(props: IModalFuncProps & { defaultValue: string }) {
-  const { title, onOk, onCancel, placeholder, defaultValue, okText, cancelText } = props;
+  const {
+    title,
+    onOk,
+    onCancel,
+    placeholder,
+    defaultValue,
+    okText,
+    cancelText,
+  } = props;
 
   return promptFunc({
     title,
@@ -67,17 +84,26 @@ export function prompt(props: IModalFuncProps & { defaultValue: string }) {
 }
 
 export function warning(props: IModalFuncProps) {
-  const { title, content, onOk, onCancel, okText, cancelText } = props;
-
-  return AntdMobileModal.show({
-    title: <span style={{ color: colorVars.errorColor }}>{title}</span>,
+  const {
+    title,
     content,
-    closeOnAction: true,
-    actions: [
-      { text: cancelText || t(Strings.cancel), onClick: onCancel, key: cancelText || t(Strings.cancel) },
-      { text: okText || t(Strings.confirm), onClick: onOk, style: { color: colorVars.errorColor }, key: okText || t(Strings.confirm) },
-    ],
-  });
+    onOk,
+    onCancel,
+    okText,
+    cancelText,
+  } = props;
+
+  return AntdMobileModal.show(
+    {
+      title: <span style={{ color: colorVars.errorColor }}>{title}</span>,
+      content,
+      closeOnAction: true,
+      actions: [
+        { text: cancelText || t(Strings.cancel), onClick: onCancel, key: cancelText || t(Strings.cancel) },
+        { text: okText || t(Strings.confirm), onClick: onOk, style: { color: colorVars.errorColor }, key: okText || t(Strings.confirm) },
+      ],
+    },
+  );
 }
 
 export const Modal: IModal = {
@@ -85,3 +111,4 @@ export const Modal: IModal = {
   warning,
   prompt,
 };
+

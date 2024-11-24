@@ -16,24 +16,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useCreation } from 'ahooks';
-import { FC, useContext } from 'react';
-import { shallowEqual } from 'react-redux';
 import { CellType, DateUnitType, IGanttViewProperty, RowHeightLevel, Selectors, ViewType } from '@apitable/core';
+import { useCreation } from 'ahooks';
 import { change, DEFAULT_SCROLL_STATE, GanttCoordinate, getDiffCount, getGanttHeaderHeight, KonvaGanttViewContext } from 'pc/components/gantt_view';
 import GanttStage from 'pc/components/gantt_view/gantt_stage/gantt_stage';
 import {
-  DEFAULT_POINT_POSITION,
-  getColumnIndicesMap,
-  getRowIndicesMap,
-  GRID_BOTTOM_STAT_HEIGHT,
-  GRID_ROW_HEAD_WIDTH,
-  GridCoordinate,
-  KonvaGridViewContext,
+  DEFAULT_POINT_POSITION, getColumnIndicesMap, getRowIndicesMap, GRID_BOTTOM_STAT_HEIGHT, GRID_ROW_HEAD_WIDTH, GridCoordinate, KonvaGridViewContext,
 } from 'pc/components/konva_grid';
 import { store } from 'pc/store';
-
-import { useAppSelector } from 'pc/store/react-redux';
+import { FC, useContext } from 'react';
+import { shallowEqual, useSelector } from 'react-redux';
 
 const getUnitType = (dateUnitType: DateUnitType) => {
   switch (dateUnitType) {
@@ -52,7 +44,13 @@ interface IGanttExportProps {
 }
 
 export const GanttExport: FC<React.PropsWithChildren<IGanttExportProps>> = ({ dateUnitType }) => {
-  const { view, rowHeight, rowHeightLevel, ganttLinearRows, ganttStyle } = useAppSelector((state) => {
+  const {
+    view,
+    rowHeight,
+    rowHeightLevel,
+    ganttLinearRows,
+    ganttStyle,
+  } = useSelector((state) => {
     const view = Selectors.getCurrentView(state)! as IGanttViewProperty;
     const rowHeightLevel = view.rowHeightLevel || RowHeightLevel.Short;
     return {
@@ -63,7 +61,11 @@ export const GanttExport: FC<React.PropsWithChildren<IGanttExportProps>> = ({ da
       ganttStyle: Selectors.getGanttStyle(state)!,
     };
   }, shallowEqual);
-  const { snapshot, linearRows, visibleColumns: gridVisibleColumns } = useContext(KonvaGridViewContext);
+  const {
+    snapshot,
+    linearRows,
+    visibleColumns: gridVisibleColumns,
+  } = useContext(KonvaGridViewContext);
   const { ganttVisibleColumns } = useContext(KonvaGanttViewContext);
   const rowCount = linearRows.length;
   const { autoHeadHeight } = view;
@@ -73,7 +75,7 @@ export const GanttExport: FC<React.PropsWithChildren<IGanttExportProps>> = ({ da
     const state = store.getState();
     let start: number | null = null;
     let end: number | null = null;
-    ganttLinearRows.forEach((row) => {
+    ganttLinearRows.forEach(row => {
       const { recordId, type } = row;
       if (type !== CellType.Record) return;
       // Considering that there may be undefined cases that affect the subsequent min/max calculation
@@ -91,7 +93,7 @@ export const GanttExport: FC<React.PropsWithChildren<IGanttExportProps>> = ({ da
 
     const EDGE_COLUMN_COUNT = 3;
     const unitType = getUnitType(dateUnitType);
-    const totalCount = start == null || end == null ? undefined : getDiffCount(start, end, unitType);
+    const totalCount = (start == null || end == null) ? undefined : getDiffCount(start, end, unitType);
     const columnThreshold = totalCount ? Math.ceil(totalCount / 2) + EDGE_COLUMN_COUNT : undefined;
     const ganttCoordinate = new GanttCoordinate({
       rowHeight,
@@ -107,7 +109,7 @@ export const GanttExport: FC<React.PropsWithChildren<IGanttExportProps>> = ({ da
       workDays,
       onlyCalcWorkDay,
       columnThreshold,
-      initDateTime: columnThreshold != null ? change(start!, columnThreshold - EDGE_COLUMN_COUNT, unitType) : Date.now(),
+      initDateTime: columnThreshold != null ? change(start!, columnThreshold - EDGE_COLUMN_COUNT, unitType) : Date.now()
     });
     if (columnThreshold != null) {
       ganttCoordinate.containerWidth = ganttCoordinate.totalWidth;

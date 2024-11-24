@@ -22,7 +22,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * <p>
- * SMS properties.
+ * SMS properties
  * </p>
  *
  * @author Shawn Deng
@@ -70,28 +70,22 @@ public class SmsProperties {
         this.outland = outland;
     }
 
-    /**
-     * sms type.
-     */
-    public enum SmsType {
-
-        /**
-         * Tencent Cloud.
-         */
-        TENCENT,
-
-        /**
-         * Aliyun Cloud.
-         */
-        ALIYUN,
-
-        YUNPIAN
-    }
-
-    /**
-     * sms server properties.
-     */
     public static class SmsServer {
+
+        public enum SmsType {
+
+            /**
+             * Tencent Cloud
+             */
+            TENCENT,
+
+            /**
+             * Aliyun Cloud
+             */
+            ALIYUN,
+
+            YUNPIAN
+        }
 
         private SmsType type;
 
@@ -135,7 +129,7 @@ public class SmsProperties {
 
 
         /**
-         * Tencent sms properties.
+         * Tencent sms properties
          */
         public static class Tencent {
 
@@ -171,7 +165,7 @@ public class SmsProperties {
         }
 
         /**
-         * Aliyun sms properties.
+         * Aliyun sms properties
          */
         public static class Aliyun {
 
@@ -197,12 +191,12 @@ public class SmsProperties {
         }
 
         /**
-         * Yunpian sms properties.
+         * Yunpian sms properties
          */
         public static class Yunpian {
 
             /**
-             * API key.
+             * API key
              */
             private String apikey;
 

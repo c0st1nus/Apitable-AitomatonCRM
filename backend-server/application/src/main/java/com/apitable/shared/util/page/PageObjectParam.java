@@ -18,17 +18,13 @@
 
 package com.apitable.shared.util.page;
 
-import static com.apitable.shared.constants.PageConstants.PAGE_PARAM;
+import java.lang.annotation.*;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import static com.apitable.shared.constants.PageConstants.PAGE_PARAM;
 
 /**
  * <p>
- * String transform Object.
+ * String transform Object
  * </p>
  *
  * @author Shawn Deng
@@ -38,17 +34,7 @@ import java.lang.annotation.Target;
 @Documented
 public @interface PageObjectParam {
 
-    /**
-     * param name.
-     *
-     * @return param name
-     */
     String name() default PAGE_PARAM;
 
-    /**
-     * whether required.
-     *
-     * @return true if required
-     */
     boolean required() default true;
 }

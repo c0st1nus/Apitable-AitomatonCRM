@@ -77,6 +77,13 @@ public class NotificationDetailVo {
     private LocalDateTime updatedAt;
 
     /**
+     * Notified user ID.
+     */
+    @Deprecated
+    @Schema(description = "Notified user ID", example = "1261273764218")
+    private String toUserId;
+
+    /**
      * Notified user uuid.
      */
     @Schema(description = "Notified user uuid", example = "aaaabb")

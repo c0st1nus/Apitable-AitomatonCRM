@@ -16,14 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { IReduxState } from '../exports/store/interfaces';
+import { IReduxState, Selectors } from '../exports/store';
 import { isServer } from 'utils/env';
 import { computeCache } from './compute_cache_manager';
 import { ComputeRefManager } from './compute_reference_manager';
 
-import {
-  getSnapshot,
-} from 'modules/database/store/selectors/resource/datasheet/base';
 export const COMPUTE_REF_MAP_CACHE_KEY = 'COMPUTE_REF_MAP_CACHE_KEY';
 /**
  * Pass in the current `state`, and return the reference relationship management instance of the computed field in the current state.
@@ -37,7 +34,7 @@ export const getComputeRefManager = (state: IReduxState) => {
   }
   const computeRefManager = new ComputeRefManager();
   Object.keys(state.datasheetMap).forEach(datasheetId => {
-    const currSnapshot = getSnapshot(state, datasheetId);
+    const currSnapshot = Selectors.getSnapshot(state, datasheetId);
     const fieldMap = currSnapshot?.meta.fieldMap;
     if (fieldMap) {
 

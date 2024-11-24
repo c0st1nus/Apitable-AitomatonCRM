@@ -16,12 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import * as React from 'react';
-import { useThemeColors } from '@apitable/components';
 import { IViewColumn, Selectors } from '@apitable/core';
-import { useAppSelector } from 'pc/store/react-redux';
+import * as React from 'react';
+import { useSelector } from 'react-redux';
 import { CardBody } from './card_body';
 import { CardHeader } from './card_header';
+import { useThemeColors } from '@apitable/components';
 
 //  Common card component for Gallery and Kanban views
 interface IRecordCardProps {
@@ -46,51 +46,47 @@ interface IRecordCardProps {
   isGallery?: boolean;
 }
 
-const RecordCardBase: React.FC<React.PropsWithChildren<IRecordCardProps>> = (props) => {
+const RecordCardBase: React.FC<React.PropsWithChildren<IRecordCardProps>> = props => {
+
   const {
-    recordId,
-    cardWidth,
-    coverHeight = 0,
-    showEmptyField = true,
-    isCoverFit,
-    isColNameVisible,
+    recordId, 
+    cardWidth, 
+    coverHeight = 0, 
+    showEmptyField = true, 
+    isCoverFit, 
+    isColNameVisible, 
     coverFieldId,
-    multiTextMaxLine = 6,
-    showEmptyCover = true,
-    showOneImage = false,
+    multiTextMaxLine = 6, 
+    showEmptyCover = true, 
+    showOneImage = false, 
     className = '',
     bodyClassName = '',
     isVirtual = false,
     isGallery = false,
-    datasheetId,
+    datasheetId
   } = props;
   const colors = useThemeColors();
-  const visibleFields = useAppSelector(Selectors.getVisibleColumns);
-  const searchRecordId = useAppSelector(Selectors.getCurrentSearchRecordId);
+  const visibleFields = useSelector(Selectors.getVisibleColumns);
+  const searchRecordId = useSelector(Selectors.getCurrentSearchRecordId);
   let isCurrentSearchItem = false;
   if (searchRecordId) {
     isCurrentSearchItem = searchRecordId === recordId;
   }
-  const currentSearchItemStyle = isCurrentSearchItem
-    ? {
-      border: `1px solid ${colors.borderWarnDefault}`,
-      background: 'linear-gradient(0deg, var(--bgWarnLightDefault) 0%, var(--bgWarnLightDefault) 100%), var(--bgCommonDefault)',
-    }
-    : {
-      background: colors.defaultBg,
-    };
+  const currentSearchItemStyle = isCurrentSearchItem ? {
+    border: `1px solid ${colors.primaryColor}`,
+  } : {};
 
   if (!datasheetId) {
     return null;
   }
-
+  
   return (
     <div
       style={{
         width: cardWidth,
         ...currentSearchItemStyle,
         borderRadius: 4,
-        overflow: 'hidden',
+        overflow: 'hidden',        
       }}
       className={className}
     >

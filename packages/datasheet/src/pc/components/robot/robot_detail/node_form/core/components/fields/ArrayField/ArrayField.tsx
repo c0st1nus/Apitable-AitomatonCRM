@@ -16,21 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { JSONSchema7 } from 'json-schema';
-import { cloneDeep } from 'lodash';
-import { /* useEffect,  */ useState } from 'react';
 import { isOperandNullValue, removeArrayOperandItemByIndex, isOperand } from '@apitable/core';
+import { JSONSchema7 } from 'json-schema';
+import { /* useEffect,  */useState } from 'react';
 import { IFieldProps, IRegistry } from '../../../interface';
 import {
-  allowAdditionalItems,
-  getDefaultFormState,
-  getDefaultRegistry,
-  getUiOptions,
-  getWidget,
-  isFilesArray,
-  isFixedItems,
-  isMultiSelect,
-  optionsList,
+  allowAdditionalItems, getDefaultFormState, getDefaultRegistry, getUiOptions, getWidget, isFilesArray,
+  isFixedItems, isMultiSelect, optionsList,
   retrieveSchema,
   toIdSchema,
 } from '../../../utils';
@@ -42,11 +34,11 @@ import { EmptyArrayOperand, generateKeyedFormData, generateRowId, keyedToPlainFo
 const ArrayField = (props: IFieldProps) => {
   // console.log('ArrayField.props.formData', props.formData);
   const [state, setState] = useState({
-    // Here it turns out that the operation of generating a unique key for each item of the array is done.
+    // Here it turns out that the operation of generating a unique key for each item of the array is done. 
     // It was supposed to optimize the rendering. For now, it is removed.
-    keyedFormData: generateKeyedFormData(
-      isOperandNullValue(props.formData, props.schema) ? JSON.parse(JSON.stringify(EmptyArrayOperand)) : props.formData,
-    ), //generateKeyedFormData(props.formData),
+    keyedFormData: generateKeyedFormData(isOperandNullValue(props.formData, props.schema)
+      ? JSON.parse(JSON.stringify(EmptyArrayOperand))
+      : props.formData),//generateKeyedFormData(props.formData),
     updatedKeyedFormData: false,
   });
   // React.useEffect(() => {
@@ -88,7 +80,7 @@ const ArrayField = (props: IFieldProps) => {
   //   return items.title || items.description || "Item";
   // }
 
-  const isItemRequired = (itemSchema: { type: string | string[] }) => {
+  const isItemRequired = (itemSchema: { type: string | string[]; }) => {
     if (Array.isArray(itemSchema.type)) {
       // While we don't yet support composite/nullable jsonschema types, it's
       // future-proof to check for requirement against these.
@@ -137,18 +129,17 @@ const ArrayField = (props: IFieldProps) => {
       type: 'Expression',
       value: {
         operator: 'newArray',
-        operands: [
-          ...state.keyedFormData.value.operands,
-          {
-            key: generateRowId(),
-          },
-        ],
+        operands: [...state.keyedFormData.value.operands, {
+          key: generateRowId(),
+        }],
       },
     };
-    setState({
-      keyedFormData: newKeyedFormData,
-      updatedKeyedFormData: true,
-    });
+    setState(
+      {
+        keyedFormData: newKeyedFormData,
+        updatedKeyedFormData: true,
+      },
+    );
     // const newOperands = newKeyedFormData.value.operands.map((v, i, arr) => (i === arr.length - 1 ? {} : v));
     // FIXME
     // onChange({
@@ -162,7 +153,7 @@ const ArrayField = (props: IFieldProps) => {
   };
 
   const onAddIndexClick = (index: number) => {
-    return (event: { preventDefault: () => void }) => {
+    return (event: { preventDefault: () => void; }) => {
       if (event) {
         event.preventDefault();
       }
@@ -174,16 +165,18 @@ const ArrayField = (props: IFieldProps) => {
       const newKeyedFormData = [...state.keyedFormData];
       newKeyedFormData.splice(index, 0, newKeyedFormDataRow);
 
-      setState({
-        keyedFormData: newKeyedFormData,
-        updatedKeyedFormData: true,
-      });
+      setState(
+        {
+          keyedFormData: newKeyedFormData,
+          updatedKeyedFormData: true,
+        },
+      );
       onChange(keyedToPlainFormData(newKeyedFormData));
     };
   };
 
   const onDropIndexClick = (index: number) => {
-    return (event: { preventDefault: () => void }) => {
+    return (event: { preventDefault: () => void; }) => {
       if (event) {
         event.preventDefault();
       }
@@ -206,17 +199,19 @@ const ArrayField = (props: IFieldProps) => {
       const newKeyedFormData = removeArrayOperandItemByIndex(keyedFormData, index);
       // console.log('onDropIndexClick', keyedFormData, newKeyedFormData);
       // const newKeyedFormData = keyedFormData.filter((_, i) => i !== index);
-      setState({
-        keyedFormData: newKeyedFormData,
-        updatedKeyedFormData: true,
-      });
+      setState(
+        {
+          keyedFormData: newKeyedFormData,
+          updatedKeyedFormData: true,
+        },
+      );
       onChange(keyedToPlainFormData(newKeyedFormData), newErrorSchema);
       // onChange(newKeyedFormData, newErrorSchema);
     };
   };
 
   const onReorderClick = (index: string, newIndex: string) => {
-    return (event: { preventDefault: () => void; target: { blur: () => void } }) => {
+    return (event: { preventDefault: () => void; target: { blur: () => void; }; }) => {
       if (event) {
         event.preventDefault();
         event.target.blur();
@@ -282,16 +277,14 @@ const ArrayField = (props: IFieldProps) => {
       // console.log('ArrayField.onChangeForIndex', formData, transArray, jsonValue);
       setState((data) => {
         const oldData = data.keyedFormData.value.operands[index];
-        // freeze object is read only, need clone a new variable to edit.
-        const _data = cloneDeep(data);
-        _data.keyedFormData.value.operands[index] = { ...oldData, ...jsonValue };
-        return _data;
+        data.keyedFormData.value.operands[index] = { ...oldData, ...jsonValue };
+        return data;
       });
 
       onChange(
         transArray,
         errorSchema &&
-          props.errorSchema && {
+        props.errorSchema && {
           ...props.errorSchema,
           [index]: errorSchema,
         },
@@ -334,7 +327,13 @@ const ArrayField = (props: IFieldProps) => {
         const item = keyedItem;
         const itemErrorSchema = errorSchema ? errorSchema[index] : undefined;
         const itemIdPrefix = idSchema.$id + '_' + index;
-        const itemIdSchema = toIdSchema(itemSchema, itemIdPrefix, rootSchema, item, idPrefix);
+        const itemIdSchema = toIdSchema(
+          itemSchema,
+          itemIdPrefix,
+          rootSchema,
+          item,
+          idPrefix,
+        );
         return renderArrayFieldItem({
           rawErrors, // FIXME: ???
           key: item.key,
@@ -369,7 +368,10 @@ const ArrayField = (props: IFieldProps) => {
     };
 
     // Check if a custom render function was passed in
-    const Component = uiSchema['ui:ArrayFieldTemplate'] || ArrayFieldTemplate || DefaultNormalArrayFieldTemplate;
+    const Component =
+      uiSchema['ui:ArrayFieldTemplate'] ||
+      ArrayFieldTemplate ||
+      DefaultNormalArrayFieldTemplate;
     return <Component {...arrayProps} />;
   };
 
@@ -403,7 +405,7 @@ const ArrayField = (props: IFieldProps) => {
     return (
       <Widget
         uiSchema={uiSchema}
-        id={idSchema && (idSchema.$id as string)}
+        id={idSchema && idSchema.$id as string}
         multiple
         onChange={onSelectChange}
         onBlur={onBlur}
@@ -425,7 +427,19 @@ const ArrayField = (props: IFieldProps) => {
   };
 
   const renderFiles = () => {
-    const { schema, uiSchema, idSchema, name, disabled, readonly, autofocus, onBlur, onFocus, registry = getDefaultRegistry(), rawErrors } = props;
+    const {
+      schema,
+      uiSchema,
+      idSchema,
+      name,
+      disabled,
+      readonly,
+      autofocus,
+      onBlur,
+      onFocus,
+      registry = getDefaultRegistry(),
+      rawErrors,
+    } = props;
     const title = schema.title || name;
     const items = props.formData;
     const { widgets, formContext } = registry;
@@ -473,8 +487,12 @@ const ArrayField = (props: IFieldProps) => {
     let items = props.formData;
     const { ArrayFieldTemplate, rootSchema, fields, formContext } = registry as IRegistry;
     const { TitleField } = fields;
-    const itemSchemas = (schema.items as any).map((item: JSONSchema7, index: number) => retrieveSchema(item, rootSchema, formData[index]));
-    const additionalSchema = allowAdditionalItems(schema) ? retrieveSchema(schema.additionalItems as any, rootSchema, formData) : null;
+    const itemSchemas = (schema.items as any).map((item: JSONSchema7, index: number) =>
+      retrieveSchema(item, rootSchema, formData[index])
+    );
+    const additionalSchema = allowAdditionalItems(schema)
+      ? retrieveSchema(schema.additionalItems as any, rootSchema, formData)
+      : null;
 
     if (!items || items.length < itemSchemas.length) {
       // to make sure at least all fixed items are generated
@@ -489,12 +507,20 @@ const ArrayField = (props: IFieldProps) => {
       disabled,
       idSchema,
       formData,
-      items: state.keyedFormData.map((keyedItem: { key: any; item: any }, index: number) => {
+      items: state.keyedFormData.map((keyedItem: { key: any; item: any; }, index: number) => {
         const { key, item } = keyedItem;
         const additional = index >= itemSchemas.length;
-        const itemSchema = additional ? retrieveSchema(schema.additionalItems as any, rootSchema, item) : itemSchemas[index];
+        const itemSchema = additional
+          ? retrieveSchema(schema.additionalItems as any, rootSchema, item)
+          : itemSchemas[index];
         const itemIdPrefix = idSchema.$id + '_' + index;
-        const itemIdSchema = toIdSchema(itemSchema, itemIdPrefix, rootSchema, item, idPrefix);
+        const itemIdSchema = toIdSchema(
+          itemSchema,
+          itemIdPrefix,
+          rootSchema,
+          item,
+          idPrefix
+        );
         const itemUiSchema = additional
           ? uiSchema.additionalItems || {}
           : Array.isArray(uiSchema.items)
@@ -531,7 +557,10 @@ const ArrayField = (props: IFieldProps) => {
     };
 
     // Check if a custom template template was passed in
-    const Template = uiSchema['ui:ArrayFieldTemplate'] || ArrayFieldTemplate || DefaultFixedArrayFieldTemplate;
+    const Template =
+      uiSchema['ui:ArrayFieldTemplate'] ||
+      ArrayFieldTemplate ||
+      DefaultFixedArrayFieldTemplate;
     return <Template {...arrayProps} />;
   };
 
@@ -552,7 +581,12 @@ const ArrayField = (props: IFieldProps) => {
     rawErrors,
   }: any) => {
     // console.log('ArrayField.renderArrayFieldItem.formData', itemData);
-    const { disabled, readonly, uiSchema, registry = getDefaultRegistry() } = props;
+    const {
+      disabled,
+      readonly,
+      uiSchema,
+      registry = getDefaultRegistry(),
+    } = props;
     const SchemaField = registry.fields.SchemaField as any;
     const { orderable, removable } = {
       orderable: true,
@@ -564,7 +598,7 @@ const ArrayField = (props: IFieldProps) => {
       moveDown: orderable && canMoveDown,
       remove: removable && canRemove,
     };
-    has.toolbar = Object.keys(has).some((key) => has[key]);
+    has.toolbar = Object.keys(has).some(key => has[key]);
 
     return {
       children: (
@@ -600,12 +634,23 @@ const ArrayField = (props: IFieldProps) => {
       readonly,
     };
   };
-  const { schema, uiSchema, idSchema, registry = getDefaultRegistry() } = props;
+  const {
+    schema,
+    uiSchema,
+    idSchema,
+    registry = getDefaultRegistry(),
+  } = props;
   const { rootSchema } = registry;
   if (!schema.hasOwnProperty('items')) {
     const { fields } = registry;
     const UnsupportedField = fields.UnsupportedField as any;
-    return <UnsupportedField schema={schema} idSchema={idSchema} reason="Missing items definition" />;
+    return (
+      <UnsupportedField
+        schema={schema}
+        idSchema={idSchema}
+        reason="Missing items definition"
+      />
+    );
   }
   if (isFixedItems(schema)) {
     return renderFixedArray();

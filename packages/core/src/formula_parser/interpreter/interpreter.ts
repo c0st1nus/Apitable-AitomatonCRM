@@ -30,8 +30,7 @@ import {
 import { TokenType } from '../lexer/token';
 import { Functions } from '../functions';
 import { IFormulaContext, FormulaBaseError, getBlankValueByType } from 'formula_parser/functions/basic';
-import { Field } from 'model/field';
-import { ArrayValueField } from 'model/field/array_field';
+import { Field, ArrayValueField } from 'model';
 import { BasicValueType, FormulaFuncType } from 'types';
 import { plus, minus, times, divide } from 'utils';
 import { isNumber, isNull } from 'util';
@@ -61,14 +60,14 @@ export class Interpreter {
       if (
         [BasicValueType.Number, BasicValueType.Boolean, BasicValueType.String].includes(fieldBasicValueType) ||
         (
-          fieldBasicValueType === BasicValueType.DateTime &&
+          fieldBasicValueType === BasicValueType.DateTime && 
           [
-            TokenType.Equal,
-            TokenType.NotEqual,
-            TokenType.Less,
+            TokenType.Equal, 
+            TokenType.NotEqual, 
+            TokenType.Less, 
             TokenType.LessEqual,
-            TokenType.Greater,
-            TokenType.GreaterEqual,
+            TokenType.Greater, 
+            TokenType.GreaterEqual, 
           ].includes(tokenType)
         )
       ) {
@@ -98,7 +97,6 @@ export class Interpreter {
   /**
    * Evaluate by accessing the abstract syntax tree
    * @param {AstNode} node
-   * @param isErrorScope
    * @returns {any}
    * @memberof Interpreter
    */
@@ -250,7 +248,7 @@ export class Interpreter {
         fnName,
       }));
     }
-    // The IS_ERROR function needs to monitor whether the internal equation will report an error,
+    // The IS_ERROR function needs to monitor whether the internal equation will report an error, 
     // and IF/SWITCH needs to execute until Error before reporting an error.
     // So here is a special mark for IS_ERROR/IF/SWITCH functions
     // TODO: Do ISERROR compatibility here first, and delete the user data after brushing

@@ -18,9 +18,7 @@
 
 import { IResourceOpsCollect } from 'command_manager';
 import { OTActionName } from 'engine';
-import { IBaseDatasheetPack } from 'exports/store/interfaces';
-import { Role } from 'config/constant';
-import { ViewType } from 'modules/shared/store/constants';
+import { IBaseDatasheetPack, Role, ViewType } from 'exports/store';
 import { FieldType, SegmentType } from 'types';
 
 export const mockDatasheetMap: Record<string, IBaseDatasheetPack> = {

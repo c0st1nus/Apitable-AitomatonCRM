@@ -18,7 +18,6 @@
 
 import { ApiTipConstant, CacheManager, clearCachedSelectors, computeCache, ExpCache } from '@apitable/core';
 import { CallHandler, ExecutionContext, HttpStatus, Injectable, NestInterceptor } from '@nestjs/common';
-import type { FastifyRequest } from 'fastify';
 import { ApiUsageEntity } from 'fusion/entities/api.usage.entity';
 import { ApiUsageRepository } from 'fusion/repositories/api.usage.repository';
 import { ApiResponse } from 'fusion/vos/api.response';
@@ -41,23 +40,20 @@ import { InjectLogger, SPACE_ID_HTTP_DECORATE, USER_HTTP_DECORATE } from '../com
  */
 @Injectable()
 export class ApiUsageInterceptor implements NestInterceptor {
-  constructor(
-    @InjectLogger() private readonly logger: Logger,
-    private readonly apiUsageRepository: ApiUsageRepository,
-  ) {}
+  constructor(@InjectLogger() private readonly logger: Logger, private readonly apiUsageRepository: ApiUsageRepository) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Promise<any> {
     const request = context.switchToHttp().getRequest();
     this.clearApiCache();
-    return next.handle().pipe(
+    return (next.handle().pipe(
       tap((data: ApiResponse<any>) => {
         this.clearApiCache();
-        this.apiUsage(request, data);
+        void this.apiUsage(request, data);
       }),
-      catchError((err) => {
+      catchError(err => {
         this.clearApiCache();
         if (err instanceof ApiException && err.getTip().isRecordTimes) {
-          this.apiUsage(request, undefined, err);
+          void this.apiUsage(request, undefined, err);
           return throwError(err);
         }
         // database error
@@ -67,7 +63,7 @@ export class ApiUsageInterceptor implements NestInterceptor {
         }
         return throwError(err);
       }),
-    ) as any as Promise<any>;
+    ) as any) as Promise<any>;
   }
 
   /**
@@ -84,17 +80,17 @@ export class ApiUsageInterceptor implements NestInterceptor {
     clearCachedSelectors();
   }
 
-  async apiUsage(request: FastifyRequest, response?: ApiResponse<any>, error?: any): Promise<void> {
+  apiUsage(request: any, response?: ApiResponse<any>, error?: any) {
     const apiUsageEntity = new ApiUsageEntity();
-    apiUsageEntity.dstId = (request.params as any).dstId || (request.params as any).nodeId;
+    apiUsageEntity.dstId = request.params.datasheetId || request.params.nodeId;
     apiUsageEntity.spaceId = request[SPACE_ID_HTTP_DECORATE];
     apiUsageEntity.userId = request[USER_HTTP_DECORATE].id;
-    apiUsageEntity.reqIp = (request.headers['x-real-ip'] as string) || request.ip;
-    apiUsageEntity.apiVersion = getApiVersionFromUrl(request.raw.url!);
-    apiUsageEntity.reqMethod = ApiHttpMethod[request.raw.method!.toLowerCase()];
-    apiUsageEntity.reqPath = request.raw.url!.split('?')[0]!;
+    apiUsageEntity.reqIp = request.headers['x-real-ip'] || request.ip;
+    apiUsageEntity.apiVersion = getApiVersionFromUrl(request.raw.url);
+    apiUsageEntity.reqMethod = ApiHttpMethod[request.raw.method.toLowerCase()];
+    apiUsageEntity.reqPath = request.raw.url.split('?')[0];
     apiUsageEntity.reqDetail = {
-      ua: (request.headers['x-vika-user-agent']! || request.headers['user-agent']!) as string,
+      ua: request.headers['x-vika-user-agent'] || request.headers['user-agent'],
       referer: request.headers.referer,
     };
     if (response) {
@@ -109,9 +105,6 @@ export class ApiUsageInterceptor implements NestInterceptor {
         message: error instanceof ServerException ? error.getMessage() : error.message,
       };
     }
-    try {
-      // catch for duplicate requests
-      await this.apiUsageRepository.insertByEntity(apiUsageEntity);
-    } catch (e) {}
+    return this.apiUsageRepository.insertByEntity(apiUsageEntity);
   }
 }

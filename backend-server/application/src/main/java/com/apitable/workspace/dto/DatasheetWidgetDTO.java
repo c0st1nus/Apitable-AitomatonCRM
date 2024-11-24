@@ -21,9 +21,6 @@ package com.apitable.workspace.dto;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * datasheet widget dto.
- */
 @Data
 @NoArgsConstructor
 public class DatasheetWidgetDTO {

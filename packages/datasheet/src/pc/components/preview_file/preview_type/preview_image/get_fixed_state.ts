@@ -16,7 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-function fixPoint(key: 'x' | 'y', offset: number, width: number, containerWidth: number) {
+function fixPoint(
+  key: 'x' | 'y',
+  offset: number,
+  width: number,
+  containerWidth: number
+) {
   const maxOffset = (width - containerWidth) / 2;
 
   const negative = offset > 0 ? 1 : -1;
@@ -42,7 +47,7 @@ export default function getFixedState(
   x: number,
   y: number,
   containerWidth: number,
-  containerHeight: number,
+  containerHeight: number
 ): { [x: string]: number } {
   if (width <= containerWidth && height <= containerHeight) {
     return {

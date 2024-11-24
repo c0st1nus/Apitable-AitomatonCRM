@@ -28,9 +28,8 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.apitable.control.entity.ControlRoleEntity;
-import com.apitable.control.infrastructure.ControlIdBuilder;
-import com.apitable.control.infrastructure.ControlIdBuilder.ControlId;
 import com.apitable.control.infrastructure.ControlType;
+import com.apitable.control.infrastructure.permission.NodePermission;
 import com.apitable.control.infrastructure.role.ControlRole;
 import com.apitable.control.infrastructure.role.ControlRoleManager;
 import com.apitable.control.infrastructure.role.DefaultWorkbenchRole;
@@ -45,6 +44,7 @@ import com.apitable.organization.mapper.MemberMapper;
 import com.apitable.organization.mapper.UnitMapper;
 import com.apitable.organization.service.IMemberService;
 import com.apitable.organization.service.IOrganizationService;
+import com.apitable.organization.service.IRoleMemberService;
 import com.apitable.organization.service.IRoleService;
 import com.apitable.organization.service.ITeamService;
 import com.apitable.organization.service.IUnitService;
@@ -71,14 +71,12 @@ import com.apitable.workspace.enums.NodePermissionEnum;
 import com.apitable.workspace.enums.NodeType;
 import com.apitable.workspace.enums.PermissionException;
 import com.apitable.workspace.mapper.NodeMapper;
-import com.apitable.workspace.service.IControlMemberService;
 import com.apitable.workspace.service.INodeRoleService;
 import com.apitable.workspace.service.INodeService;
 import com.apitable.workspace.vo.NodeRoleMemberVo;
 import com.apitable.workspace.vo.NodeRoleUnit;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import jakarta.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -87,10 +85,12 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -133,13 +133,13 @@ public class NodeRoleServiceImpl implements INodeRoleService {
     private IControlRoleService iControlRoleService;
 
     @Resource
-    private IControlMemberService iControlMemberService;
-
-    @Resource
     private UserSpaceCacheService userSpaceCacheService;
 
     @Resource
     private IUnitService iUnitService;
+
+    @Resource
+    private IRoleMemberService iRoleMemberService;
 
     @Resource
     private IRoleService iRoleService;
@@ -163,14 +163,13 @@ public class NodeRoleServiceImpl implements INodeRoleService {
     }
 
     @Override
-    public void disableNodeRole(Long userId, String nodeId) {
+    public void disableNodeRole(Long userId, Long memberId, String nodeId) {
         log.info("[{}] close node [{}] Specify permissions", userId, nodeId);
         // delete permission control unit
         iControlService.removeControl(userId, Collections.singletonList(nodeId), false);
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public void addNodeRole(Long userId, String nodeId, String role, List<Long> unitIds) {
         log.info("[{}] add the permission role of organization unit [{}] to node [{}] as [{}]",
             userId, nodeId, unitIds, role);
@@ -188,22 +187,22 @@ public class NodeRoleServiceImpl implements INodeRoleService {
                 .collect(Collectors.toMap(ControlRoleEntity::getUnitId, i -> i));
 
         List<Long> addUnitIds = new ArrayList<>();
-        List<Long> updateUnitIds = new ArrayList<>();
+        List<Long> updateIds = new ArrayList<>();
         for (Long unitId : unitIds) {
             if (!unitRoleMap.containsKey(unitId)) {
                 // Does not exist, add the role of this organizational unit
                 addUnitIds.add(unitId);
             } else if (!unitRoleMap.get(unitId).getRoleCode().equals(role)) {
                 // exists and the roles are different, modify the roles of this organizational unit
-                updateUnitIds.add(unitId);
+                updateIds.add(unitRoleMap.get(unitId).getId());
             }
         }
         if (CollUtil.isNotEmpty(addUnitIds)) {
             iControlRoleService.addControlRole(userId, nodeId, addUnitIds, role);
         }
-        if (CollUtil.isNotEmpty(updateUnitIds)) {
+        if (CollUtil.isNotEmpty(updateIds)) {
             // Specify table ID modification to avoid file administrator modification
-            iControlRoleService.editControlRole(userId, nodeId, updateUnitIds, role);
+            iControlRoleService.editControlRole(userId, updateIds, role);
         }
     }
 
@@ -477,7 +476,7 @@ public class NodeRoleServiceImpl implements INodeRoleService {
     public List<NodeRoleMemberVo> getNodeRoleMembers(String spaceId) {
         log.info("load all members of the space");
         List<Long> memberIds = iMemberService.getMemberIdsBySpaceId(spaceId);
-        List<NodeRoleMemberVo> results = iMemberService.getNodeRoleMemberWithSort(memberIds);
+        List<NodeRoleMemberVo> results = memberMapper.selectNodeRoleMemberByIds(memberIds);
 
         // give permission value
         ControlRole defaultControlRole = new DefaultWorkbenchRole();
@@ -493,16 +492,76 @@ public class NodeRoleServiceImpl implements INodeRoleService {
     @Override
     public List<NodeRoleMemberVo> getNodeRoleMembers(String spaceId, String nodeId) {
         Map<Long, ControlMemberDTO> memberControlRoleMap =
-            iControlMemberService.getMemberControlRoleMap(spaceId, ControlIdBuilder.nodeId(nodeId));
+            this.getMemberControlRoleMap(spaceId, nodeId);
         List<NodeRoleMemberVo> results =
-            iMemberService.getNodeRoleMemberWithSort(memberControlRoleMap.keySet());
+            memberMapper.selectNodeRoleMemberByIds(memberControlRoleMap.keySet());
         // Give permission value
         results.forEach(result -> {
             ControlMemberDTO controlMemberDTO = memberControlRoleMap.get(result.getMemberId());
             result.setRole(controlMemberDTO.getControlRoleTag());
-            result.setIsWorkbenchAdmin(Boolean.TRUE.equals(controlMemberDTO.getIsAdmin()));
+            result.setIsWorkbenchAdmin(controlMemberDTO.getIsAdmin());
         });
         return results;
+    }
+
+    private Map<Long, ControlMemberDTO> getMemberControlRoleMap(String spaceId, String nodeId) {
+        Map<Long, ControlMemberDTO> memberRoleMap = new LinkedHashMap<>();
+        // Administrator and control owner
+        List<Long> admins = iSpaceRoleService.getSpaceAdminsWithWorkbenchManage(spaceId);
+        Long ownerId = this.getNodeOwnerId(nodeId);
+        for (Long memberId : admins) {
+            if (memberRoleMap.containsKey(memberId)) {
+                continue;
+            }
+            memberRoleMap.put(memberId, new ControlMemberDTO(memberId, true,
+                Objects.equals(memberId, ownerId), Node.MANAGER));
+        }
+        if (ownerId != null && !memberRoleMap.containsKey(ownerId)) {
+            memberRoleMap.put(ownerId, new ControlMemberDTO(ownerId, false,
+                true, Node.MANAGER));
+        }
+
+        // Get unit group by role
+        Map<String, List<ControlRoleUnitDTO>> roleUnitMap = groupRoleByNodeId(nodeId);
+        for (Map.Entry<String, List<ControlRoleUnitDTO>> entry : roleUnitMap.entrySet()) {
+            List<Long> memberIds = new ArrayList<>();
+            List<Long> teamIds = new ArrayList<>();
+            List<Long> roleIds = new ArrayList<>();
+            for (ControlRoleUnitDTO nodeRoleDto : entry.getValue()) {
+                UnitType unitType = UnitType.toEnum(nodeRoleDto.getUnitType());
+                switch (unitType) {
+                    case TEAM:
+                        teamIds.add(nodeRoleDto.getUnitRefId());
+                        break;
+                    case MEMBER:
+                        memberIds.add(nodeRoleDto.getUnitRefId());
+                        break;
+                    case ROLE:
+                        roleIds.add(nodeRoleDto.getUnitRefId());
+                        break;
+                    default:
+                        break;
+                }
+            }
+            // Summary query team and role
+            if (CollUtil.isNotEmpty(teamIds)) {
+                List<Long> teamMemberIds = iTeamService.getMemberIdsByTeamIds(teamIds);
+                if (CollUtil.isNotEmpty(teamMemberIds)) {
+                    memberIds.addAll(teamMemberIds);
+                }
+            }
+            if (CollUtil.isNotEmpty(roleIds)) {
+                List<Long> roleMemberIds = iRoleMemberService.getMemberIdsByRoleIds(roleIds);
+                memberIds.addAll(roleMemberIds);
+            }
+            for (Long memberId : memberIds) {
+                if (memberRoleMap.containsKey(memberId)) {
+                    continue;
+                }
+                memberRoleMap.put(memberId, new ControlMemberDTO(memberId, entry.getKey()));
+            }
+        }
+        return memberRoleMap;
     }
 
     @Override
@@ -519,7 +578,7 @@ public class NodeRoleServiceImpl implements INodeRoleService {
             result.getRecords().stream().map(NodeRoleMemberVo::getMemberId)
                 .collect(Collectors.toList());
         List<NodeRoleMemberVo> memberVos =
-            iMemberService.getNodeRoleMemberWithSort(memberIds);
+            memberMapper.selectNodeRoleMemberByIds(memberIds);
         result.setRecords(memberVos);
         // Give permission value
         String defaultRoleTag = (new DefaultWorkbenchRole()).getRoleTag();
@@ -533,23 +592,31 @@ public class NodeRoleServiceImpl implements INodeRoleService {
     }
 
     @Override
-    @SuppressWarnings({"rawtypes", "unchecked"})
     public PageInfo<NodeRoleMemberVo> getNodeRoleMembersPageInfo(Page<NodeRoleMemberVo> page,
-                                                                 String nodeId) {
-        String spaceId = iNodeService.getSpaceIdByNodeId(nodeId);
-        boolean assignMode = this.getNodeRoleIfEnabled(nodeId);
-        if (assignMode) {
-            ControlId controlId = ControlIdBuilder.nodeId(nodeId);
-            return iControlMemberService.getControlRoleMemberPageInfo(page, spaceId, controlId,
-                NodeRoleMemberVo.class);
+                                                                 String spaceId, String nodeId) {
+        Map<Long, ControlMemberDTO> memberControlRoleMap =
+            this.getMemberControlRoleMap(spaceId, nodeId);
+        //
+        int sub = (int) (page.getCurrent() - 1) * (int) page.getSize();
+        if (sub > memberControlRoleMap.size()) {
+            return PageHelper.build((int) page.getCurrent(), (int) page.getSize(),
+                memberControlRoleMap.size(), new ArrayList<>());
         }
-        String parentNodeId = this.getNodeExtendNodeId(nodeId);
-        if (parentNodeId == null) {
-            return PageHelper.build(this.getNodeRoleMembersPage(page, spaceId));
-        }
-        ControlId controlId = ControlIdBuilder.nodeId(parentNodeId);
-        return iControlMemberService.getControlRoleMemberPageInfo(page, spaceId, controlId,
-            NodeRoleMemberVo.class);
+
+        int end = (sub + page.getSize()) > memberControlRoleMap.size()
+            ? memberControlRoleMap.size() : sub + (int) page.getSize();
+        List<Long> memberIds =
+            new ArrayList<>(memberControlRoleMap.keySet()).subList(sub, end);
+        List<NodeRoleMemberVo> results = memberMapper.selectNodeRoleMemberByIds(memberIds);
+        // Give permission value
+        results.forEach(result -> {
+            ControlMemberDTO controlMemberDTO = memberControlRoleMap.get(result.getMemberId());
+            result.setRole(controlMemberDTO.getControlRoleTag());
+            result.setIsWorkbenchAdmin(controlMemberDTO.getIsAdmin());
+            result.setIsControlOwner(controlMemberDTO.getIsControlOwner());
+        });
+        return PageHelper.build((int) page.getCurrent(), (int) page.getSize(),
+            memberControlRoleMap.size(), results);
     }
 
     @Override

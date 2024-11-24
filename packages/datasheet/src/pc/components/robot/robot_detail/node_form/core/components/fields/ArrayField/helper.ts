@@ -24,12 +24,14 @@ export function generateRowId() {
 
 export function generateKeyedFormData(formData: any) {
   const { operands } = formData.value;
-  const newOperands = operands.map((v: { key: any }) => ({ ...v, key: v.key || generateRowId() }));
+  const newOperands = operands.map((v: { key: any; }) => (
+    { ...v, key: v.key || generateRowId() }
+  ));
   return {
     ...formData,
     value: {
       ...formData.value,
-      operands: newOperands,
+      operands: newOperands
     },
   };
   // return Array.isArray(formData) ? formData.map(item => {
@@ -51,7 +53,7 @@ export function keyedToPlainFormData(keyedFormData: any) {
     ...keyedFormData,
     value: {
       ...keyedFormData.value,
-      operands: newOperands,
+      operands: newOperands
     },
   };
   // return keyedFormData.map((keyedItem: any) => keyedItem.item);
@@ -61,6 +63,6 @@ export const EmptyArrayOperand = {
   type: 'Expression',
   value: {
     operator: 'newArray',
-    operands: [],
-  },
+    operands: []
+  }
 };

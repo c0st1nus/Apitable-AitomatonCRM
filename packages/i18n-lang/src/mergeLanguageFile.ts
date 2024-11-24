@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import fs from 'fs';
-import path from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
 
 if (process.argv.length < 5) {
   throw new Error('Expected at least 4 arguments, but got ' + process.argv.length);
@@ -31,30 +31,14 @@ const outputFolder = process.argv[4];
 const readFolder = (folderPath: string): Record<string, any> => {
   const files = fs.readdirSync(folderPath);
   const result: Record<string, any> = {};
-  const fallbackLocale = JSON.parse(fs.readFileSync(path.join(folderPath, 'strings.en-US.json'), 'utf-8'));
-  const keys = Object.keys(fallbackLocale);
   for (const file of files) {
     if (file.endsWith('.json') && file.startsWith(sourceName)) {
       const filePath = path.join(folderPath, file);
       const fileContent = fs.readFileSync(filePath, 'utf-8');
-      try {
-        JSON.parse(fileContent);
-      } catch (error) {
-        console.log(error);
-      }
       const fileJson = JSON.parse(fileContent);
       const locale = file.replace(sourceName, '')
         .replace('.', '')
         .replace('.json', '');
-
-      if (generateType === 'json') {
-        keys.forEach(key => {
-          if (!fileJson[key]) {
-            if (locale === 'zh-CN') console.warn(`Missing key ${key} in ${filePath}`);
-            fileJson[key] = fallbackLocale[key];
-          }
-        });
-      }
       result[locale] = fileJson;
     }
   }
@@ -84,6 +68,7 @@ const writeMergedContent = (outputFolder: string, mergedContent: Record<string, 
   if (!fs.existsSync(outputFolder)) {
     fs.mkdirSync(outputFolder, { recursive: true });
   }
+
   const sortObjectKeysRecursively = (obj: Record<string, any>) => {
     const sortedObj = {};
     const sortedKeys = Object.keys(obj).sort();
@@ -105,9 +90,7 @@ const writeMergedContent = (outputFolder: string, mergedContent: Record<string, 
       '/* eslint-disable max-len */\nexport type StringKeysMapType = {\n  ' +
         Object.keys(sortedMergedContent['en-US']).map(k => `'${k}': '${k}'`).join(',\n  ') +
         '\n};\n\n' +
-        `export type StringKeysType = {
-          [K in keyof StringKeysMapType]: K;
-        } & { [key: string]: unknown };`
+        'export type StringKeysType = keyof StringKeysMapType;'
     );
     Object.keys(sortedMergedContent).forEach(key => {
       fs.writeFileSync(path.join(outputFolder, `strings.${key}.json`), JSON.stringify(sortedMergedContent[key], null, 2), 'utf-8');

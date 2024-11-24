@@ -21,14 +21,16 @@ package com.apitable.starter.socketio.core;
 import cn.hutool.json.JSON;
 import io.socket.client.Ack;
 import io.socket.client.Socket;
-import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
+
 /**
  * <p>
- * Socket Client Auto Configuration.
+ * Socket Client Auto Configuration
  * </p>
+ *
  */
 public class SocketClientTemplate implements SocketClientOperations {
 
@@ -46,12 +48,7 @@ public class SocketClientTemplate implements SocketClientOperations {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Socket Event: {}, Message: {}", event, message);
         }
-        Socket socketInstance = getSocket();
-        if (socketInstance == null) {
-            LOGGER.error("Socket not initialized");
-            return;
-        }
-        socketInstance.emit(event, message, (Ack) args -> {
+        getSocket().emit(event, message, (Ack) args -> {
             if (Objects.nonNull(args)) {
                 if (!Boolean.parseBoolean(args[0].toString())) {
                     LOGGER.error("Socket Emit Fail: {}", message);
@@ -61,9 +58,6 @@ public class SocketClientTemplate implements SocketClientOperations {
     }
 
     private Socket getSocket() {
-        if (socket == null) {
-            return null;
-        }
         if (!socket.connected()) {
             socket.connect();
         }

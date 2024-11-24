@@ -5,12 +5,11 @@
       "name": "Debug Room",
       "type": "node",
       "request": "launch",
-      "runtimeExecutable": "pnpm",
+      "runtimeExecutable": "yarn",
       "args": [
         "packages/room-server/src/main.ts"
       ],
       "runtimeArgs": [
-        "run",
         "start:debug",
       ],
       "cwd": "${workspaceFolder}/packages/room-server",

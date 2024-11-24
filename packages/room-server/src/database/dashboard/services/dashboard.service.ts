@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { IDashboardLayout, IDashboardWidgetMap, IResourceMeta, IServerDashboardPack } from '@apitable/core';
+import { IDashboardLayout, IResourceMeta, IServerDashboardPack, IWidgetMap } from '@apitable/core';
 import { Injectable } from '@nestjs/common';
 import { MetaService } from 'database/resource/services/meta.service';
 import { NodeService } from 'node/services/node.service';
@@ -31,8 +31,7 @@ export class DashboardService {
     private readonly nodeService: NodeService,
     private readonly restService: RestService,
     private readonly resourceMetaService: MetaService,
-  ) {
-  }
+  ) {}
 
   async fetchDashboardPack(dashboardId: string, auth: IAuthHeader): Promise<IServerDashboardPack> {
     const baseNodeInfo = await this.nodeService.getNodeDetailInfo(dashboardId, auth, { internal: true, notDst: true, main: true });
@@ -65,7 +64,7 @@ export class DashboardService {
     };
   }
 
-  private async fetchWidgetMapByIds(meta: IResourceMeta, auth: IAuthHeader, linkId?: string): Promise<IDashboardWidgetMap> {
+  private async fetchWidgetMapByIds(meta: IResourceMeta, auth: IAuthHeader, linkId?: string): Promise<IWidgetMap> {
     if (!Object.keys(meta).length) {
       return {};
     }

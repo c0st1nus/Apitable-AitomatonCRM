@@ -17,13 +17,13 @@
  */
 
 import { InputParser } from 'automation_manager/input_parser';
-import { IActionType, IRobot, IRobotTask, IRobotTaskRuntimeContext } from './automation.interface';
+import { IRobotTask, IRobot, IActionType, IRobotTaskRuntimeContext } from './automation.interface';
 
 type ISuccessActionOutput = {
   success: true;
   data: {
-    data: any;
-  };
+    data: any
+  }
 };
 
 type IFailedActionOutput = {
@@ -41,8 +41,6 @@ export type IReqMethod = {
   requestActionOutput: (actionRuntimeInput: any, actionType: IActionType) => Promise<IActionOutput>;
   // fetch robot by robotId
   getRobotById: (robotId: string) => Promise<IRobot>;
-  // fetch robot by robotId and triggerId
-  getRobotByRobotIdAndTriggerId: (robotId: string, triggerId: string) => Promise<IRobot>;
   reportResult(taskId: string, success: boolean, data: any): Promise<void>;
 };
 

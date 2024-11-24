@@ -16,16 +16,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { FC } from 'react';
 import { Drawer } from 'antd';
-import classnames from 'classnames';
-import { FC, useEffect } from 'react';
-import { useThemeColors } from '@apitable/components';
-import { t, Strings, Player, Events } from '@apitable/core';
-import { CloseOutlined } from '@apitable/icons';
-import { ScreenSize } from 'pc/components/common/component_display';
-import { useResponsive } from 'pc/hooks';
-import { SpaceList } from './space_list/space_list';
 import styles from './style.module.less';
+import { SpaceList } from './space_list/space_list';
+import { useThemeColors } from '@apitable/components';
+import { useResponsive } from 'pc/hooks';
+import classnames from 'classnames';
+import { ScreenSize } from 'pc/components/common/component_display';
+import { t, Strings, Player, Events } from '@apitable/core';
+import { useEffect } from 'react';
+import { CloseOutlined } from '@apitable/icons';
 
 export interface ISpaceListDrawerProps {
   visible: boolean;

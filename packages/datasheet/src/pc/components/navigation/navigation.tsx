@@ -16,45 +16,31 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useToggle } from 'ahooks';
-import { Badge } from 'antd';
-import classNames from 'classnames';
-import { AnimationItem } from 'lottie-web/index';
-import Link from 'next/link';
-import { useRouter } from 'next/router';
-import * as React from 'react';
-import { FC, useCallback, useEffect, useRef, useState } from 'react';
-import { shallowEqual, useDispatch } from 'react-redux';
 import { useThemeColors } from '@apitable/components';
 import { Events, IReduxState, NAV_ID, Player, Settings, StoreActions, Strings, t } from '@apitable/core';
 import {
-  ChevronDownOutlined,
-  NotificationOutlined,
-  PlanetOutlined,
-  SearchOutlined,
-  Setting2Outlined,
-  UserGroupOutlined,
-  WorkbenchOutlined,
-  LivechatFilled,
+  ChevronDownOutlined, NotificationOutlined, PlanetOutlined, SearchOutlined, Setting2Outlined, UserGroupOutlined, WorkbenchOutlined
 } from '@apitable/icons';
+import { useToggle } from 'ahooks';
+import { Badge } from 'antd';
+import classNames from 'classnames';
+// @ts-ignore
+import { inSocialApp, isSocialDingTalk, isSocialFeiShu, isSocialWecom } from 'enterprise';
+import { AnimationItem } from 'lottie-web/index';
 import { ShortcutActionManager, ShortcutActionName } from 'modules/shared/shortcut_key';
-// eslint-disable-next-line no-restricted-imports
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { Avatar, AvatarSize, AvatarType, Message, Tooltip } from 'pc/components/common';
 import {
-  IDingTalkModalType,
-  showModalInDingTalk,
-  showModalInFeiShu,
-  showModalInWecom,
-  UpgradeInDDContent,
-  UpgradeInFeiShuContent,
-  UpgradeInWecomContent,
+  IDingTalkModalType, showModalInDingTalk, showModalInFeiShu, showModalInWecom, UpgradeInDDContent, UpgradeInFeiShuContent, UpgradeInWecomContent,
 } from 'pc/components/economy/upgrade_modal';
 import { Notification } from 'pc/components/notification';
 import { navigationToUrl } from 'pc/components/route_manager/navigation_to_url';
 import { useNotificationRequest, useRequest, useResponsive } from 'pc/hooks';
-import { useContactUs } from 'pc/hooks/use_contact_us';
-import { useAppSelector } from 'pc/store/react-redux';
-import { isMobileApp, getEnvVariables, isHiddenLivechat } from 'pc/utils/env';
+import { isHiddenLivechat, isMobileApp } from 'pc/utils/env';
+import * as React from 'react';
+import { FC, useCallback, useEffect, useRef, useState } from 'react';
+import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import AnimationJson from 'static/json/notification_new.json';
 import { ComponentDisplay, ScreenSize } from '../common/component_display';
 import { Popup } from '../common/mobile/popup';
@@ -64,11 +50,9 @@ import { CreateSpaceModal } from './create_space_modal';
 import { Help } from './help';
 import { NavigationContext } from './navigation_context';
 import { SpaceListDrawer } from './space_list_drawer';
+import styles from './style.module.less';
 import { UpgradeBtn } from './upgrade_btn';
 import { User } from './user';
-// @ts-ignore
-import { inSocialApp, isSocialDingTalk, isSocialFeiShu, isSocialWecom } from 'enterprise/home/social_platform/utils';
-import styles from './style.module.less';
 
 enum NavKey {
   SpaceManagement = 'management',
@@ -86,7 +70,7 @@ export const Navigation: FC<React.PropsWithChildren<unknown>> = () => {
   const [notice, { toggle: toggleNotice, set: setNotice }] = useToggle(false);
   const [upgradePopup, { set: setUpgradePopup }] = useToggle(false);
   const dispatch = useDispatch();
-  const { user, space, unReadCount, newNoticeListFromWs } = useAppSelector(
+  const { user, space, unReadCount, newNoticeListFromWs } = useSelector(
     (state: IReduxState) => ({
       user: state.user.info,
       space: state.space.curSpaceInfo,
@@ -96,7 +80,7 @@ export const Navigation: FC<React.PropsWithChildren<unknown>> = () => {
     }),
     shallowEqual,
   );
-  const { notificationStatistics } = useNotificationRequest();
+  const { notificationStatistics, getNotificationList } = useNotificationRequest();
   // const location = useLocation();
   const router = useRouter();
   const search = location.search;
@@ -106,17 +90,9 @@ export const Navigation: FC<React.PropsWithChildren<unknown>> = () => {
   const { screenIsAtMost } = useResponsive();
   const isMobile = screenIsAtMost(ScreenSize.md);
   const [clickCount, setClickCount] = useState(0);
-  const contactUs = useContactUs();
-  const env = getEnvVariables();
-  const sidebarCustomButtonList = React.useMemo(() => {
-    const list = env.SIDEBAR_CUSTOM_BUTTON_LIST;
-    if (!list) {
-      return [];
-    } 
-    return JSON.parse(list);
-    
-  }, []);
   useRequest(notificationStatistics);
+  // Check if there is a system banner notification to be displayed
+  useRequest(getNotificationList);
 
   useEffect(() => {
     const eventBundle = new Map([
@@ -125,7 +101,7 @@ export const Navigation: FC<React.PropsWithChildren<unknown>> = () => {
         () => {
           expandSearch();
         },
-      ],
+      ]
     ]);
 
     eventBundle.forEach((cb, key) => {
@@ -183,7 +159,7 @@ export const Navigation: FC<React.PropsWithChildren<unknown>> = () => {
   const renderLottie = () => {
     const noticeEle = document.querySelector('#' + NAV_ID.ICON_NOTIFICATION)!;
     if (!isMobile && noticeEle && !noticeEle.hasChildNodes()) {
-      import('lottie-web/build/player/lottie_svg').then((module) => {
+      import('lottie-web/build/player/lottie_svg').then(module => {
         const lottie = module.default;
         lottieAnimate.current = lottie.loadAnimation({
           container: noticeEle,
@@ -274,9 +250,8 @@ export const Navigation: FC<React.PropsWithChildren<unknown>> = () => {
     return (
       <>
         <ComponentDisplay minWidthCompatible={ScreenSize.md}>
-          <Link href={'/notify' + search}>
+          <Link href={'/notify' + search} onClick={noticeIconClick}>
             <a
-              onClick={noticeIconClick}
               className={classNames(styles.notificationNavLink, {
                 [styles.navActiveItem]: router.pathname.includes('notify'),
               })}
@@ -355,7 +330,7 @@ export const Navigation: FC<React.PropsWithChildren<unknown>> = () => {
             <Avatar type={AvatarType.Space} title={user!.spaceName} id={user!.spaceId} src={user!.spaceLogo} size={AvatarSize.Size32} />
           </div>
           <div className={styles.spaceDown}>
-            <Tooltip title={t(Strings.workspace_list)} placement="bottom">
+            <Tooltip title={t(Strings.workspace_list)} placement='bottom'>
               <div>
                 <ChevronDownOutlined className={styles.spaceIcon} />
               </div>
@@ -396,7 +371,7 @@ export const Navigation: FC<React.PropsWithChildren<unknown>> = () => {
 
             return (
               <div key={item.key}>
-                <Tooltip title={item.text} placement="right">
+                <Tooltip title={item.text} placement='right'>
                   <span>{NavItem()}</span>
                 </Tooltip>
               </div>
@@ -417,26 +392,12 @@ export const Navigation: FC<React.PropsWithChildren<unknown>> = () => {
             </Popup>
           </ComponentDisplay>
         </div>
-        {env.IS_ENTERPRISE && !env.IS_SELFHOST && (
-          <Tooltip title={t(Strings.contact_us)} placement="right">
-            <div className={styles.iconWrap} onClick={() => contactUs()}>
-              <LivechatFilled className={styles.icon} size={32} />
-            </div>
-          </Tooltip>
-        )}
-        {sidebarCustomButtonList.map((item: any, index: number) => (
-          <Tooltip title={item.tooltip} placement="right" key={index}>
-            <a className={styles.iconWrap} href={item.link} target="_blank" rel="noreferrer">
-              <img className={styles.img} src={item.icon} alt={item.link} />
-            </a>
-          </Tooltip>
-        ))}
-        <Tooltip title={t(Strings.quick_search_title)} placement="right">
+        <Tooltip title={t(Strings.quick_search_title)} placement='right'>
           <div className={styles.iconWrap} onClick={() => expandSearch()}>
             <SearchOutlined className={styles.icon} size={24} />
           </div>
         </Tooltip>
-        <Tooltip title={t(Strings.notification_center)} placement="right" key="notification_center">
+        <Tooltip title={t(Strings.notification_center)} placement='right' key='notification_center'>
           <span className={styles.notification}>
             {NotificationNav}
             <span id={NAV_ID.ICON_NOTIFICATION} className={styles.noticeAnimate} />

@@ -16,13 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { FC } from 'react';
-import { ConfigConstant, Strings, t } from '@apitable/core';
+import { ConfigConstant, IReduxState, Strings, t } from '@apitable/core';
 import { ComponentDisplay, ScreenSize } from 'pc/components/common/component_display';
 import { Popup } from 'pc/components/common/mobile/popup';
 import { Modal } from 'pc/components/common/modal/modal/modal';
 import { TComponent } from 'pc/components/common/t_component';
-import { useAppSelector } from 'pc/store/react-redux';
+import { FC } from 'react';
+import { useSelector } from 'react-redux';
+// import HeaderPng from 'static/icon/datasheet/share/datasheet_img_share.png';
 import { ShareContent } from './share_content';
 import styles from './style.module.less';
 
@@ -46,11 +47,14 @@ export enum ShareTab {
   PublicLink = 'publiclink',
 }
 
-export const ShareNode: FC<React.PropsWithChildren<IShareNodeProps>> = ({ data, visible, onClose, isTriggerRender }) => {
-  const nodeId = data.nodeId;
-  const nodeName = useAppSelector((state) =>
-    state.catalogTree.treeNodesMap[nodeId]?.nodeName || state.catalogTree.privateTreeNodesMap[nodeId]?.nodeName
-  );
+export const ShareNode: FC<React.PropsWithChildren<IShareNodeProps>> = ({
+  data,
+  visible,
+  onClose,
+  isTriggerRender
+}) => {
+  const treeNodesMap = useSelector((state: IReduxState) => state.catalogTree.treeNodesMap);
+  const { nodeName } = treeNodesMap[data.nodeId];
 
   if (isTriggerRender) {
     return <ShareContent data={data} />;
@@ -62,8 +66,8 @@ export const ShareNode: FC<React.PropsWithChildren<IShareNodeProps>> = ({ data, 
       <ComponentDisplay minWidthCompatible={ScreenSize.md}>
         <Modal
           className={styles.shareNodeModal}
-          open={visible}
-          width={528}
+          visible={visible}
+          width={500}
           bodyStyle={{ padding: 0 }}
           onCancel={onClose}
           destroyOnClose

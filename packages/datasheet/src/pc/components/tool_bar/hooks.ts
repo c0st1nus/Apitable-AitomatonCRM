@@ -18,7 +18,7 @@
 
 import { Selectors, StoreActions, ToolBarMenuCardOpenState } from '@apitable/core';
 import { useAppDispatch } from 'pc/hooks/use_app_dispatch';
-import { useAppSelector } from 'pc/store/react-redux';
+import { useSelector } from 'react-redux';
 import { ToolHandleType } from './interface';
 
 export const ToolbarMap = {
@@ -52,7 +52,7 @@ export const ToolbarReMap = {
 
 export function useToolbarMenuCardOpen(type: ToolHandleType) {
   const dispatch = useAppDispatch();
-  const toolbarMenuCardState = useAppSelector((state) => Selectors.getToolbarMenuCardState(state));
+  const toolbarMenuCardState = useSelector(state => Selectors.getToolbarMenuCardState(state));
   const toolHandleType = ToolbarMap[toolbarMenuCardState];
 
   const setToolbarMenuCardOpen = (open: boolean) => {
@@ -72,10 +72,11 @@ export function useToolbarMenuCardOpen(type: ToolHandleType) {
 }
 
 export const useDisabledOperateWithMirror = () => {
-  return useAppSelector((state) => {
+  return useSelector(state => {
     const mirrorId = state.pageParams.mirrorId;
-    const spaceManualSaveViewIsOpen =
-      state.labs.includes('view_manual_save') || Boolean(state.share.featureViewManualSave) || Boolean(state.embedInfo?.viewManualSave);
+    const spaceManualSaveViewIsOpen = state.labs.includes('view_manual_save') ||
+      Boolean(state.share.featureViewManualSave) ||
+      Boolean(state.embedInfo?.viewManualSave);
     if (!mirrorId) {
       return false;
     }

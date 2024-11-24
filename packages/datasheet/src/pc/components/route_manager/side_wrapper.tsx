@@ -16,10 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { values } from 'lodash';
-import * as React from 'react';
-import { useEffect } from 'react';
 import { IReduxState, StoreActions } from '@apitable/core';
+import { values } from 'lodash';
 import { ShortcutActionManager, ShortcutActionName } from 'modules/shared/shortcut_key';
 import { ComponentDisplay, ScreenSize } from 'pc/components/common/component_display';
 import { MobileSideBar } from 'pc/components/mobile_side_bar';
@@ -28,23 +26,21 @@ import styles from 'pc/components/route_manager/style.module.less';
 import { ShortcutsPanel } from 'pc/components/shortcuts_panel';
 import { useQuery } from 'pc/hooks';
 import { useAppDispatch } from 'pc/hooks/use_app_dispatch';
-import { useAppSelector } from 'pc/store/react-redux';
+import * as React from 'react';
+import { useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import { useWxTitleMap } from '../konva_grid';
 // @ts-ignore
-import { isDingtalkSkuPage } from 'enterprise/home/social_platform/utils';
-// @ts-ignore
-import { WatermarkWrapper } from 'enterprise/watermark/watermark_wrapper';
-// @ts-ignore
-import { WecomContactWrapper } from 'enterprise/wecom/wecom_contact_wrapper/wecom_contact_wrapper';
+import { WatermarkWrapper, WecomContactWrapper, isDingtalkSkuPage, isEnterprise } from 'enterprise';
 
 export const SideWrapper = (props: { children: any }) => {
-  const spaceId = useAppSelector((state: IReduxState) => state.space.activeId);
+  const spaceId = useSelector((state: IReduxState) => state.space.activeId);
   const dispatch = useAppDispatch();
-  const shortcutKeyPanelVisible = useAppSelector((state: IReduxState) => state.space.shortcutKeyPanelVisible);
+  const shortcutKeyPanelVisible = useSelector((state: IReduxState) => state.space.shortcutKeyPanelVisible);
   const query = useQuery();
   const purchaseToken = query.get('purchaseToken') || '';
   const isSkuPage = isDingtalkSkuPage?.(purchaseToken);
-  const user = useAppSelector((state: IReduxState) => state.user.info);
+  const user = useSelector((state: IReduxState) => state.user.info);
   const { unitTitleMap } = useWxTitleMap({
     userNames: user
       ? [
@@ -58,8 +54,11 @@ export const SideWrapper = (props: { children: any }) => {
   const unitTitle = values(unitTitleMap)[0];
 
   useEffect(() => {
+    dispatch(StoreActions.spaceResource());
     if (!spaceId) return;
+    isEnterprise && dispatch(StoreActions.fetchMarketplaceApps(spaceId));
     dispatch(StoreActions.getSpaceInfo(spaceId));
+    dispatch(StoreActions.getSpaceFeatures());
   }, [dispatch, spaceId]);
 
   useEffect(() => {
@@ -91,7 +90,9 @@ export const SideWrapper = (props: { children: any }) => {
     <div className={'layout-row f-g-1 ' + styles.spaceContainer} onScroll={scrollFix}>
       {!isSkuPage && (
         <>
-          <ComponentDisplay minWidthCompatible={ScreenSize.md}>{!isWorkbench && <Navigation />}</ComponentDisplay>
+          <ComponentDisplay minWidthCompatible={ScreenSize.md}>
+            {!isWorkbench && <Navigation />}
+          </ComponentDisplay>
 
           <ComponentDisplay maxWidthCompatible={ScreenSize.md}>
             <MobileSideBar />
@@ -106,8 +107,26 @@ export const SideWrapper = (props: { children: any }) => {
   );
 
   const wrapperChildComponent = (
-    <>{WatermarkWrapper ? <WatermarkWrapper unitTitle={unitTitle}>{childComponent}</WatermarkWrapper> : childComponent}</>
+    <>
+      {
+        WatermarkWrapper ?
+          <WatermarkWrapper unitTitle={unitTitle}>
+            {childComponent}
+          </WatermarkWrapper> :
+          childComponent
+      }
+    </>
   );
 
-  return <>{WecomContactWrapper ? <WecomContactWrapper>{wrapperChildComponent}</WecomContactWrapper> : wrapperChildComponent}</>;
+  return (
+    <>
+      {
+        WecomContactWrapper ?
+          <WecomContactWrapper>
+            {wrapperChildComponent}
+          </WecomContactWrapper> :
+          wrapperChildComponent
+      }
+    </>
+  );
 };

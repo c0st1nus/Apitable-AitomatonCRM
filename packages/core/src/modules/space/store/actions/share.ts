@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import * as ActionConstants from 'modules/shared/store/action_constants';
+import { ActionConstants } from '../../../../exports/store';
 import { IShareInfo } from '../../../../exports/store/interfaces';
 
 /**

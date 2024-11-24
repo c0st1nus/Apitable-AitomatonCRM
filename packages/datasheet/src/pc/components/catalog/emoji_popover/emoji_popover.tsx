@@ -16,14 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Popover } from 'antd';
 import { FC, useState, PropsWithChildren } from 'react';
 import * as React from 'react';
 import { ConfigConstant } from '@apitable/core';
-import { Picker } from 'pc/components/common/emoji/emoji';
-import { useCatalogTreeRequest } from 'pc/hooks/use_catalogtree_request';
-import { useRequest } from 'pc/hooks/use_request';
+import { Picker } from 'pc/components/common';
+import { Popover } from 'antd';
 import styles from './style.module.less';
+import { useCatalogTreeRequest } from 'pc/hooks';
+import { useRequest } from 'pc/hooks';
 
 export interface IEmojiPopoverProps {
   /* Node type */
@@ -33,13 +33,7 @@ export interface IEmojiPopoverProps {
   offset?: number[];
 }
 
-export const EmojiPopoverBase: FC<React.PropsWithChildren<PropsWithChildren<IEmojiPopoverProps>>> = ({
-  nodeId,
-  iconEditable = true,
-  type,
-  offset,
-  children,
-}) => {
+export const EmojiPopoverBase: FC<React.PropsWithChildren<PropsWithChildren<IEmojiPopoverProps>>> = ({ nodeId, iconEditable = true, type, offset, children }) => {
   const [visible, setVisible] = useState(false);
   const { updateNodeIconReq } = useCatalogTreeRequest();
   const { run: updateNodeIcon } = useRequest(updateNodeIconReq, { manual: true });
@@ -51,7 +45,7 @@ export const EmojiPopoverBase: FC<React.PropsWithChildren<PropsWithChildren<IEmo
   };
 
   const EmojiPicker = ({ nodeId }: { nodeId: string }) => {
-    const selectEmoji = (emoji: { id: string }) => {
+    const selectEmoji = (emoji: { id: string; }) => {
       updateNodeIcon(nodeId, type, emoji.id);
       setVisible(false);
     };
@@ -80,7 +74,7 @@ export const EmojiPopoverBase: FC<React.PropsWithChildren<PropsWithChildren<IEmo
       arrowPointAtCenter={false}
       mouseEnterDelay={0}
       mouseLeaveDelay={0}
-      onOpenChange={(visible) => setVisible(visible)}
+      onOpenChange={visible => setVisible(visible)}
       destroyTooltipOnHide={{ keepParent: false }}
       align={{
         points: ['tl', 'bl'],
@@ -88,7 +82,7 @@ export const EmojiPopoverBase: FC<React.PropsWithChildren<PropsWithChildren<IEmo
       }}
     >
       {children as React.ReactElement}
-    </Popover>
+    </Popover >
   );
 };
 

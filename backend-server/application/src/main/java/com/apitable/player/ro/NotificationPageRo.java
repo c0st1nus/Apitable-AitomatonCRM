@@ -19,6 +19,7 @@
 package com.apitable.player.ro;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import javax.validation.constraints.Max;
 import lombok.Data;
 
 /**
@@ -30,9 +31,11 @@ import lombok.Data;
 @Schema(description = "User notification paging list parameters")
 public class NotificationPageRo {
 
+    @Max(1)
     @Schema(description = "Read 1 Read, 0 Unread, Not Transferred means to query all",
-        allowableValues = "range[0,1]", type = "Boolean", example = "0")
-    private Boolean isRead;
+        allowableValues = "range[0,1]", type = "Integer",
+        example = "0")
+    private Integer isRead;
 
     @Schema(description = "Notification Type", example = "system")
     private String notifyType;

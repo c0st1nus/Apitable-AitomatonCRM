@@ -16,10 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useEffect, useRef } from 'react';
 import { browser } from 'modules/shared/browser';
+import { useEffect, useRef } from 'react';
 
 export function useKeyboardCollapse(callback: Function) {
+
   const callbackRef = useRef<Function>();
   callbackRef.current = callback;
   const originHeight = useRef<number>(document.documentElement.clientHeight || document.body.clientHeight);
@@ -27,7 +28,8 @@ export function useKeyboardCollapse(callback: Function) {
   useEffect(() => {
     const isAndroid = browser?.is('android');
     const handelAndroidResize = () => {
-      const resizeHeight = document.documentElement.clientHeight || document.body.clientHeight;
+      const resizeHeight =
+        document.documentElement.clientHeight || document.body.clientHeight;
       if (originHeight.current < resizeHeight) {
         callbackRef.current?.();
       }
@@ -45,3 +47,4 @@ export function useKeyboardCollapse(callback: Function) {
     };
   }, []);
 }
+

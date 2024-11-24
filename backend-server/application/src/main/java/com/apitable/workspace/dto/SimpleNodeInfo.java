@@ -21,9 +21,6 @@ package com.apitable.workspace.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-/**
- * simple node info.
- */
 @Data
 @AllArgsConstructor
 public class SimpleNodeInfo {

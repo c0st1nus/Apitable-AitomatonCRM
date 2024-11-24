@@ -20,8 +20,8 @@ package com.apitable.workspace.ro;
 
 import cn.hutool.core.util.StrUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -53,7 +53,7 @@ public class CreateDatasheetRo {
     private String description;
 
     /**
-     * Transfer To NodeOpRo.
+     * Tranfer To NodeOpRo.
      */
     public NodeOpRo tranferToNodeOpRo() {
         return NodeOpRo.builder()

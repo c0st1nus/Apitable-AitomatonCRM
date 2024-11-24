@@ -19,8 +19,7 @@
 package com.apitable.workspace.ro;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
-import jakarta.validation.constraints.NotBlank;
+import javax.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
@@ -33,7 +32,7 @@ import lombok.Data;
 public class UpdateNodeShareSettingRo {
 
     @NotBlank(message = "Share setting parameter cannot be empty")
-    @Schema(description = "Share setting parameter string", type = "string",
-        requiredMode = RequiredMode.REQUIRED, example = "\"{\"onlyRead\": true}\"")
+    @Schema(description = "Share setting parameter string", type = "string", required = true,
+        example = "\"{\"onlyRead\": true}\"")
     private String props;
 }

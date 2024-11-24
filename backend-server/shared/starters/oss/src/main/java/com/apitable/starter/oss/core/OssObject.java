@@ -22,8 +22,9 @@ import java.io.InputStream;
 
 /**
  * <p>
- * Oss object.
+ * Oss object
  * </p>
+ *
  */
 public class OssObject {
 
@@ -35,18 +36,7 @@ public class OssObject {
 
     private InputStream inputStream;
 
-    /**
-     * <p>
-     * Constructor for OssObject.
-     * </p>
-     *
-     * @param contentDigest a {@link java.lang.String} object.
-     * @param contentLength a {@link java.lang.Long} object.
-     * @param contentType   a {@link java.lang.String} object.
-     * @param inputStream   a {@link java.io.InputStream} object.
-     */
-    public OssObject(String contentDigest, Long contentLength, String contentType,
-                     InputStream inputStream) {
+    public OssObject(String contentDigest, Long contentLength, String contentType, InputStream inputStream) {
         this.contentDigest = contentDigest;
         this.contentLength = contentLength;
         this.contentType = contentType;
@@ -87,10 +77,10 @@ public class OssObject {
 
     @Override
     public String toString() {
-        return "OssObject{"
-            + "contentDigest='" + contentDigest + '\''
-            + ", contentLength=" + contentLength
-            + ", contentType='" + contentType + '\''
-            + '}';
+        return "OssObject{" +
+                "contentDigest='" + contentDigest + '\'' +
+                ", contentLength=" + contentLength +
+                ", contentType='" + contentType + '\'' +
+                '}';
     }
 }

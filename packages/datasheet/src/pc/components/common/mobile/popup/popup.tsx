@@ -16,35 +16,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import * as React from 'react';
 import { Drawer } from 'antd';
 import { DrawerProps } from 'antd/lib/drawer';
-import classNames from 'classnames';
-import * as React from 'react';
-import { useMemo } from 'react';
 import { useThemeColors } from '@apitable/components';
-import { CloseOutlined } from '@apitable/icons';
 import style from './style.module.less';
+import classNames from 'classnames';
+import { CloseOutlined } from '@apitable/icons';
 
-export const Popup: React.FC<React.PropsWithChildren<DrawerProps>> = (props) => {
-  const { headerStyle, className, ...rest } = props;
+export const Popup: React.FC<React.PropsWithChildren<DrawerProps>> = props => {
   const colors = useThemeColors();
-  const _headerStyle: React.CSSProperties = useMemo(() => {
-    const titleStyle = props.title ? {} : { padding: 0 };
-    return headerStyle ? { ...headerStyle, ...titleStyle } : titleStyle;
-  }, [headerStyle, props.title]);
-
   return (
     <Drawer
-      closeIcon={
+      closeIcon={(
         <div className={style.closeIconWrapper}>
           <CloseOutlined color={colors.secondLevelText} size={16} />
         </div>
-      }
+      )}
       push={{ distance: 0 }}
-      placement="bottom"
-      {...rest}
-      className={classNames(style.drawerPopup, className)}
-      headerStyle={_headerStyle}
+      placement='bottom'
+      {...props}
+      className={classNames(style.drawerPopup, props.className)}
     >
       {props.children}
     </Drawer>

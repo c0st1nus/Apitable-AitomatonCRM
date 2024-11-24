@@ -18,15 +18,11 @@
 
 import { IOperation } from 'engine/ot/interface';
 import { testPath } from 'event_manager';
-import { IReduxState } from '../../../exports/store/interfaces';
-import {
-  getDatasheet,
-  getFieldMap,
-} from 'modules/database/store/selectors/resource/datasheet';
+import { IReduxState, Selectors } from '../../../exports/store';
 import { ResourceType } from 'types';
 import { transformOpFields } from '../../helper';
 import { IAtomEventType } from '../interface';
-import { EventRealTypeEnums, OPEventNameEnums } from './../../enum';
+import { EventRealTypeEnums, OPEventNameEnums } from './../../const';
 import { AnyObject, IEventInstance, IOPBaseContext, IOPEvent } from './../../interface/event.interface';
 
 interface IRecordCreated {
@@ -44,15 +40,9 @@ export class OPEventRecordCreated extends IAtomEventType<IRecordCreated> {
 
   test({ action, resourceId, op }: IOPBaseContext) {
     const { pass, recordId } = testPath(action.p, ['recordMap', ':recordId'], ('oi' in action));
-
-    let success = pass;
-    if (op.cmd === 'UnarchiveRecords') {
-      success = false;
-    }
-
-    if (!success) {
+    if (!pass) {
       return {
-        pass: success,
+        pass: false,
         context: null
       };
     }
@@ -61,7 +51,6 @@ export class OPEventRecordCreated extends IAtomEventType<IRecordCreated> {
     return {
       pass,
       context: {
-        action,
         datasheetId: resourceId,
         recordId,
         op,
@@ -77,9 +66,9 @@ export class OPEventRecordCreated extends IAtomEventType<IRecordCreated> {
     return events.map(event => {
       if (event.eventName === OPEventNameEnums.RecordCreated) {
         const { datasheetId, recordId } = event.context as IRecordCreated;
-        const fieldMap = getFieldMap(state, datasheetId)!;
+        const fieldMap = Selectors.getFieldMap(state, datasheetId)!;
         const fieldKeys = Object.keys(fieldMap);
-        event.context.datasheetName = getDatasheet(state, datasheetId)?.name;
+        event.context.datasheetName = Selectors.getDatasheet(state, datasheetId)?.name;
         event.context.state = state;
         const { fields, eventFields } = transformOpFields({
           recordData: event.context.fields,

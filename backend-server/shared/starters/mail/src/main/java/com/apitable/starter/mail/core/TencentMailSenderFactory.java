@@ -1,8 +1,5 @@
 package com.apitable.starter.mail.core;
 
-/**
- * tencent mail sender factory.
- */
 public class TencentMailSenderFactory implements MailSenderFactory {
 
     private final String region;
@@ -15,17 +12,8 @@ public class TencentMailSenderFactory implements MailSenderFactory {
 
     private final String reply;
 
-    /**
-     * constructor.
-     *
-     * @param region    region
-     * @param secretId  secretId
-     * @param secretKey secretKey
-     * @param from      from
-     * @param reply     reply
-     */
     public TencentMailSenderFactory(String region, String secretId, String secretKey, String from,
-                                    String reply) {
+        String reply) {
         this.region = region;
         this.secretId = secretId;
         this.secretKey = secretKey;

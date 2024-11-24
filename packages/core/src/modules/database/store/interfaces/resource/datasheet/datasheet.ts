@@ -17,14 +17,19 @@
  */
 
 import { IRemoteChangeset } from 'engine/ot';
-import { StatType } from 'model/field/stat';
-import { ICellValue } from 'model/record';
-import { FillDirection, ICell, IFieldRanges, IRange, IRecordRanges } from 'model/view/range';
+import { FillDirection, ICell, ICellValue, IFieldRanges, IRange, IRecordRanges, StatType } from 'model';
 import { IField, IStandardValue } from 'types/field_types';
 import { IFilterInfo, IGroupInfo, ISortedField, ISortInfo } from 'types/view_types';
-import { IUnitValue, IUserValue } from 'exports/store/interfaces';
-import { CellType, GalleryStyleKeyType, LayoutType, RowHeightLevel, ViewType, WhyRecordMoveType } from 'modules/shared/store/constants';
-
+import {
+  CellType,
+  GalleryStyleKeyType,
+  IUnitValue,
+  IUserValue,
+  LayoutType,
+  RowHeightLevel,
+  ViewType,
+  WhyRecordMoveType,
+} from '../../../../../../exports/store';
 import * as actions from '../../../../../shared/store/action_constants';
 import {
   CalendarColorType,
@@ -90,7 +95,6 @@ export interface IMeta {
   fieldMap: IFieldMap;
   views: IViewProperty[];
   widgetPanels?: IWidgetPanel[];
-  archivedRecordIds?: string[];
 }
 
 export interface IRecordCellValue {
@@ -295,7 +299,6 @@ export interface INodeMeta {
   nodeShared: boolean;
   nodePermitSet: boolean;
   nodeFavorite?: boolean;
-  nodePrivate?: boolean;
   spaceId: string;
   role: Role;
   permissions: IPermissions;
@@ -346,7 +349,6 @@ export interface IDatasheetState extends INodeMeta {
    */
 
   preview?: string;
-  type?: string;
 }
 
 export interface ILoadingRecord {
@@ -471,8 +473,6 @@ export interface IDatasheetClientState {
   isRobotPanelOpen?: boolean;
   operateViewIds?: string[] | null;
   isTimeMachinePanelOpen?: boolean;
-  isCopilotPanelOpen?: boolean;
-  isArchivedRecordsPanelOpen?: boolean;
   exportViewId?: string | null;
   // View-derived data, all content obtained by calculation, is uniformly maintained here.
   viewDerivation: { [viewId: string]: IViewDerivation };
@@ -804,7 +804,6 @@ export interface IPageParams {
   // spaceId?: string;
   shareId?: string;
   datasheetId?: string;
-  automationId?: string;
   viewId?: string;
   recordId?: string;
   fieldId?: string;
@@ -820,8 +819,6 @@ export interface IPageParams {
   nodeId?: string;
   mirrorId?: string;
   embedId?: string;
-  aiId?: string;
-  customPageId?: string;
 }
 
 export interface ICollaboratorParams {
@@ -1022,15 +1019,6 @@ export interface IAddDatasheetAction {
   type: typeof actions.ADD_DATASHEET;
   datasheetId: string;
   payload: IDatasheetPack;
-}
-
-export interface ISetViewPropertyAction {
-  datasheetId: string;
-  type: typeof actions.SET_VIEW_PROPERTY;
-  payload: {
-    viewId: string;
-    viewProperty: IViewProperty;
-  };
 }
 
 export interface ISetPageParamsAction {
@@ -1234,7 +1222,7 @@ export interface IRecordAlarm {
   alarmUsers?: IAlarmUser[];
   recordId?: string;
   fieldId?: string;
-  alarmAt?: string;
+  alarmAt?: string
 }
 
 /**

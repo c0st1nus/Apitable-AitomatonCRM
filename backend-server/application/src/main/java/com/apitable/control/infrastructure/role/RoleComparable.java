@@ -19,8 +19,7 @@
 package com.apitable.control.infrastructure.role;
 
 /**
- * Role Extend Comparable interface.
- *
+ * Role Extend Comparable interface
  * @author Shawn Deng
  */
 public interface RoleComparable<T> extends Comparable<T> {

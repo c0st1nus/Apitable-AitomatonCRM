@@ -17,7 +17,6 @@
  */
 
 import type { IAttachmentValue } from './field_types';
-import { IWorkDocValue } from './field_types';
 
 export interface ISelectFieldBaseOpenValue {
   id: string;
@@ -64,7 +63,7 @@ export interface IAttachmentFieldOpenValue extends IAttachmentValue {
 
 export type BasicOpenValueTypeBase =
   string | number | boolean | IMemberFieldOpenValue | ISelectFieldBaseOpenValue | ISelectFieldBaseOpenValue[] | ILinkFieldOpenValue[] |
-  IAttachmentFieldOpenValue[] | IWorkDocValue[];
+  IAttachmentFieldOpenValue[];
 
 export type ILookUpOpenValue = BasicOpenValueTypeBase[];
 

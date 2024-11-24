@@ -16,10 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import classNames from 'classnames';
-import * as React from 'react';
-import { useContext, useMemo, useRef, useState } from 'react';
-import { useDispatch } from 'react-redux';
 import { IconButton, LinkButton, useContextMenu, useThemeColors } from '@apitable/components';
 import {
   ConfigConstant,
@@ -36,7 +32,7 @@ import {
   ViewType,
 } from '@apitable/core';
 import { AddOutlined, InfoCircleOutlined, MoreOutlined } from '@apitable/icons';
-// eslint-disable-next-line no-restricted-imports
+import classNames from 'classnames';
 import { Tooltip } from 'pc/components/common';
 import { ScreenSize } from 'pc/components/common/component_display';
 import { useAppendField } from 'pc/components/expand_record/hooks/use_append_field';
@@ -50,13 +46,15 @@ import { useDeleteField, useHideField } from 'pc/components/multi_grid/hooks';
 import { BulkDownload } from 'pc/components/preview_file/preview_main/bulk_download';
 import { useAllowDownloadAttachment } from 'pc/components/upload_modal/preview_item';
 import { useResponsive } from 'pc/hooks';
-import { useAppSelector } from 'pc/store/react-redux';
 import { stopPropagation } from 'pc/utils';
+import * as React from 'react';
+import { useContext, useMemo, useRef, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import EditorTitleContext from '../editor_title_context';
 import { FieldDescWithTitle } from './field_desc_with_title';
-// @ts-ignore
-import { MobileAlarm } from 'enterprise/alarm/mobile_alarm/mobile_alarm';
 import styles from './style.module.less';
+// @ts-ignore
+import { MobileAlarm } from 'enterprise';
 
 interface IFieldTitleProps {
   isFocus?: boolean;
@@ -86,7 +84,7 @@ export interface IFieldDescCollapseStatus {
   };
 }
 
-export const FieldTitle: React.FC<React.PropsWithChildren<IFieldTitleProps>> = (props) => {
+export const FieldTitle: React.FC<React.PropsWithChildren<IFieldTitleProps>> = props => {
   const {
     isFocus,
     recordId,
@@ -108,12 +106,11 @@ export const FieldTitle: React.FC<React.PropsWithChildren<IFieldTitleProps>> = (
   } = props;
   const [openAlarm, setOpenAlarm] = useState(false);
 
-  const field = useAppSelector((state) => Selectors.getField(state, fieldId, datasheetId));
-  const view = useAppSelector((state) => Selectors.getCurrentView(state, datasheetId))!;
-  const mirrorId = useAppSelector((state) => state.pageParams.mirrorId);
-  const permission = useAppSelector((state) => Selectors.getPermissions(state, datasheetId, fieldId));
-  const nodeId = useAppSelector((state) => state.pageParams.nodeId);
-  const userTimeZone = useAppSelector(Selectors.getUserTimeZone)!;
+  const field = useSelector(state => Selectors.getField(state, fieldId, datasheetId));
+  const view = useSelector(state => Selectors.getCurrentView(state, datasheetId))!;
+  const mirrorId = useSelector(state => state.pageParams.mirrorId);
+  const permission = useSelector(state => Selectors.getPermissions(state, datasheetId, fieldId));
+  const nodeId = useSelector(state => state.pageParams.nodeId);
 
   const allowDownload = useAllowDownloadAttachment(fieldId);
   const dispatch = useDispatch();
@@ -126,7 +123,7 @@ export const FieldTitle: React.FC<React.PropsWithChildren<IFieldTitleProps>> = (
   const onAppendField = useAppendField(datasheetId);
   const onEditField = useEditField({ datasheetId, fieldId, colIndex });
   const onEditDesc = useEditDesc({ datasheetId, fieldId, colIndex });
-  const fieldPermissionMap = useAppSelector((state) => Selectors.getFieldPermissionMap(state, datasheetId));
+  const fieldPermissionMap = useSelector(state => Selectors.getFieldPermissionMap(state, datasheetId));
 
   const { type: viewType, autoHeadHeight } = (view || {}) as IGridViewProperty;
   const isTitleWrap = [ViewType.Grid, ViewType.Gantt].includes(viewType) && autoHeadHeight;
@@ -136,7 +133,7 @@ export const FieldTitle: React.FC<React.PropsWithChildren<IFieldTitleProps>> = (
   const isMobile = screenIsAtMost(ScreenSize.md);
   const copyField = fieldMap ? getCopyField(field, fieldMap, view.id, datasheetId) : () => {};
   const firstColumnId = view.columns[0].fieldId;
-  const columnIndexOfView = view.columns.findIndex((col) => col.fieldId === fieldId);
+  const columnIndexOfView = view.columns.findIndex(col => col.fieldId === fieldId);
 
   const hiddenField = () => {
     dispatch(StoreActions.clearSelection(datasheetId));
@@ -175,7 +172,7 @@ export const FieldTitle: React.FC<React.PropsWithChildren<IFieldTitleProps>> = (
   };
   const columnHidden = view.columns[columnIndexOfView]?.hidden;
   const onShowMenu = (e: MouseEvent) => {
-    showMenu(e as any, {
+    showMenu((e as any), {
       props: {
         onInsertAbove: firstColumnId !== fieldId ? () => onAppendField(e, Number(columnIndexOfView) - 1, columnHidden) : null,
         onInsertBelow: () => onAppendField(e, Number(columnIndexOfView), columnHidden),
@@ -208,8 +205,7 @@ export const FieldTitle: React.FC<React.PropsWithChildren<IFieldTitleProps>> = (
             {field.name}
           </div>
 
-          {!hideDesc &&
-            (Field.bindModel(field).isComputed || field.type === FieldType.Cascader) &&
+          {!hideDesc && (Field.bindModel(field).isComputed || field.type === FieldType.Cascader) &&
             renderComputeFieldError(field, t(Strings.field_configuration_err), isMobile)}
 
           {field.desc && !hideDesc && (
@@ -226,8 +222,7 @@ export const FieldTitle: React.FC<React.PropsWithChildren<IFieldTitleProps>> = (
           {!hideLock && <FieldPermissionLockEnhance fieldId={fieldId} className="more" />}
 
           {allowToInsertField &&
-            manageable &&
-            (!fieldPermissionMap || !fieldPermissionMap[fieldId] || fieldPermissionMap[fieldId].manageable) &&
+            manageable && (!fieldPermissionMap || !fieldPermissionMap[fieldId] || fieldPermissionMap[fieldId].manageable) &&
             !mirrorId &&
             nodeId && (
             <div className={styles.buttonsGroup} style={{ display: showFieldSetting ? 'flex' : '' }}>
@@ -236,7 +231,7 @@ export const FieldTitle: React.FC<React.PropsWithChildren<IFieldTitleProps>> = (
                   component="button"
                   shape="square"
                   icon={() => <AddOutlined size={16} color={colors.fc3} />}
-                  onClick={(e) => onAppendField(e, Number(columnIndexOfView), columnHidden)}
+                  onClick={e => onAppendField(e, Number(columnIndexOfView), columnHidden)}
                 />
               </Tooltip>
               <Tooltip title={t(Strings.config)}>
@@ -244,7 +239,7 @@ export const FieldTitle: React.FC<React.PropsWithChildren<IFieldTitleProps>> = (
                   component="button"
                   shape="square"
                   icon={() => <MoreOutlined size={16} color={colors.fc3} />}
-                  onClick={(e) => onShowMenu(e)}
+                  onClick={e => onShowMenu(e)}
                 />
               </Tooltip>
             </div>
@@ -264,7 +259,7 @@ export const FieldTitle: React.FC<React.PropsWithChildren<IFieldTitleProps>> = (
             fieldId={fieldId}
             setOpenAlarm={setOpenAlarm}
             includeTime={field.property.includeTime}
-            timeZone={field.property.timeZone || userTimeZone}
+            timeZone={field.property.timeZone}
             cellValue={cellValue}
           />
         )}

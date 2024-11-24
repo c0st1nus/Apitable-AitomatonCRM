@@ -18,14 +18,16 @@
 
 package com.apitable.shared.component;
 
-import com.apitable.core.util.SpringContextHolder;
-import com.apitable.shared.config.properties.ConstProperties;
 import java.util.Locale;
+
+import com.apitable.shared.config.properties.ConstProperties;
+import com.apitable.core.util.SpringContextHolder;
+
 import org.springframework.stereotype.Component;
 
 /**
  * <p>
- * locale context manager.
+ * locale context manager
  * </p>
  *
  * @author Chambers
@@ -47,8 +49,7 @@ public class LanguageManager {
     }
 
     /**
-     * Get the default language string Tag, and convert the connecting character "-" to the underscore "_".
-     *
+     * Get the default language string Tag, and convert the connecting character "-" to the underscore "_"
      * @return locale string key
      */
     public String getDefaultLanguageTagWithUnderLine() {

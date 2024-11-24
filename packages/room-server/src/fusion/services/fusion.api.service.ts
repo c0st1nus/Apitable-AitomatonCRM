@@ -24,13 +24,11 @@ import {
   databus,
   ExecuteResult,
   FieldKeyEnum,
-  FieldType,
   getViewTypeString,
   IAddFieldOptions,
   ICollaCommandOptions,
   IDeleteFieldData,
   IFieldMap,
-  IInternalFix,
   ILocalChangeset,
   IMeta,
   IOperation,
@@ -40,13 +38,14 @@ import {
   IViewRow,
   NoticeTemplatesConstant,
   Selectors,
-  IRemoteChangeset,
+  IInternalFix,
 } from '@apitable/core';
 import { Inject, Injectable } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import { CommandService } from 'database/command/services/command.service';
 import { DatasheetMetaService } from 'database/datasheet/services/datasheet.meta.service';
 import { DatasheetRecordSourceService } from 'database/datasheet/services/datasheet.record.source.service';
+import { UserService } from 'user/services/user.service';
 import { FastifyRequest } from 'fastify';
 import { ApiRecordDto } from 'fusion/dtos/api.record.dto';
 import { DataBusService } from 'fusion/services/databus/databus.service';
@@ -67,12 +66,11 @@ import {
 import { OrderEnum } from 'shared/enums';
 import { SourceTypeEnum } from 'shared/enums/changeset.source.type.enum';
 import { ApiException, DatasheetException, ServerException } from 'shared/exception';
-import {IAuthHeader, ILinkedRecordMap, IOssConfig, IServerConfig} from 'shared/interfaces';
+import { IAuthHeader, ILinkedRecordMap, IServerConfig } from 'shared/interfaces';
 import { IAPINode, IAPINodeDetail } from 'shared/interfaces/node.interface';
 import { IAPISpace } from 'shared/interfaces/space.interface';
 import { EnvConfigService } from 'shared/services/config/env.config.service';
 import { RestService } from 'shared/services/rest/rest.service';
-import { UserService } from 'user/services/user.service';
 import { Logger } from 'winston';
 import { DatasheetViewDto } from '../dtos/datasheet.view.dto';
 import { FusionApiFilter } from '../filter/fusion.api.filter';
@@ -102,8 +100,7 @@ export class FusionApiService {
     private readonly databusService: DataBusService,
     @InjectLogger() private readonly logger: Logger,
     @Inject(REQUEST) private readonly request: FastifyRequest,
-  ) {
-  }
+  ) {}
 
   public async getSpaceList(): Promise<IAPISpace[]> {
     const authHeader = { token: this.request.headers.authorization };
@@ -133,7 +130,7 @@ export class FusionApiService {
 
   public async getViewList(dstId: string): Promise<DatasheetViewDto[] | undefined> {
     const dstMeta = await this.metaService.getMetaDataMaybeNull(dstId);
-    return dstMeta?.views.map((view) => ({
+    return dstMeta?.views.map(view => ({
       id: view.id,
       name: view.name,
       type: getViewTypeString(view.type),
@@ -152,7 +149,6 @@ export class FusionApiService {
       loadOptions: {
         auth: { token: this.request.headers.authorization },
         recordIds: [],
-        includeCommentCount: false,
       },
     });
     if (datasheet === null) {
@@ -162,7 +158,7 @@ export class FusionApiService {
     profiler.done({ message: `getFieldListBuildDataPack ${dstId} done` });
 
     const view = await datasheet.getView({
-      getViewInfo: (state) => {
+      getViewInfo: state => {
         const datasheet = Selectors.getDatasheet(state, dstId);
         const snapshot = Selectors.getSnapshot(state, dstId)!;
         const fieldPermissionMap = Selectors.getFieldPermissionMap(state, dstId);
@@ -217,16 +213,12 @@ export class FusionApiService {
   public async getRecords(dstId: string, query: RecordQueryRo, auth: IAuthHeader): Promise<PageVo> {
     const getRecordsProfiler = this.logger.startTimer();
 
-    const meta = this.request[DATASHEET_META_HTTP_DECORATE] as IMeta;
-
     const datasheet = await this.databusService.getDatasheet(dstId, {
       loadOptions: {
         auth,
-        meta,
-        needExtendMainDstRecords: Boolean(query.recordIds),
         recordIds: query.recordIds,
       },
-      createStore: async(dst) => {
+      createStore: async dst => {
         const userInfo = await this.userService.getUserInfoBySpaceId(auth, dst.datasheet.spaceId);
         return this.commandService.fullFillStore(dst, userInfo);
       },
@@ -238,7 +230,7 @@ export class FusionApiService {
     const getViewProfiler = this.logger.startTimer();
 
     const view = await datasheet.getView({
-      getViewInfo: async(state) => {
+      getViewInfo: async state => {
         const snapshot = Selectors.getSnapshot(state, datasheet.id);
         if (!snapshot) {
           return null;
@@ -247,7 +239,7 @@ export class FusionApiService {
         const sortRules: ISortedField[] = [];
         // sort with desc in front
         if (query.sort) {
-          query.sort.forEach((sort) => {
+          query.sort.forEach(sort => {
             sortRules.push({ fieldId: sort.field, desc: sort.order === OrderEnum.DESC });
           });
         }
@@ -257,7 +249,7 @@ export class FusionApiService {
          * fullFillStore needs to be populated with user information.
          */
         const view = this.transform.getViewInfo({
-          recordIds: query.recordIds,
+          partialRecordsInDst: !!query.recordIds,
           viewId: query.viewId || undefined,
           sortRules,
           snapshot,
@@ -312,8 +304,7 @@ export class FusionApiService {
       },
     });
 
-    const recordVos = await this.getRecordViewObjects(records, query.cellFormat);
-
+    const recordVos = this.getRecordViewObjects(records, query.cellFormat);
 
     getRecordsProfiler.done({
       message: `getRecords ${dstId} profiler`,
@@ -327,19 +318,9 @@ export class FusionApiService {
     };
   }
 
-
-  /**
-   * Query datasheet records have deleted
-   *
-   * @param dstId datasheet id
-   */
-  public async getDeletedRecords(dstId: string): Promise<string[]> {
-    return this.fusionApiRecordService.getDeletedRecordsByDstId(dstId);
-  }
-
   public async getFieldCreateDtos(datasheetId: string): Promise<FieldCreateDto[]> {
     const meta: IMeta = await this.metaService.getMetaDataByDstId(datasheetId);
-    return Object.keys(meta.fieldMap).map((fieldId) => {
+    return Object.keys(meta.fieldMap).map(fieldId => {
       return { id: fieldId, name: meta.fieldMap[fieldId]!.name };
     });
   }
@@ -354,7 +335,7 @@ export class FusionApiService {
           foreignDstIds: foreignDatasheetId ? [foreignDatasheetId] : [],
         },
       },
-      createStore: (dst) => this.createStoreForBaseDstPacks(dst),
+      createStore: dst => this.createStoreForBaseDstPacks(dst),
     });
     if (datasheet === null) {
       throw ApiException.tipError(ApiTipConstant.api_datasheet_not_exist);
@@ -380,12 +361,9 @@ export class FusionApiService {
         auth,
         loadBasePacks: {
           foreignDstIds: [],
-          options: {
-            loadRecordMeta: true
-          }
         },
       },
-      createStore: (dst) => this.createStoreForBaseDstPacks(dst),
+      createStore: dst => this.createStoreForBaseDstPacks(dst),
     });
     if (datasheet === null) {
       throw ApiException.tipError(ApiTipConstant.api_datasheet_not_exist);
@@ -415,13 +393,13 @@ export class FusionApiService {
           foreignDstIds: foreignDatasheetIds,
         },
       },
-      createStore: (dst) => this.createStoreForBaseDstPacks(dst),
+      createStore: dst => this.createStoreForBaseDstPacks(dst),
     });
     if (datasheet === null) {
       throw ApiException.tipError(ApiTipConstant.api_datasheet_not_exist);
     }
 
-    const defaultFields = Object.values(datasheet.fields).map((field) => ({ fieldId: field.id }));
+    const defaultFields = Object.values(datasheet.fields).map(field => ({ fieldId: field.id }));
     const commandDatas = datasheetCreateRo.transferToCommandData();
     const fields = [];
     for (const commandData of commandDatas) {
@@ -444,7 +422,6 @@ export class FusionApiService {
   public async updateRecords(dstId: string, body: RecordUpdateRo, viewId: string): Promise<ListVo> {
     // Validate the existence in advance to prevent repeatedly swiping all the count table data
     const updateRecordsProfiler = this.logger.startTimer();
-    await this.fusionApiRecordService.validateArchivedRecordIncludes(dstId, body.getRecordIds(), ApiTipConstant.api_param_record_archived);
     await this.fusionApiRecordService.validateRecordExists(dstId, body.getRecordIds(), ApiTipConstant.api_param_record_not_exists);
 
     const meta: IMeta = this.request[DATASHEET_META_HTTP_DECORATE];
@@ -452,14 +429,14 @@ export class FusionApiService {
 
     // Convert a field to get the modified column
     const linkDatasheet: ILinkedRecordMap = this.request[DATASHEET_LINKED];
-    const recordIdSet: Set<string> = new Set(body.records.map((record) => record.recordId));
+    const recordIdSet: Set<string> = new Set(body.records.map(record => record.recordId));
     const linkedRecordMap = Object.keys(linkDatasheet).length ? linkDatasheet : undefined;
     linkedRecordMap &&
-    linkedRecordMap[dstId]?.forEach((recordId) => {
-      recordIdSet.add(recordId);
-    });
+      linkedRecordMap[dstId]?.forEach(recordId => {
+        recordIdSet.add(recordId);
+      });
     const recordIds = Array.from(recordIdSet);
-    const rows: IViewRow[] = recordIds.map((recordId) => {
+    const rows: IViewRow[] = recordIds.map(recordId => {
       return { recordId };
     });
     const auth = { token: this.request.headers.authorization };
@@ -468,10 +445,8 @@ export class FusionApiService {
     const datasheet = await this.databusService.getDatasheet(dstId, {
       loadOptions: {
         auth,
-        // meta,
         recordIds,
         linkedRecordMap,
-        includeCommentCount: false
       },
     });
     if (datasheet === null) {
@@ -508,7 +483,7 @@ export class FusionApiService {
       }
 
       const records = await view.getRecords({});
-      const recordViewObjects = await this.getRecordViewObjects(records);
+      const recordViewObjects = this.getRecordViewObjects(records);
       updateRecordsProfiler.done({ message: `update ${dstId}'s records profiler, records count: ${records.length}` });
       return {
         records: recordViewObjects,
@@ -540,7 +515,7 @@ export class FusionApiService {
     let newView: databus.View | null;
     if (viewId) {
       newView = await newDatasheet.getView({
-        getViewInfo: (state) => {
+        getViewInfo: state => {
           const view = Selectors.getViewById(Selectors.getSnapshot(state, newDatasheet.id)!, viewId)!;
           if (!view) {
             return null;
@@ -557,7 +532,7 @@ export class FusionApiService {
       });
     } else {
       newView = await newDatasheet.getView({
-        getViewInfo: (state) => {
+        getViewInfo: state => {
           const firstView = Selectors.getSnapshot(state)!.meta.views[0]!;
           return {
             property: {
@@ -575,9 +550,9 @@ export class FusionApiService {
     }
 
     const records = await newView.getRecords({});
-    const recordVos = await this.getRecordViewObjects(records);
+
     return {
-      records: recordVos,
+      records: this.getRecordViewObjects(records),
     };
   }
 
@@ -608,10 +583,8 @@ export class FusionApiService {
     const datasheet = await this.databusService.getDatasheet(dstId, {
       loadOptions: {
         auth,
-        // meta,
         recordIds: [],
         linkedRecordMap: this.request[DATASHEET_LINKED],
-        includeCommentCount: false
       },
     });
     if (datasheet === null) {
@@ -623,15 +596,12 @@ export class FusionApiService {
     }
 
     const updateFieldOperations = await this.getFieldUpdateOps(datasheet, auth);
-    let viewIndex = meta.views.findIndex(view => view.id === viewId);
-    if (viewIndex === -1){
-      viewIndex = 0;
-    }
+
     const result = await datasheet.addRecords(
       {
-        viewId: meta.views[viewIndex]!.id,
-        index: meta.views[viewIndex]!.rows.length,
-        recordValues: body.records.map((record) => record.fields),
+        viewId: meta.views[0]!.id,
+        index: meta.views[0]!.rows.length,
+        recordValues: body.records.map(record => record.fields),
         ignoreFieldPermission: true,
       },
       { auth, prependOps: updateFieldOperations },
@@ -640,20 +610,20 @@ export class FusionApiService {
       throw ApiException.tipError(ApiTipConstant.api_insert_error);
     }
 
-    const userId = this.request[USER_HTTP_DECORATE].id;
+    const userId = result.saveResult as string;
     const recordIds = result.data as string[];
 
     // API submission requires a record source for tracking the source of the record
-    this.datasheetRecordSourceService.createRecordSource(userId, dstId, dstId, recordIds, SourceTypeEnum.OPEN_API);
-    const rows = recordIds.map((recordId) => {
+    await this.datasheetRecordSourceService.createRecordSource(userId, dstId, dstId, recordIds, SourceTypeEnum.OPEN_API);
+    const rows = recordIds.map(recordId => {
       return { recordId };
     });
 
     // success doesn't mean that all records are updated successfully, could be partial success
     // such as the field type is changed while updating, the value may be invalid
     // so we need to reload the record map to get the correct value
-    // const recordMap = await this.fusionApiRecordService.getBasicRecordsByRecordIds(dstId, recordIds);
-    // await datasheet.resetRecords(recordMap, { auth, applyChangesets: false });
+    const recordMap = await this.fusionApiRecordService.getBasicRecordsByRecordIds(dstId, recordIds);
+    await datasheet.resetRecords(recordMap, { auth, applyChangesets: false });
 
     addRecordsProfiler.done({
       message: `addRecords ${dstId} profiler`,
@@ -662,90 +632,10 @@ export class FusionApiService {
     return this.getNewRecordListVo(datasheet, { viewId, rows, fieldMap });
   }
 
-  private async getRecordViewObjects(records: databus.Record[], cellFormat: CellFormatEnum = CellFormatEnum.JSON): Promise<ApiRecordDto[]> {
-    const roomConfig = this.envConfigService.getRoomConfig(EnvConfigKey.OSS) as IOssConfig;
-    const ossSignatureEnabled = roomConfig.ossSignatureEnabled;
-    const apiRecordDtos = records.map((record) => record.getViewObject<ApiRecordDto>((id, options) => this.transform.recordVoTransform(id, options, cellFormat)));
-    if (!ossSignatureEnabled){
-      return apiRecordDtos;
-    }
-
-    const attachmentColmns: string[] = [];
-    const attachmentTokens: string[] = [];
-
-    // Fields for recording attachment types
-    if (records.length){
-      const record = records[0]!;
-      const voTransformOptions = record.getVoTransformOptions();
-      const fieldMap = voTransformOptions.fieldMap;
-      Object.keys(fieldMap).forEach(fieldId => {
-        const fieldValue = fieldMap[fieldId]!;
-        if (fieldValue.type === FieldType.Attachment) {
-          attachmentColmns.push(fieldId);
-        }
-      });
-    }
-
-    if (!attachmentColmns.length) {
-      // attachmentColmns is empty
-      return apiRecordDtos;
-    }
-
-    // Collect all attachment URL
-    apiRecordDtos.forEach(apiRecordDto => {
-      const fields = apiRecordDto.fields;
-      Object.keys(fields).forEach(fieldId => {
-        if (attachmentColmns.includes(fieldId)) {
-          const fieldValue = fields[fieldId];
-          if (Array.isArray(fieldValue)) {
-            fieldValue.forEach(obj => {
-              attachmentTokens.push(obj.token);
-              if(obj.preview){
-                attachmentTokens.push(obj.preview);
-              }
-            });
-          }
-        }
-      });
-    });
-
-    if (!attachmentTokens.length) {
-      // attachmentTokens is empty
-      return apiRecordDtos;
-    }
-
-    // Retrieve in batches, fetching 100 at a time.
-    const batchSize = 100;
-    const signatureMap = new Map();
-
-    for (let i = 0; i < attachmentTokens.length; i += batchSize) {
-      const batchTokens = attachmentTokens.slice(i, i + batchSize);
-      const batchSignatures = await this.restService.getSignatures(batchTokens);
-      batchSignatures.forEach(obj => {
-        const key = obj.resourceKey;
-        const value = obj.url;
-        signatureMap.set(key, value);
-      });
-    }
-
-    // Loop Replace URL
-    apiRecordDtos.forEach(apiRecordDto => {
-      const fields = apiRecordDto.fields;
-      Object.keys(fields).forEach(fieldId => {
-        if (attachmentColmns.includes(fieldId)) {
-          const fieldValue = fields[fieldId];
-          if (Array.isArray(fieldValue)) {
-            fieldValue.forEach(obj => {
-              obj.url = signatureMap.get(obj.token);
-              if(obj.preview){
-                obj.preview = signatureMap.get(obj.preview);
-              }
-            });
-          }
-        }
-      });
-    });
-    return apiRecordDtos;
+  private getRecordViewObjects(records: databus.Record[], cellFormat: CellFormatEnum = CellFormatEnum.JSON): ApiRecordDto[] {
+    return records.map(record =>
+      record.getViewObject<ApiRecordDto>((id, options) => this.transform.recordVoTransform(id, options, cellFormat)),
+    );
   }
 
   /**
@@ -756,7 +646,6 @@ export class FusionApiService {
    */
   public async deleteRecord(dstId: string, recordIds: string[]): Promise<boolean> {
     // Validate the existence in advance to prevent repeatedly swiping all the count table data
-    await this.fusionApiRecordService.validateArchivedRecordIncludes(dstId, recordIds, ApiTipConstant.api_param_record_archived);
     await this.fusionApiRecordService.validateRecordExists(dstId, recordIds, ApiTipConstant.api_param_record_not_exists);
     const auth = { token: this.request.headers.authorization };
     const datasheet = await this.databusService.getDatasheet(dstId, {
@@ -799,14 +688,7 @@ export class FusionApiService {
     }
     if (totalCount > limit.maxRecordCount) {
       // Over Limit Alert
-      void this.restService.createRecordLimitRemind(
-        auth,
-        NoticeTemplatesConstant.add_record_out_of_limit,
-        [userId],
-        spaceId,
-        dstId,
-        limit.maxRecordCount,
-      );
+      void this.restService.createRecordLimitRemind(auth, NoticeTemplatesConstant.add_record_out_of_limit, [userId], spaceId, dstId, limit.maxRecordCount);
       throw new ServerException(DatasheetException.RECORD_ADD_LIMIT, CommonStatusCode.DEFAULT_ERROR_CODE);
     }
   }
@@ -827,7 +709,7 @@ export class FusionApiService {
           },
         },
       },
-      createStore: (dst) => this.createStoreForBaseDstPacks(dst),
+      createStore: dst => this.createStoreForBaseDstPacks(dst),
     });
     if (datasheet === null) {
       throw ApiException.tipError(ApiTipConstant.api_datasheet_not_exist);
@@ -839,25 +721,6 @@ export class FusionApiService {
     }
     return result.saveResult as string;
   }
-
-  /**
-   * Customize rust command
-   */
-  public async executeCommandFromRust(datasheetId: string, commandBody: IRemoteChangeset[], auth: IAuthHeader): Promise<string> {
-      const linkedRecordMap = undefined;
-      const datasheet = await this.databusService.getDatasheet(datasheetId, {
-        loadOptions: {
-          auth,
-          linkedRecordMap,
-          includeCommentCount: false
-        },
-      });
-      if (datasheet === null) {
-        throw ApiException.tipError(ApiTipConstant.api_datasheet_not_exist);
-      }
-      await datasheet.nestRoomChangeFromRust(datasheetId, commandBody);
-      return 'executeCommandFromRoomServer';
-    }
 
   private async addDatasheetField(dst: databus.Datasheet, fieldOptions: IAddFieldOptions, auth: IAuthHeader): Promise<string> {
     const result = await dst.addFields([fieldOptions], { auth });
@@ -886,7 +749,7 @@ export class FusionApiService {
       }
 
       const changesets = result.saveResult as ILocalChangeset[];
-      updateFieldOperations.push(...changesets.flatMap((changeSet) => changeSet.operations));
+      updateFieldOperations.push(...changesets.flatMap(changeSet => changeSet.operations));
     }
 
     return updateFieldOperations;

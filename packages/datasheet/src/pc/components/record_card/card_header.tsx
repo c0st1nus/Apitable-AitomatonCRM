@@ -16,10 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { compact } from 'lodash';
-import Image from 'next/image';
-import * as React from 'react';
-import { shallowEqual } from 'react-redux';
 import {
   cellValueToImageSrc,
   CutMethod,
@@ -32,13 +28,15 @@ import {
   isImage,
   Selectors,
 } from '@apitable/core';
-import { useGetSignatureAssertFunc } from '@apitable/widget-sdk';
+import { compact } from 'lodash';
+import Image from 'next/image';
 import { ScreenSize } from 'pc/components/common/component_display';
 import { DisplayFile } from 'pc/components/display_file';
 import { useResponsive } from 'pc/hooks';
 import { store } from 'pc/store';
-import { useAppSelector } from 'pc/store/react-redux';
 import { isSupportImage, renderFileIconUrl } from 'pc/utils';
+import * as React from 'react';
+import { shallowEqual, useSelector } from 'react-redux';
 import NoImage from 'static/icon/datasheet/gallery/emptystates_img_datasheet.png';
 import { hasCover } from '../gallery_view/utils';
 import { ImageBox, ImageShowType } from './image_box';
@@ -47,7 +45,7 @@ import styles from './style.module.less';
 const getImageSrc = (value: IAttachmentValue, height: number): string => {
   const file = { name: value.name, type: value.mimeType };
   if (!isImage(file) || !isSupportImage(file.type)) {
-    return renderFileIconUrl(file) as any as string;
+    return (renderFileIconUrl(file) as any) as string;
   }
 
   return cellValueToImageSrc(value, {
@@ -67,17 +65,15 @@ interface ICardHeaderProps {
   datasheetId: string;
 }
 
-export const CardHeader: React.FC<React.PropsWithChildren<ICardHeaderProps>> = (props) => {
+export const CardHeader: React.FC<React.PropsWithChildren<ICardHeaderProps>> = props => {
   const { coverFieldId, recordId, width, height, isCoverFit, showEmptyCover, showOneImage, datasheetId } = props;
 
-  const { recordSnapshot, permissions } = useAppSelector((state) => {
+  const { recordSnapshot, permissions } = useSelector(state => {
     return {
       recordSnapshot: Selectors.getRecordSnapshot(state, datasheetId, recordId),
       permissions: Selectors.getPermissions(state),
     };
   }, shallowEqual);
-
-  const getSignatureUrl = useGetSignatureAssertFunc();
 
   const { screenIsAtMost } = useResponsive();
   if (!recordSnapshot) return null;
@@ -92,19 +88,14 @@ export const CardHeader: React.FC<React.PropsWithChildren<ICardHeaderProps>> = (
       return item.type === FieldType.Attachment;
     })!;
 
-  let _coverValue = compact(Selectors.getCellValue(store.getState(), recordSnapshot, recordId, coverField!.id));
-  if (coverField?.type === FieldType.LookUp && _coverValue) {
-    if (Array.isArray(_coverValue)) {
-      _coverValue = (_coverValue as ILookUpValue).flat() as IAttachmentValue[];
-    } else if (_coverValue) {
-      _coverValue = [_coverValue];
+  let coverValue = compact(Selectors.getCellValue(store.getState(), recordSnapshot, recordId, coverField!.id));
+  if (coverField?.type === FieldType.LookUp && coverValue) {
+    if (Array.isArray(coverValue)) {
+      coverValue = (coverValue as ILookUpValue).flat() as IAttachmentValue[];
+    } else if (coverValue) {
+      coverValue = [coverValue];
     }
   }
-
-  const coverValue = _coverValue.map((value) => ({
-    ...(value as IAttachmentValue),
-    token: getSignatureUrl((value as IAttachmentValue).token),
-  }));
 
   if (coverValue && coverValue.length && screenIsAtMost(ScreenSize.md)) {
     const field = fieldMap[coverFieldId!]!;
@@ -139,7 +130,7 @@ export const CardHeader: React.FC<React.PropsWithChildren<ICardHeaderProps>> = (
       width={width}
       height={height}
       fileList={coverValue as IAttachmentValue[]}
-      images={(coverValue as IAttachmentValue[]).map((url) => getImageSrc(url, height))}
+      images={(coverValue as IAttachmentValue[]).map(url => getImageSrc(url, height))}
       style={{
         backgroundColor: '#fff',
         backgroundSize: isCoverFit ? 'contain' : 'cover',

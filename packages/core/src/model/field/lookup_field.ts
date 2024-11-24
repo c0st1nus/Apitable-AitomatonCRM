@@ -17,77 +17,43 @@
  */
 
 import { getComputeRefManager } from 'compute_manager';
-import { ViewFilterDerivate } from 'compute_manager/view_derivate/slice/view_filter_derivate';
-import { Strings, t } from 'exports/i18n';
-import { sortRowsBySortInfo } from 'modules/database/store/selectors/resource/datasheet/rows_calc';
-import { getUserTimeZone } from 'modules/user/store/selectors/user';
-import { getCellValue, _getLookUpTreeValue } from 'modules/database/store/selectors/resource/datasheet/cell_calc';
-import { getFieldMap }from 'modules/database/store/selectors/resource/datasheet/calc';
-import { getSnapshot } from 'modules/database/store/selectors/resource/datasheet/base';
-import { ROLLUP_KEY_WORDS } from 'formula_parser/consts';
 import { evaluate, parse } from 'formula_parser/evaluate';
+import { ROLLUP_KEY_WORDS } from 'formula_parser/consts';
 import { Functions } from 'formula_parser/functions';
+import { Strings, t } from 'exports/i18n';
 import Joi from 'joi';
 import { isEmpty, uniqWith, zip } from 'lodash';
 import { ValueTypeMap } from 'model/constants';
-import { computedFormattingToFormat, getFieldTypeByString, handleNullArray } from 'model/utils';
-import { getFieldTypeString } from 'model/utils';
-import { APIMetaFieldType } from 'types';
+import { computedFormattingToFormat, getApiMetaPropertyFormat, handleNullArray } from 'model/utils';
 import { IAPIMetaLookupFieldProperty } from 'types/field_api_property_types';
 import { BasicOpenValueType, BasicOpenValueTypeBase } from 'types/field_types_open';
 import { IOpenMagicLookUpFieldProperty } from 'types/open/open_field_read_types';
-import { IEffectOption, IUpdateOpenMagicLookUpFieldProperty } from 'types/open/open_field_write_types';
-import { getApiMetaPropertyFormat } from 'model/field/utils';
-
-import {
-  IOpenFilterValue,
-  IOpenFilterValueBoolean,
-  IOpenFilterValueDataTime,
-  IOpenFilterValueNumber,
-  IOpenFilterValueString,
-} from 'types/open/open_filter_types';
-import { checkTypeSwitch, filterOperatorAcceptsValue, getNewIds, IDPrefix, isTextBaseType } from 'utils';
+import { IUpdateOpenMagicLookUpFieldProperty } from 'types/open/open_field_write_types';
+import { checkTypeSwitch, isTextBaseType } from 'utils';
 import { isClient } from 'utils/env';
-import { IReduxState, IViewRow } from '../../exports/store/interfaces';
+import { IReduxState, Selectors } from '../../exports/store';
+import { _getLookUpTreeValue, getFieldMap, getSnapshot, getUserTimeZone } from 'exports/store/selectors';
 import {
-  BasicValueType,
-  FieldType,
-  IComputedFieldFormattingProperty,
-  IDateTimeFieldProperty,
-  IField,
-  ILinkField,
-  ILinkIds,
-  ILookUpField,
-  ILookUpProperty,
-  ILookUpSortInfo,
-  INumberFormatFieldProperty,
-  IOneWayLinkField,
-  IStandardValue,
-  ITimestamp,
-  IUnitIds,
-  LookUpLimitType,
-  RollUpFuncType,
+  BasicValueType, FieldType, IComputedFieldFormattingProperty, IDateTimeFieldProperty, IField, ILinkField, ILinkIds, ILookUpField, ILookUpProperty,
+  INumberFormatFieldProperty, IStandardValue, ITimestamp, IUnitIds, RollUpFuncType
 } from '../../types/field_types';
 import {
-  FilterConjunction,
-  FOperator,
-  FOperatorDescMap,
-  IFilterCheckbox,
-  IFilterCondition,
-  IFilterDateTime,
-  IFilterInfo,
-  IFilterText,
+  FilterConjunction, FOperator, FOperatorDescMap, IFilterCheckbox, IFilterCondition,
+  IFilterDateTime, IFilterText
 } from '../../types/view_types';
 import { ICellToStringOption, ICellValue, ICellValueBase, ILookUpValue } from '../record';
 import { CheckboxField } from './checkbox_field';
 import { DateTimeBaseField, dateTimeFormat } from './date_time_base_field';
-import { ArrayValueField } from './array_field';
-import { Field } from './field';
+import { ArrayValueField, Field } from './field';
 import { NumberBaseField, numberFormat } from './number_base_field';
 import { StatTranslate, StatType } from './stat';
 import { TextBaseField } from './text_base_field';
 import { computedFormatting, computedFormattingStr, datasheetIdString, enumToArray, joiErrorResult } from './validate_schema';
-import { getFieldDefaultProperty } from './const';
+import { ViewFilterDerivate } from 'compute_manager/view_derivate/slice/view_filter_derivate';
+import {
+  IOpenFilterValue, IOpenFilterValueBoolean, IOpenFilterValueDataTime, IOpenFilterValueNumber,
+  IOpenFilterValueString
+} from 'types/open/open_filter_types';
 
 export interface ILookUpTreeValue {
   datasheetId: string;
@@ -97,10 +63,17 @@ export interface ILookUpTreeValue {
 }
 
 // function that needs to output as-is
-export const ORIGIN_VALUES_FUNC_SET = new Set([RollUpFuncType.VALUES, RollUpFuncType.ARRAYUNIQUE, RollUpFuncType.ARRAYCOMPACT]);
+export const ORIGIN_VALUES_FUNC_SET = new Set([
+  RollUpFuncType.VALUES,
+  RollUpFuncType.ARRAYUNIQUE,
+  RollUpFuncType.ARRAYCOMPACT,
+]);
 
 // Functions that need to be displayed by string concatenation
-export const LOOKUP_VALUE_FUNC_SET = new Set([RollUpFuncType.ARRAYJOIN, RollUpFuncType.CONCATENATE]);
+export const LOOKUP_VALUE_FUNC_SET = new Set([
+  RollUpFuncType.ARRAYJOIN,
+  RollUpFuncType.CONCATENATE,
+]);
 
 // Functions that don't require number formatting
 export const NOT_FORMAT_FUNC_SET = new Set([
@@ -110,54 +83,6 @@ export const NOT_FORMAT_FUNC_SET = new Set([
   RollUpFuncType.ARRAYCOMPACT,
 ]);
 
-const filterInfoSchema = () =>
-  Joi.object({
-    conjunction: Joi.valid(...enumToArray(FilterConjunction)).required(),
-    conditions: Joi.array().items(
-      Joi.object({
-        conditionId: Joi.string().required(),
-        fieldId: Joi.string()
-          .pattern(/^fld.+/, 'fieldId')
-          .required(),
-        operator: Joi.valid(...enumToArray(FOperator)).required(),
-        fieldType: Joi.valid(...enumToArray(FieldType)).required(),
-        value: Joi.any(),
-      }),
-    ),
-  });
-
-const apiFilterInfoSchema = (isBackend: boolean) =>
-  Joi.object({
-    conjunction: Joi.valid(...enumToArray(FilterConjunction)).required(),
-    conditions: Joi.array().items(
-      Joi.object({
-        fieldId: Joi.string()
-          .pattern(/^fld.+/, 'fieldId')
-          .required(),
-        operator: Joi.valid(...enumToArray(FOperator)).required(),
-        value: Joi.any(),
-        ...(isBackend
-          ? {}
-          : {
-            fieldType: Joi.valid(...enumToArray(APIMetaFieldType)).required(),
-          }),
-      }),
-    ),
-  });
-
-const sortInfoSchema = () =>
-  Joi.object({
-    rules: Joi.array()
-      .items(
-        Joi.object({
-          fieldId: Joi.string().required(),
-          desc: Joi.boolean().required(),
-        }),
-      )
-      .length(1)
-      .required(),
-  });
-
 export class LookUpField extends ArrayValueField {
   constructor(public override field: ILookUpField, public override state: IReduxState) {
     super(field, state);
@@ -165,18 +90,21 @@ export class LookUpField extends ArrayValueField {
 
   static propertySchema = Joi.object({
     datasheetId: datasheetIdString().required(),
-    relatedLinkFieldId: Joi.string()
-      .pattern(/^fld.+/, 'fieldId')
-      .required(),
-    lookUpTargetFieldId: Joi.string()
-      .pattern(/^fld.+/, 'fieldId')
-      .required(),
+    relatedLinkFieldId: Joi.string().pattern(/^fld.+/, 'fieldId').required(),
+    lookUpTargetFieldId: Joi.string().pattern(/^fld.+/, 'fieldId').required(),
     rollUpType: Joi.valid(...enumToArray(RollUpFuncType)),
     formatting: computedFormatting(),
-    filterInfo: filterInfoSchema(),
+    filterInfo: Joi.object({
+      conjunction: Joi.valid(...enumToArray(FilterConjunction)).required(),
+      conditions: Joi.array().items(Joi.object({
+        conditionId: Joi.string().required(),
+        fieldId: Joi.string().pattern(/^fld.+/, 'fieldId').required(),
+        operator: Joi.valid(...enumToArray(FOperator)).required(),
+        fieldType: Joi.valid(...enumToArray(FieldType)).required(),
+        value: Joi.any(),
+      }))
+    }),
     openFilter: Joi.boolean(),
-    lookUpLimit: Joi.valid(...enumToArray(LookUpLimitType)),
-    sortInfo: sortInfoSchema(),
   }).required();
 
   validateProperty() {
@@ -200,9 +128,6 @@ export class LookUpField extends ArrayValueField {
       relatedLinkFieldId: this.field.property.relatedLinkFieldId,
       targetFieldId: this.field.property.lookUpTargetFieldId,
       rollupFunction: this.rollUpType,
-      enableFilterSort: this.field.property.openFilter,
-      sortInfo: this.field.property.sortInfo,
-      lookUpLimit: this.field.property.lookUpLimit,
     };
 
     if (this.hasError) {
@@ -215,19 +140,7 @@ export class LookUpField extends ArrayValueField {
     if (lookUpEntityFieldInfo) {
       res.entityField = {
         datasheetId: lookUpEntityFieldInfo.datasheetId,
-        field: Field.bindContext(lookUpEntityFieldInfo.field, this.state).getApiMeta(lookUpEntityFieldInfo.datasheetId),
-      };
-    }
-
-    if (this.field.property.filterInfo) {
-      res.filterInfo = {
-        conjunction: this.field.property.filterInfo.conjunction,
-        conditions: this.field.property.filterInfo.conditions.map((cond) => ({
-          fieldId: cond.fieldId,
-          fieldType: getFieldTypeString(cond.fieldType),
-          operator: cond.operator,
-          value: cond.value,
-        })),
+        field: Field.bindContext(lookUpEntityFieldInfo.field, this.state).getApiMeta(lookUpEntityFieldInfo.datasheetId)
       };
     }
 
@@ -281,7 +194,7 @@ export class LookUpField extends ArrayValueField {
     return {
       type: 'array',
       title: this.field.name,
-      items: entityFieldSchema,
+      items: entityFieldSchema
     };
   }
 
@@ -365,13 +278,17 @@ export class LookUpField extends ArrayValueField {
     }
 
     const valueType = Field.bindContext(entityField, this.state).basicValueType;
-    // The array in the array is still an array,
+    // The array in the array is still an array, 
     // indicating that it is a multi-select field, and it can be specified as a string directly.
     return valueType === BasicValueType.Array ? BasicValueType.String : valueType;
   }
 
   static defaultProperty() {
-    return getFieldDefaultProperty(FieldType.LookUp) as ILookUpProperty;
+    return {
+      datasheetId: '',
+      relatedLinkFieldId: '',
+      lookUpTargetFieldId: '',
+    };
   }
 
   override get isComputed() {
@@ -422,18 +339,17 @@ export class LookUpField extends ArrayValueField {
     if (!entityField) {
       return [];
     }
-    return Field.bindContext(entityField, this.state).acceptFilterOperators.filter((item) => item !== FOperator.IsRepeat);
+    return Field.bindContext(entityField, this.state).acceptFilterOperators.filter(item => item !== FOperator.IsRepeat);
   }
 
-  getLinkFields(): (ILinkField | IOneWayLinkField)[] {
+  getLinkFields(): ILinkField[] {
     const snapshot = getSnapshot(this.state, this.field.property.datasheetId);
     const fieldMap = snapshot?.meta.fieldMap;
-    return fieldMap ? (Object.values(fieldMap).filter((field) =>
-      [FieldType.Link, FieldType.OneWayLink].includes(field.type)) as (ILinkField | IOneWayLinkField)[]) : [];
+    return fieldMap ? Object.values(fieldMap).filter(field => field.type === FieldType.Link) as ILinkField[] : [];
   }
 
-  getRelatedLinkField(): ILinkField | IOneWayLinkField | undefined {
-    return this.getLinkFields().find((field) => field.id === this.field.property.relatedLinkFieldId);
+  getRelatedLinkField(): ILinkField | undefined {
+    return this.getLinkFields().find(field => field.id === this.field.property.relatedLinkFieldId);
   }
 
   getLookUpEntityFieldDepth(visitedFields?: Set<string>, depth?: number): number {
@@ -444,18 +360,11 @@ export class LookUpField extends ArrayValueField {
     return lookUpEntityFieldInfo.depth;
   }
 
-  // Allow lookup lookup lookup fields, but there will always be an entity field in the end.
+  // Allow lookup lookup lookup fields, but there will always be an entity field in the end. 
   // Returns entity fields and the depth of the fields.
-  getLookUpEntityFieldInfo(
-    visitedFields?: Set<string>,
-    depth?: number,
-  ):
-    | {
-        field: IField;
-        depth: number;
-        datasheetId: string;
-      }
-    | undefined {
+  getLookUpEntityFieldInfo(visitedFields?: Set<string>, depth?: number): {
+    field: IField; depth: number; datasheetId: string;
+  } | undefined {
     const _visitedFields = visitedFields || new Set();
     const _depth = depth || 0;
     const nextTargetInfo = this.getLookUpTargetFieldAndDatasheet();
@@ -490,7 +399,7 @@ export class LookUpField extends ArrayValueField {
     }
   }
 
-  // Check whether the column corresponding to the filter condition is deleted,
+  // Check whether the column corresponding to the filter condition is deleted, 
   // check whether the column corresponding to the filter condition switches the type
   /**
    * Check whether the column corresponding to the filter condition is deleted
@@ -505,14 +414,14 @@ export class LookUpField extends ArrayValueField {
       if (!relatedLinkField) {
         return {
           error: true,
-          typeSwitch: false,
+          typeSwitch: false
         };
       }
       const { foreignDatasheetId } = relatedLinkField.property;
       const foreignSnapshot = getSnapshot(this.state, foreignDatasheetId)!;
       const foreignFieldMap = foreignSnapshot.meta.fieldMap;
       const { conditions } = filterInfo;
-      conditions.forEach((c) => {
+      conditions.forEach(c => {
         if (!error) {
           error = !foreignFieldMap[c.fieldId];
         }
@@ -594,7 +503,7 @@ export class LookUpField extends ArrayValueField {
         case RollUpFuncType.ARRAYUNIQUE:
           return uniqWith(_flatCellValue as any[], (cv1, cv2) => Field.bindContext(entityField, this.state).eq(cv1, cv2));
         case RollUpFuncType.ARRAYCOMPACT:
-          return (_flatCellValue as ILookUpValue).filter((v) => v !== '' || v != null);
+          return (_flatCellValue as ILookUpValue).filter(v => v !== '' || v != null);
         default:
           return flatCellValue;
       }
@@ -616,7 +525,7 @@ export class LookUpField extends ArrayValueField {
     }
     const flatCellValues: ICellValueBase[] = [];
     const getRealCellValue = (values: ILookUpTreeValue[]) => {
-      values.forEach((value) => {
+      values.forEach(value => {
         if (value && value.field) {
           if (value.field.type === FieldType.LookUp) {
             getRealCellValue(value.cellValue as ILookUpTreeValue[]);
@@ -627,7 +536,7 @@ export class LookUpField extends ArrayValueField {
       });
     };
     getRealCellValue(recordCellValues);
-    return withEmpty ? flatCellValues : flatCellValues.filter((item) => item !== null);
+    return withEmpty ? flatCellValues : flatCellValues.filter(item => item !== null);
   }
 
   /**
@@ -638,7 +547,9 @@ export class LookUpField extends ArrayValueField {
    * @returns {ILookUpTreeValue[]}
    * @memberof LookUpField
    */
-  getLookUpTreeValue(recordId: string): ILookUpTreeValue[] {
+  getLookUpTreeValue(
+    recordId: string,
+  ): ILookUpTreeValue[] {
     // The column corresponding to the filter condition is deleted and the result is not displayed
     const { error: isFilterError } = this.checkFilterInfo();
     if (isFilterError) {
@@ -649,12 +560,14 @@ export class LookUpField extends ArrayValueField {
       // console.log('Cannot find foreign key field', relatedLinkField);
       return [];
     }
-    const { lookUpTargetFieldId, datasheetId, filterInfo, openFilter, sortInfo, lookUpLimit } = this.field.property;
+    const { lookUpTargetFieldId, datasheetId, filterInfo, openFilter } = this.field.property;
     const thisSnapshot = getSnapshot(this.state, datasheetId)!;
     // IDs of the associated table records
-    let recordIds = getCellValue(this.state, thisSnapshot, recordId, relatedLinkField.id, true, datasheetId, true) as ILinkIds;
+    let recordIDs = Selectors.getCellValue(
+      this.state, thisSnapshot, recordId, relatedLinkField.id, true, datasheetId, true
+    ) as ILinkIds;
 
-    if (!recordIds) {
+    if (!recordIDs) {
       return [];
     }
     const { foreignDatasheetId } = relatedLinkField.property;
@@ -665,44 +578,22 @@ export class LookUpField extends ArrayValueField {
     const lookUpTargetField = this.getLookUpTargetField() as IField;
 
     if (openFilter) {
-      // lookup filter
-      recordIds = new ViewFilterDerivate(this.state, foreignDatasheetId).getFilteredRecords({
-        linkFieldRecordIds: recordIds,
+      // magic reference filter
+      recordIDs = new ViewFilterDerivate(this.state, foreignDatasheetId).getFilteredRecords({
+        linkFieldRecordIds: recordIDs,
         filterInfo,
       });
-      // lookup sort
-      const sortRows = this.getSortLookup(sortInfo, foreignDatasheetId, recordIds);
-
-      recordIds = sortRows.filter((row) => recordIds.includes(row.recordId)).map((row) => row.recordId);
     }
 
-    if (lookUpLimit === LookUpLimitType.FIRST && recordIds.length > 1) {
-      recordIds = recordIds.slice(0, 1);
-    }
-
-    return recordIds && recordIds.length
-      ? recordIds.map((recordId: string) => {
-        const cellValue = _getLookUpTreeValue(this.state, foreignSnapshot, recordId, lookUpTargetFieldId, foreignDatasheetId);
-        return {
-          field: lookUpTargetField,
-          recordId,
-          cellValue,
-          datasheetId: foreignDatasheetId,
-        };
-      })
-      : [];
-  }
-
-  getSortLookup(sortInfo: ILookUpSortInfo | undefined, datasheetId: string, recordIds: string[]): IViewRow[] {
-    const snapshot = this.state.datasheetMap[datasheetId]?.datasheet!.snapshot;
-    if (!snapshot) {
-      return [];
-    }
-    const rows = snapshot?.meta?.views[0]?.rows!.filter((row) => recordIds.includes(row.recordId));
-    if (!rows) {
-      return [];
-    }
-    return sortInfo ? sortRowsBySortInfo(this.state, rows, sortInfo.rules, snapshot) : rows;
+    return recordIDs && recordIDs.length ? recordIDs.map((recordId: string) => {
+      const cellValue = _getLookUpTreeValue(this.state, foreignSnapshot, recordId, lookUpTargetFieldId, foreignDatasheetId);
+      return {
+        field: lookUpTargetField,
+        recordId,
+        cellValue,
+        datasheetId: foreignDatasheetId,
+      };
+    }) : [];
   }
 
   override isEmptyOrNot(operator: FOperator.IsEmpty | FOperator.IsNotEmpty, cellValue: ICellValue) {
@@ -726,14 +617,21 @@ export class LookUpField extends ArrayValueField {
     return false;
   }
 
+  static getFirstItem(item: any) {
+    if (Array.isArray(item)) {
+      return item[0];
+    }
+    return item;
+  }
+
   /**
-   *
+   * 
    * Compare the size of the two cellValues on the field for sorting
    * The default is to convert to string comparison, if it is not this logic, please implement it yourself
-   *
-   * @orderInCellValueSensitive {boolean} optional parameter, to determine whether to only do normal sorting for the associated field,
+   * 
+   * @orderInCellValueSensitive {boolean} optional parameter, to determine whether to only do normal sorting for the associated field, 
    * without preprocessing the cell content
-   *
+   * 
    * @returns {number} negative => less than, 0 => equal, positive => greater than
    */
   override compare(cv1: ICellValue, cv2: ICellValue, orderInCellValueSensitive?: boolean): number {
@@ -745,7 +643,8 @@ export class LookUpField extends ArrayValueField {
         case BasicValueType.Number:
           return NumberBaseField._compare(cv1 as number, cv2 as number);
         case BasicValueType.DateTime:
-          return DateTimeBaseField._compare(cv1 as ITimestamp, cv2 as ITimestamp, this.field.property.formatting as IDateTimeFieldProperty);
+          return DateTimeBaseField._compare(cv1 as ITimestamp, cv2 as ITimestamp,
+            this.field.property.formatting as IDateTimeFieldProperty);
         case BasicValueType.Boolean:
           return CheckboxField._compare(cv1, cv2, orderInCellValueSensitive);
         default:
@@ -801,7 +700,7 @@ export class LookUpField extends ArrayValueField {
             case FOperator.DoesNotContain:
             case FOperator.IsNot:
             case FOperator.IsEmpty:
-              return (cellValue as ICellValue[]).every((cv) => {
+              return (cellValue as ICellValue[]).every(cv => {
                 switch (this.innerBasicValueType) {
                   case BasicValueType.Number:
                     return NumberBaseField._isMeetFilter(operator, cv as number | null, conditionValue);
@@ -816,7 +715,7 @@ export class LookUpField extends ArrayValueField {
                 }
               });
             default:
-              return (cellValue as ICellValue[]).some((cv) => {
+              return (cellValue as ICellValue[]).some(cv => {
                 switch (this.innerBasicValueType) {
                   case BasicValueType.Number:
                     return NumberBaseField._isMeetFilter(operator, cv as number | null, conditionValue);
@@ -861,9 +760,11 @@ export class LookUpField extends ArrayValueField {
       case FOperator.DoesNotContain:
       case FOperator.IsNot:
       case FOperator.IsEmpty:
-        return Array.isArray(cellValue) ? (cellValue as ICellValue[]).every((cv) => judge(cv)) : judge(cellValue);
+        return Array.isArray(cellValue) ? (cellValue as ICellValue[])
+          .every(cv => judge(cv)) : judge(cellValue);
       default:
-        return Array.isArray(cellValue) ? (cellValue as ILookUpValue).some((cv) => judge(cv)) : judge(cellValue);
+        return Array.isArray(cellValue) ?
+          (cellValue as ILookUpValue).some(cv => judge(cv)) : judge(cellValue);
     }
   }
 
@@ -899,29 +800,32 @@ export class LookUpField extends ArrayValueField {
       return null;
     }
     const basicValueType = Field.bindContext(entityField, this.state).basicValueType;
-    return cellValue == null
-      ? null
-      : (cellValue as ILookUpValue).reduce<any[]>((result, value) => {
-        // number|boolean|datetime type does not need any conversion
-        if (basicValueType === BasicValueType.Number || basicValueType === BasicValueType.Boolean || basicValueType === BasicValueType.DateTime) {
-          result.push(value);
-          return result;
-        }
+    return cellValue == null ? null : (cellValue as ILookUpValue).reduce<any[]>((result, value) => {
 
-        if (isTextBaseType(entityField.type)) {
-          result.push(Field.bindContext(entityField!, this.state).cellValueToString(value));
-          return result;
-        }
-        // BasicValueType.Array & value is of Array type and needs to be processed
-        if (Array.isArray(value) || (value != null && basicValueType === BasicValueType.Array)) {
-          [value].flat(Infinity).forEach((v) => {
-            result.push(Field.bindContext(entityField!, this.state).cellValueToString([v as any]));
-          });
-          return result;
-        }
+      // number|boolean|datetime type does not need any conversion
+      if (
+        basicValueType === BasicValueType.Number ||
+        basicValueType === BasicValueType.Boolean ||
+        basicValueType === BasicValueType.DateTime
+      ) {
+        result.push(value);
+        return result;
+      }
+
+      if (isTextBaseType(entityField.type)) {
         result.push(Field.bindContext(entityField!, this.state).cellValueToString(value));
         return result;
-      }, []);
+      }
+      // BasicValueType.Array & value is of Array type and needs to be processed
+      if (Array.isArray(value) || (value != null && basicValueType === BasicValueType.Array)) {
+        [value].flat(Infinity).forEach(v => {
+          result.push(Field.bindContext(entityField!, this.state).cellValueToString([(v as any)]));
+        });
+        return result;
+      }
+      result.push(Field.bindContext(entityField!, this.state).cellValueToString(value));
+      return result;
+    }, []);
   }
 
   arrayValueToString(cellValue: any[] | null, options?: ICellToStringOption): string | null {
@@ -932,7 +836,7 @@ export class LookUpField extends ArrayValueField {
       vArray = vArray && [...new Set(vArray)];
     }
     if (rollUpType === RollUpFuncType.ARRAYCOMPACT) {
-      vArray = vArray && vArray.filter((v) => v !== '');
+      vArray = vArray && vArray.filter(v => v !== '');
     }
     if (rollUpType === RollUpFuncType.CONCATENATE) {
       return vArray == null ? null : vArray.join('');
@@ -947,32 +851,28 @@ export class LookUpField extends ArrayValueField {
       return null;
     }
     const basicValueType = Field.bindContext(entityField, this.state).basicValueType;
-    return cellValue == null
-      ? null
-      : (cellValue as ILookUpValue)
-        .map<string | null>((value) => {
-          if (value == null) {
-            return null;
-          }
-          // Date type should use the format configured by the lookup field
-          if (basicValueType === BasicValueType.DateTime) {
-            const formatting = (this.field.property.formatting as IDateTimeFieldProperty) || entityField.property;
-            return dateTimeFormat(value, formatting, getUserTimeZone(this.state));
-          }
+    return cellValue == null ? null : (cellValue as ILookUpValue).map<(string | null)>(value => {
+      if (value == null) {
+        return null;
+      }
+      // Date type should use the format configured by the lookup field
+      if (basicValueType === BasicValueType.DateTime) {
+        const formatting = this.field.property.formatting as IDateTimeFieldProperty || entityField.property;
+        return dateTimeFormat(value, formatting, getUserTimeZone(this.state));
+      }
 
-          // The number|boolean type should use the format configured by the lookup field
-          if (basicValueType === BasicValueType.Number || basicValueType === BasicValueType.Boolean) {
-            if (!NOT_FORMAT_FUNC_SET.has(this.rollUpType)) {
-              const property = (this.field.property.formatting as INumberFormatFieldProperty) || entityField.property;
-              return numberFormat(value, property);
-            }
+      // The number|boolean type should use the format configured by the lookup field
+      if (basicValueType === BasicValueType.Number || basicValueType === BasicValueType.Boolean) {
+        if (!NOT_FORMAT_FUNC_SET.has(this.rollUpType)) {
+          const property = this.field.property.formatting as INumberFormatFieldProperty || entityField.property;
+          return numberFormat(value, property);
+        }
 
-            return Field.bindContext(entityField, this.state).cellValueToString(Number(value));
-          }
+        return Field.bindContext(entityField, this.state).cellValueToString(Number(value));
+      }
 
-          return String(value);
-        })
-        .filter((i) => i != null);
+      return String(value);
+    }).filter(i => i != null);
   }
 
   cellValueToStdValue(cellValue: ICellValue | null): IStandardValue {
@@ -1011,7 +911,9 @@ export class LookUpField extends ArrayValueField {
     return true;
   }
 
-  defaultValueForCondition(condition: IFilterCondition): ICellValue {
+  defaultValueForCondition(
+    condition: IFilterCondition,
+  ): ICellValue {
     switch (this.valueType) {
       case BasicValueType.DateTime:
         return DateTimeBaseField._defaultValueForCondition(condition);
@@ -1063,7 +965,7 @@ export class LookUpField extends ArrayValueField {
       // filter field triggers magic app update
       if (openFilter && filterInfo) {
         const { conditions } = filterInfo;
-        conditions.forEach((condition) => {
+        conditions.forEach(condition => {
           allKeys.push(`${foreignDatasheetId}-${condition.fieldId}`);
         });
       }
@@ -1083,7 +985,7 @@ export class LookUpField extends ArrayValueField {
         return targetField.cellValueToApiStandardValue(cellValue);
       }
       const result: ICellValue[] = [];
-      (cellValue as ILookUpValue).forEach((item) => {
+      (cellValue as ILookUpValue).forEach(item => {
         const value = targetField.cellValueToApiStandardValue(item);
         if (value != null) {
           result.push(value);
@@ -1139,14 +1041,13 @@ export class LookUpField extends ArrayValueField {
       const targetField = Field.bindContext(entityField, this.state);
       // TODO is temporarily compatible with the data structure (wait for getCellValue to be transformed to return an unflattened array)
       const isDoubleArray = this.openValueJsonSchema.items?.type === 'array';
-      // The expected two-dimensional array has been flattened at the time of cv,
-      // and it is packaged here and upgraded to a two-dimensional array.
+      // The expected two-dimensional array has been flattened at the time of cv, 
+      // and it is packaged here and upgraded to a two-dimensional array. 
       // Now it is only a structural compatibility, which will affect the actual business logic.
       // In the robot scene, the values input by the UI are currently spliced into strings, so it doesn't matter much.
-      const _cellValue = isDoubleArray ? [(cellValue as any[]).filter((cv) => cv != null)] : cellValue;
-      const result: BasicOpenValueTypeBase[] = (_cellValue as ILookUpValue).map(
-        (item) => targetField.cellValueToOpenValue(item) as BasicOpenValueTypeBase,
-      );
+      const _cellValue = isDoubleArray ? [(cellValue as any[]).filter(cv => cv != null)] : cellValue;
+      const result: BasicOpenValueTypeBase[] = (_cellValue as ILookUpValue)
+        .map(item => targetField.cellValueToOpenValue(item) as BasicOpenValueTypeBase);
       if (result.length) {
         return result;
       }
@@ -1165,9 +1066,6 @@ export class LookUpField extends ArrayValueField {
       relatedLinkFieldId: this.field.property.relatedLinkFieldId,
       targetFieldId: this.field.property.lookUpTargetFieldId,
       rollupFunction: this.rollUpType,
-      enableFilterSort: this.field.property.openFilter,
-      sortInfo: this.field.property.sortInfo,
-      lookUpLimit: this.field.property.lookUpLimit,
     };
 
     if (this.hasError) {
@@ -1180,19 +1078,7 @@ export class LookUpField extends ArrayValueField {
     if (lookUpEntityFieldInfo) {
       res.entityField = {
         datasheetId: lookUpEntityFieldInfo.datasheetId,
-        field: Field.bindContext(lookUpEntityFieldInfo.field, this.state).getOpenField(lookUpEntityFieldInfo.datasheetId),
-      };
-    }
-
-    if (this.field.property.filterInfo) {
-      res.filterInfo = {
-        conjunction: this.field.property.filterInfo.conjunction,
-        conditions: this.field.property.filterInfo.conditions.map((cond) => ({
-          fieldId: cond.fieldId,
-          fieldType: getFieldTypeString(cond.fieldType),
-          operator: cond.operator,
-          value: cond.value,
-        })),
+        field: Field.bindContext(lookUpEntityFieldInfo.field, this.state).getOpenField(lookUpEntityFieldInfo.datasheetId)
       };
     }
 
@@ -1202,85 +1088,26 @@ export class LookUpField extends ArrayValueField {
     return res;
   }
 
-  static frontendOpenUpdatePropertySchema = Joi.object({
-    relatedLinkFieldId: Joi.string()
-      .pattern(/^fld.+/, 'fieldId')
-      .required(),
-    targetFieldId: Joi.string()
-      .pattern(/^fld.+/, 'fieldId')
-      .required(),
+  static openUpdatePropertySchema = Joi.object({
+    relatedLinkFieldId: Joi.string().pattern(/^fld.+/, 'fieldId').required(),
+    targetFieldId: Joi.string().pattern(/^fld.+/, 'fieldId').required(),
     rollupFunction: Joi.valid(...enumToArray(RollUpFuncType)),
     format: computedFormattingStr(),
-    enableFilterSort: Joi.boolean(),
-    filterInfo: apiFilterInfoSchema(false),
-    sortInfo: sortInfoSchema(),
-    lookUpLimit: Joi.valid(...enumToArray(LookUpLimitType)),
   });
 
-  static backendOpenUpdatePropertySchema = Joi.object({
-    relatedLinkFieldId: Joi.string()
-      .pattern(/^fld.+/, 'fieldId')
-      .required(),
-    targetFieldId: Joi.string()
-      .pattern(/^fld.+/, 'fieldId')
-      .required(),
-    rollupFunction: Joi.valid(...enumToArray(RollUpFuncType)),
-    format: computedFormattingStr(),
-    enableFilterSort: Joi.boolean(),
-    filterInfo: apiFilterInfoSchema(true),
-    sortInfo: sortInfoSchema(),
-    lookUpLimit: Joi.valid(...enumToArray(LookUpLimitType)),
-  });
-
-  override validateUpdateOpenProperty(updateProperty: IUpdateOpenMagicLookUpFieldProperty, effectOption?: IEffectOption) {
-    return effectOption?.isBackend
-      ? LookUpField.backendOpenUpdatePropertySchema.validate(updateProperty)
-      : LookUpField.frontendOpenUpdatePropertySchema.validate(updateProperty);
+  override validateUpdateOpenProperty(updateProperty: IUpdateOpenMagicLookUpFieldProperty) {
+    return LookUpField.openUpdatePropertySchema.validate(updateProperty);
   }
 
   override updateOpenFieldPropertyTransformProperty(openFieldProperty: IUpdateOpenMagicLookUpFieldProperty): ILookUpProperty {
-    const {
-      relatedLinkFieldId,
-      targetFieldId: lookUpTargetFieldId,
-      rollupFunction: rollUpType,
-      format,
-      enableFilterSort,
-      filterInfo: apiFilterInfo,
-      sortInfo,
-      lookUpLimit,
-    } = openFieldProperty;
+    const { relatedLinkFieldId, targetFieldId: lookUpTargetFieldId, rollupFunction: rollUpType, format } = openFieldProperty;
     const formatting: IComputedFieldFormattingProperty | undefined = format ? computedFormattingToFormat(format) : undefined;
-    let filterInfo: IFilterInfo | undefined;
-    if (apiFilterInfo) {
-      const conditionIds = getNewIds(IDPrefix.Condition, apiFilterInfo.conditions.length);
-      filterInfo = {
-        conjunction: apiFilterInfo.conjunction,
-        conditions: apiFilterInfo.conditions.map((cond, i) => {
-          const _fieldType = getFieldTypeByString(cond.fieldType)!;
-          return {
-            ...cond,
-            fieldType: _fieldType,
-            operator: cond.operator,
-            conditionId: conditionIds[i]!,
-            value: (filterOperatorAcceptsValue(cond.operator)
-              ? cond.fieldType === APIMetaFieldType.Checkbox || Array.isArray(cond.value)
-                ? cond.value
-                : [cond.value]
-              : undefined) as any,
-          };
-        }),
-      };
-    }
     return {
       datasheetId: this.field.property.datasheetId,
       relatedLinkFieldId,
       lookUpTargetFieldId,
       rollUpType,
-      formatting,
-      openFilter: enableFilterSort,
-      filterInfo,
-      sortInfo,
-      lookUpLimit,
+      formatting
     };
   }
 

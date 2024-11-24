@@ -18,19 +18,29 @@
 
 package com.apitable.interfaces.user.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
-/**
- * invitation metadata.
- */
-@Getter
-@AllArgsConstructor
 public class InvitationMetadata {
-
-    private Long inviteUserId;
 
     private String spaceId;
 
+    private Long inviteUserId;
+
     private String email;
+
+    public InvitationMetadata(String spaceId, Long inviteUserId, String email) {
+        this.spaceId = spaceId;
+        this.inviteUserId = inviteUserId;
+        this.email = email;
+    }
+
+    public String getSpaceId() {
+        return spaceId;
+    }
+
+    public Long getInviteUserId() {
+        return inviteUserId;
+    }
+
+    public String getEmail() {
+        return email;
+    }
 }

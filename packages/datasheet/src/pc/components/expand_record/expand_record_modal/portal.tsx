@@ -52,7 +52,10 @@ export const Portal: FC<React.PropsWithChildren<IPortalProps>> = ({ getContainer
 
   let portal: JSX.Element | null = null;
   if (container) {
-    portal = createPortal(children(), container);
+    portal = createPortal(
+      children(),
+      container,
+    );
   }
 
   return portal;

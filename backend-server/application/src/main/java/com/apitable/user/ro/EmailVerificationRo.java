@@ -19,7 +19,7 @@
 package com.apitable.user.ro;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
+import javax.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
@@ -31,8 +31,7 @@ import lombok.Data;
 @Schema(description = "verify email parameters")
 public class EmailVerificationRo {
 
-    @Schema(description = "email", requiredMode = Schema.RequiredMode.REQUIRED,
-        example = "123456@**")
+    @Schema(description = "email", example = "123456@**", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "email")
     private String email;
 }

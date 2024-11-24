@@ -27,7 +27,6 @@
 
 .emoji-mart .emoji-mart-emoji {
   padding: 6px;
-  overflow: hidden;
 }
 
 .emoji-mart-bar {
@@ -112,7 +111,7 @@
   // height: 385px !important;
   flex: 1;
 
-  padding-bottom: 6px;
+  padding: 0px 6px 6px 6px;
   margin-top: 8px;
   will-change: transform;
   /* avoids "repaints on scroll" in mobile Chrome */
@@ -131,20 +130,20 @@
   }
 
   &.searchWithReset {
-    width: 100%;
+    width: 84%;
   }
 
   .resetBtn {
     position: absolute;
     top: 0;
-    right: 0;
+    right: -57px;
   }
 }
 
 .emoji-mart-search input {
   font-size: 16px;
   display: block;
-  width: 66%;
+  width: 100%;
   padding: 5px 25px 6px 10px;
   border-radius: 5px;
   border: none !important;
@@ -166,9 +165,9 @@
 .emoji-mart-search-icon {
   position: absolute;
   top: 11px;
-  left: 58%;
+  right: 20px;
   z-index: 2;
-  padding: 2px 5px 0;
+  padding: 2px 5px 0px;
   border: none;
   background: none;
   svg {
@@ -185,7 +184,6 @@
   position: relative;
   text-align: center;
   cursor: default;
-  overflow: hidden;
 }
 
 .emoji-mart-category .emoji-mart-emoji:hover:before {
@@ -215,6 +213,7 @@
   color: var(--thirdLevelText);
   padding: 5px 6px;
   background-color: var(--defaultBg);
+  background-color: rgba(var(--defaultBg-rgb), 95%);
 }
 
 .emoji-mart-category-list {

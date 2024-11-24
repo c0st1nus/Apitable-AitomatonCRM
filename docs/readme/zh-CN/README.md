@@ -14,7 +14,7 @@
     <!-- Java -->
     <img src="https://img.shields.io/badge/Java-ED8B00?logo=spring&logoColor=white" alt="Java 语言，Spring 框架" />
     <!-- hub.docker.com-->
-    <a target="_blank" href="#安装">
+    <a target="_blank" href="#installation">
         <img src="https://img.shields.io/docker/pulls/apitable/init-db" />
     </a>
     <!-- Github Release Latest -->
@@ -70,7 +70,7 @@
 
 如果你想演示这个 APITable 开源项目，请单击此处获取[⚡️Gitpod Online Demo](https://gitpod.io/#https://github.com/apitable/apitable)。
 
-如果您想要在本地或云端计算环境中安装 APITable ，请参阅 [💾 安装](#安装)
+如果您想要在本地或云端计算环境中安装 APITable ，请参阅 [💾 安装](#installation)
 
 如果你想要设置你的本地开发环境，请阅读我们的 [🧑‍💻 开发者指南 ](./docs/contribute/developer-guide.md)
 
@@ -252,7 +252,7 @@ APITable 将提供一个数据表查询语言(DQL)来查询您的数据库电子
 curl https://apitable.github.io/install.sh | bash
 ```
 
-然后在您的浏览器中打开 [http://localhost:80](http://localhost:80) 访问它。
+然后在您的浏览器中打开 [https://localhost:80](https://localhost:80) 访问它。
 
 我们还提供了一个基于 [pm2](https://pm2.keymetrics.io/) 的完整镜像，用于演示或测试目的(不推荐用于企业或生产用途)：
 
@@ -317,6 +317,7 @@ APITable 可适用这些通用的约定：
 - 如何进行版本控制和标记？ [语义化版本控制](https://semver.org/)
 - Java 编码准则是什么？ [Java 编码准则](https://github.com/alibaba/Alibaba-Java-Coding-Guidelines) | [Intellij IDEA 插件](https://plugins.jetbrains.com/plugin/10046-alibaba-java-coding-guidelines)
 - TypeScript 编码准则是什么？ -> [TypeScript 风格指南](https://google.github.io/styleguide/tsguide.html) | [ESLint](https://www.npmjs.com/package/@typescript-eslint/eslint-plugin)
+- 什么是Rust编码准则？ -> [Rust API 准则](https://rust-lang.github.io/api-guidelines/about.html)
 
 ### 文档
 

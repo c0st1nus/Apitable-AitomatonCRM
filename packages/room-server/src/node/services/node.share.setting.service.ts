@@ -19,19 +19,15 @@
 import { Span } from '@metinseylan/nestjs-opentelemetry';
 import { Injectable } from '@nestjs/common';
 import { isEmpty } from 'lodash';
-import { InternalServiceNodeInterfaceService } from 'shared/backend_client/api/internal-service-node-interface.service';
 import { CommonException, PermissionException, ServerException } from 'shared/exception';
-import { HttpHelper } from 'shared/helpers';
 import { INodeShareProps } from 'shared/interfaces';
 import { NodeShareSettingEntity } from '../entities/node.share.setting.entity';
+import { NodeRepository } from '../repositories/node.repository';
 import { NodeShareSettingRepository } from '../repositories/node.share.setting.repository';
 
 @Injectable()
 export class NodeShareSettingService {
-  constructor(
-    private nodeInterfaceService: InternalServiceNodeInterfaceService,
-    private repository: NodeShareSettingRepository,
-  ) {}
+  constructor(private repository: NodeShareSettingRepository, private nodeRepository: NodeRepository) {}
 
   /**
    * Obtain share settings by share ID
@@ -42,26 +38,10 @@ export class NodeShareSettingService {
 
   /**
    * Check if the node enables sharing, regardless of ancestor nodes.
-   * @deprecated Use `getNodeShareStatus` instead
    */
   async getShareStatusByNodeId(nodeId: string): Promise<boolean> {
     const nodeShareSetting = await this.repository.selectByNodeId(nodeId);
     return !!nodeShareSetting?.isEnabled;
-  }
-
-  /**
-   * Check if the node enables sharing, including ancestor nodes.
-   * @param nodeId node ID
-   */
-  async getNodeShareStatus(nodeId: string): Promise<boolean> {
-    const shareSetting = await this.repository.selectByNodeId(nodeId);
-    if (!shareSetting) {
-      return false;
-    }
-    if (shareSetting.isEnabled) {
-      return true;
-    }
-    return await this.getNodeContainsStatus(shareSetting.nodeId, nodeId);
   }
 
   /**
@@ -75,8 +55,8 @@ export class NodeShareSettingService {
     if (shareSetting.nodeId === nodeId) {
       return;
     }
-    const containsStatus = await this.getNodeContainsStatus(shareSetting.nodeId, nodeId);
-    if (containsStatus) {
+    const parentPaths = await this.nodeRepository.selectParentPathByNodeId(nodeId);
+    if (parentPaths.includes(shareSetting.nodeId)) {
       return;
     }
     throw new ServerException(PermissionException.ACCESS_DENIED);
@@ -112,11 +92,14 @@ export class NodeShareSettingService {
       return shareSetting.props;
     }
     // Check if the node has children nodes
-    const containsStatus = await this.getNodeContainsStatus(shareSetting.nodeId, nodeId);
-    return containsStatus ? shareSetting.props : null;
-  }
-
-  private async getNodeContainsStatus(folderId: string, nodeId: string): Promise<boolean> {
-    return await HttpHelper.getResponseData(this.nodeInterfaceService.getContainsStatus(folderId, nodeId));
+    const hasChildren = await this.nodeRepository.selectCountByParentId(shareSetting.nodeId);
+    if (hasChildren) {
+      // Children nodes exist
+      const childrenNodes = await this.nodeRepository.selectAllSubNodeIds(shareSetting.nodeId);
+      if (childrenNodes.includes(nodeId)) {
+        return shareSetting.props;
+      }
+    }
+    return null;
   }
 }

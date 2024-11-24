@@ -85,6 +85,13 @@ public class TeamMapperTest extends AbstractMyBatisMapperTest {
     }
 
     @Test
+    @Sql("/sql/unit-team-data.sql")
+    void testSelectAllParentTeamIds() {
+        List<Long> ids = teamMapper.selectAllParentTeamIds(45L, false);
+        assertThat(ids).isNotEmpty();
+    }
+
+    @Test
     @Sql({"/sql/unit-team-data.sql", "/sql/unit-team-member-rel-data.sql",
         "/sql/unit-member-data.sql"})
     void testSelectMembersByRootTeamId() {
@@ -214,9 +221,16 @@ public class TeamMapperTest extends AbstractMyBatisMapperTest {
 
     @Test
     @Sql("/sql/unit-team-data.sql")
+    void testSelectTreeByTeamName() {
+        List<TeamEntity> entities = teamMapper.selectTreeByTeamName("spc41", "team41");
+        assertThat(entities).isNotEmpty();
+    }
+
+    @Test
+    @Sql("/sql/unit-team-data.sql")
     void testSelectChildTreeTeamIds() {
         List<TeamCteInfo> teamIds =
-            teamMapper.selectChildTeamTree(CollUtil.newArrayList(41L));
+            teamMapper.selectChildTreeByTeamIds("spc41", CollUtil.newArrayList(41L));
         assertThat(teamIds).isNotEmpty();
     }
 
@@ -233,7 +247,7 @@ public class TeamMapperTest extends AbstractMyBatisMapperTest {
     @Sql("/sql/unit-team-data.sql")
     void testSelectParentTreeByTeamIds() {
         List<Long> teamIds = CollUtil.newArrayList(41L);
-        List<TeamPathInfo> teamPathInfos = teamMapper.selectParentTeamTree(teamIds);
+        List<TeamPathInfo> teamPathInfos = teamMapper.selectParentTreeByTeamIds("spc41", teamIds);
         assertThat(teamPathInfos.get(0).getTeamName()).isEqualTo("team41");
     }
 }

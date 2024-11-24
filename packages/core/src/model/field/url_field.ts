@@ -18,21 +18,22 @@
 
 import Joi from 'joi';
 import { first } from 'lodash';
-import { IReduxState } from 'exports/store/interfaces';
+import { IReduxState } from 'exports/store';
 import { FieldType, IField, IHyperlinkSegment, ISegment, IURLField } from 'types/field_types';
 
-import { DatasheetActions } from '../../commands_actions/datasheet';
+import { DatasheetActions } from '../datasheet';
 import { ICellValue } from '../record';
 import { TextBaseField } from './text_base_field';
-import { getFieldDefaultProperty } from './const';
-import { IURLProperty } from 'types/field_types';
+
 export class URLField extends TextBaseField {
   constructor(public override field: IURLField, public override state: IReduxState) {
     super(field, state);
   }
 
   static defaultProperty() {
-    return getFieldDefaultProperty(FieldType.URL) as IURLProperty;
+    return {
+      isRecogURLFlag: false,
+    };
   }
 
   static override cellValueSchema = Joi.array().items(Joi.object({
@@ -65,16 +66,6 @@ export class URLField extends TextBaseField {
     return (cv as IHyperlinkSegment[]).map(seg => seg?.text || seg?.title).join('') || null;
   }
 
-  cellValueToTitle(cellValue: ICellValue): string | null {
-    if (cellValue === null) {
-      return '';
-    }
-
-    const cv = [cellValue].flat();
-
-    return (cv as IHyperlinkSegment[]).map(seg => seg?.title || seg?.text).join('') || null;
-  }
-
   override cellValueToString(cellValue: ICellValue): string | null {
     if (cellValue === null) {
       return null;
@@ -82,7 +73,7 @@ export class URLField extends TextBaseField {
 
     const cv = [cellValue].flat();
 
-    return (cv as IHyperlinkSegment[]).map(seg => seg?.text || seg?.title).join('') || null;
+    return (cv as IHyperlinkSegment[]).map(seg => seg?.title || seg?.text).join('') || null;
   }
 
   override validateProperty() {

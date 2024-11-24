@@ -18,43 +18,26 @@
 
 package com.apitable.space.service;
 
-import com.apitable.interfaces.ai.model.ChartTimeDimension;
-import com.apitable.interfaces.ai.model.CreditInfo;
-import com.apitable.interfaces.billing.model.SubscriptionInfo;
-import com.apitable.interfaces.social.model.SocialConnectInfo;
 import com.apitable.internal.vo.InternalSpaceCapacityVo;
 import com.apitable.internal.vo.InternalSpaceUsageVo;
 import com.apitable.space.dto.GetSpaceListFilterCondition;
 import com.apitable.space.dto.SpaceCapacityUsedInfo;
 import com.apitable.space.entity.SpaceEntity;
-import com.apitable.space.model.CreditUsages;
-import com.apitable.space.model.Space;
 import com.apitable.space.ro.SpaceUpdateOpRo;
-import com.apitable.space.vo.SeatUsage;
 import com.apitable.space.vo.SpaceGlobalFeature;
 import com.apitable.space.vo.SpaceInfoVO;
 import com.apitable.space.vo.SpaceSubscribeVo;
 import com.apitable.space.vo.SpaceVO;
 import com.apitable.space.vo.UserSpaceVo;
 import com.apitable.user.entity.UserEntity;
-import com.apitable.workspace.enums.NodeType;
 import com.baomidou.mybatisplus.extension.service.IService;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 /**
  * space service interface.
  */
 public interface ISpaceService extends IService<SpaceEntity> {
-
-    /**
-     * get space entity by space id.
-     *
-     * @param spaceId space id
-     * @return SpaceEntity
-     */
-    SpaceEntity getEntityBySpaceId(String spaceId);
 
     /**
      * get by space id.
@@ -92,9 +75,9 @@ public interface ISpaceService extends IService<SpaceEntity> {
      *
      * @param user      user
      * @param spaceName spaceName
-     * @return space object
+     * @return space id
      */
-    Space createSpace(UserEntity user, String spaceName);
+    String createSpace(UserEntity user, String spaceName);
 
     /**
      * update space information.
@@ -144,106 +127,6 @@ public interface ISpaceService extends IService<SpaceEntity> {
      * @return SpaceVO List
      */
     List<SpaceVO> getSpaceListByUserId(Long userId, GetSpaceListFilterCondition condition);
-
-    /**
-     * get node count by space id and exclude node type.
-     *
-     * @param spaceId space id
-     * @param exclude exclude node type
-     * @return node count
-     */
-    long getNodeCountBySpaceId(String spaceId, Predicate<NodeType> exclude);
-
-    /**
-     * get space credit info.
-     *
-     * @param spaceId space id
-     * @return CreditInfo
-     */
-    CreditInfo getCredit(String spaceId);
-
-    /**
-     * get credit usage chart data.
-     *
-     * @param spaceId            space id
-     * @param chartTimeDimension time dimension
-     * @return CreditUsages
-     */
-    CreditUsages getCreditUsagesChart(
-        String spaceId, ChartTimeDimension chartTimeDimension);
-
-    /**
-     * query the seat usage of space.
-     *
-     * @param spaceId space id
-     * @return SeatUsage
-     */
-    SeatUsage getSeatUsage(String spaceId);
-
-    /**
-     * check whether chatBot nums of the space is over limit.
-     *
-     * @param spaceId space id
-     */
-    void checkChatBotNumsOverLimit(String spaceId);
-
-    /**
-     * check whether chatBot nums of the space is over limit.
-     *
-     * @param spaceId   space id
-     * @param addedNums added chatBot nums
-     */
-    void checkChatBotNumsOverLimit(String spaceId, int addedNums);
-
-    /**
-     * check whether seat nums of the space is over limit.
-     *
-     * @param spaceId space id
-     */
-    void checkSeatOverLimit(String spaceId);
-
-    /**
-     * check whether seat nums of the space is over limit.
-     *
-     * @param spaceId       space id
-     * @param addedSeatNums added seat nums
-     */
-    void checkSeatOverLimit(String spaceId, long addedSeatNums);
-
-    /**
-     * check whether file nums of the space is over limit.
-     *
-     * @param spaceId space id
-     */
-    void checkFileNumOverLimit(String spaceId);
-
-    /**
-     * check whether file nums of the space is over limit.
-     *
-     * @param spaceId     space id
-     * @param addFileNums added file nums
-     */
-    void checkFileNumOverLimit(String spaceId, long addFileNums);
-
-    /**
-     * check whether seat nums of the space is over limit.
-     * If the limit is exceeded, a notification needs to be sent
-     *
-     * @param spaceId       space id
-     * @param addedSeatNums added seat nums
-     * @param sendNotify    whether send notify
-     * @param isAllMember   whether all member
-     */
-    boolean checkSeatOverLimitAndSendNotify(List<Long> userIds, String spaceId, long addedSeatNums,
-                                            boolean isAllMember, boolean sendNotify);
-
-    /**
-     * Get the seat usage status of third-party IM.
-     *
-     * @param spaceId space id
-     * @return SeatUsage
-     */
-    SeatUsage getSeatUsageForIM(String spaceId);
 
     /**
      * get space info.
@@ -312,21 +195,13 @@ public interface ISpaceService extends IService<SpaceEntity> {
     Long getSpaceMainAdminUserId(String spaceId);
 
     /**
-     * Check that the member is not the master administrator of the space.
+     * Check that the member is not the master administrator of the space
      *
      * @param spaceId  space id
      * @param memberId memberId
      * @param consumer consumer
      */
     void checkMemberIsMainAdmin(String spaceId, Long memberId, Consumer<Boolean> consumer);
-
-    /**
-     * throw exception if member is not admin in space.
-     *
-     * @param spaceId  space id
-     * @param memberId member id
-     */
-    void checkMemberIsAdmin(String spaceId, Long memberId);
 
     /**
      * Check that the members is not the master administrator of the space
@@ -336,6 +211,22 @@ public interface ISpaceService extends IService<SpaceEntity> {
      * @param memberIds memberIds
      */
     void checkMembersIsMainAdmin(String spaceId, List<Long> memberIds);
+
+    /**
+     * queries whether a member is in a space.
+     *
+     * @param spaceId  space id
+     * @param memberId memberId
+     */
+    void checkMemberInSpace(String spaceId, Long memberId);
+
+    /**
+     * batch queries whether a member is in a space.
+     *
+     * @param spaceId   space id
+     * @param memberIds memberIds
+     */
+    void checkMembersInSpace(String spaceId, List<Long> memberIds);
 
     /**
      * get permission resource in space.
@@ -414,9 +305,8 @@ public interface ISpaceService extends IService<SpaceEntity> {
      * check space available.
      *
      * @param spaceId spaceId
-     * @return SpaceEntity
      */
-    SpaceEntity isSpaceAvailable(String spaceId);
+    void isSpaceAvailable(String spaceId);
 
     /**
      * Check whether the user is in space.
@@ -434,70 +324,4 @@ public interface ISpaceService extends IService<SpaceEntity> {
      * @return SpaceSubscribeVo
      */
     SpaceSubscribeVo getSpaceSubscriptionInfo(String spaceId);
-
-    /**
-     * get space owner open id.
-     *
-     * @param spaceId space id
-     * @return open id
-     */
-    String getSpaceOwnerOpenId(String spaceId);
-
-
-    /**
-     * Get space seat available status.
-     *
-     * @param spaceId space id
-     * @return SeatAvailableStatus
-     * @author Chambers
-     */
-    boolean getSpaceSeatAvailableStatus(String spaceId);
-
-    /**
-     * get space ids by created by.
-     *
-     * @param userId user id
-     * @return space ids
-     */
-    List<String> getSpaceIdsByCreatedBy(Long userId);
-
-    /**
-     * check widget whether over limit.
-     *
-     * @param spaceId space id
-     */
-    void checkWidgetOverLimit(String spaceId);
-
-    /**
-     * get space subscription.
-     *
-     * @param spaceId space id
-     * @return SubscriptionInfo
-     */
-    SubscriptionInfo getSpaceSubscription(String spaceId);
-
-    /**
-     * get social connection info.
-     *
-     * @param spaceId space id
-     * @return SocialConnectInfo
-     */
-    SocialConnectInfo getSocialConnectInfo(String spaceId);
-
-    /**
-     * get social suite key.
-     *
-     * @param appId app id
-     * @return social suite key
-     */
-    String getSocialSuiteKeyByAppId(String appId);
-
-    /**
-     * check whether the space bind with a social connector.
-     *
-     * @param spaceId space id
-     * @return boolean
-     */
-    boolean checkSocialBind(String spaceId);
-
 }

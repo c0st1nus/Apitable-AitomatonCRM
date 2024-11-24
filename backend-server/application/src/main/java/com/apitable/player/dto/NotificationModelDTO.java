@@ -18,8 +18,9 @@
 
 package com.apitable.player.dto;
 
-import java.time.LocalDateTime;
 import lombok.Data;
+
+import java.time.LocalDateTime;
 
 /**
  * Notification model.

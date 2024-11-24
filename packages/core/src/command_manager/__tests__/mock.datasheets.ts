@@ -16,8 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { IBaseDatasheetPack } from 'exports/store/interfaces';
-import { ViewType } from 'modules/shared/store/constants';
+import { IBaseDatasheetPack, ViewType } from 'exports/store';
 import { FieldType, SegmentType } from 'types';
 
 export const mockDatasheetMap: Record<string, IBaseDatasheetPack> = {

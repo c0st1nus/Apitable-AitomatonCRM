@@ -16,14 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { CollaCommandName } from 'commands/enum';
+import { CollaCommandName } from 'commands';
 import { ExecuteResult, ICollaCommandDef } from 'command_manager';
 import { IJOTAction } from 'engine';
 import { Strings, t } from '../../exports/i18n';
-import { ISetGalleryStyle } from '../../exports/store/interfaces';
-import { getActiveDatasheetId, getDatasheet } from 'modules/database/store/selectors/resource/datasheet/base';
+import { GalleryView } from 'model';
+import { ISetGalleryStyle } from '../../exports/store';
+import { getActiveDatasheetId, getDatasheet } from '../../exports/store/selectors';
 import { ResourceType } from 'types';
-import { ViewAction } from 'commands_actions/view';
 
 export type ISetGalleryStyleOptions = ISetGalleryStyle & {
   cmd: CollaCommandName.SetGalleryStyle;
@@ -33,7 +33,7 @@ export const setGalleryStyle: ICollaCommandDef<ISetGalleryStyle> = {
   undoable: true,
 
   execute: (context, options) => {
-    const { state: state } = context;
+    const { model: state } = context;
     const { viewId } = options;
     const datasheetId = getActiveDatasheetId(state)!;
     const datasheet = getDatasheet(state, datasheetId);
@@ -47,7 +47,7 @@ export const setGalleryStyle: ICollaCommandDef<ISetGalleryStyle> = {
     }
 
     const actions: IJOTAction[] = [];
-    const setGalleryStyleAction = ViewAction.setGalleryStyle2Action(datasheet.snapshot, options);
+    const setGalleryStyleAction = GalleryView.setGalleryStyle2Action(datasheet.snapshot, options);
     // action && collected.push(action);
     setGalleryStyleAction && actions.push(setGalleryStyleAction);
     if (actions.length === 0) {

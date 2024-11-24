@@ -16,44 +16,33 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Popover, Tooltip } from 'antd';
-import cls from 'classnames';
-import dayjs from 'dayjs';
-import { find, get, toPairs } from 'lodash';
-import * as React from 'react';
-import { useContext, useMemo } from 'react';
-import { IconButton } from '@apitable/components';
-import {
-  CollaCommandName,
-  ConfigConstant,
-  IDPrefix,
-  IFieldPermissionMap,
-  IJOTAction,
-  IOperation,
-  IRemoteChangeset,
-  IUnitValue,
-  jot,
-  Selectors,
-  Strings,
-  t,
-  WithOptional,
-} from '@apitable/core';
-import { CommentOutlined, DeleteOutlined, EmojiOutlined } from '@apitable/icons';
-import { Avatar, AvatarSize, Emoji, Modal } from 'pc/components/common';
-import { ScreenSize } from 'pc/components/common/component_display';
-import { ReplyBox } from 'pc/components/expand_record/activity_pane/reply_box/reply_box';
-import { useResponsive } from 'pc/hooks';
 import { usePlatform } from 'pc/hooks/use_platform';
-import { resourceService } from 'pc/resource_service';
-import { useAppSelector } from 'pc/store/react-redux';
-import { commandTran } from 'pc/utils';
-import { EXPAND_RECORD_ACTIVITY_ITEM, EXPAND_RECORD_DELETE_COMMENT_MORE } from 'pc/utils/test_id_constant';
-import { ActivityContext } from '../activity_context';
+import { useContext, useMemo } from 'react';
+import * as React from 'react';
 import { IActivityPaneProps, IChooseComment } from '../interface';
-import { ChangesetItemAction } from './changeset_item_action';
-// @ts-ignore
-import { getSocialWecomUnitName } from 'enterprise/home/social_platform/utils';
+import {
+  CollaCommandName, ConfigConstant, IDPrefix, IFieldPermissionMap, IJOTAction, IOperation, IRemoteChangeset, IUnitValue, jot, Selectors, Strings, t,
+  WithOptional
+} from '@apitable/core';
+import { Avatar, AvatarSize, Emoji, Modal } from 'pc/components/common';
+import { useSelector } from 'react-redux';
 import styles from './style.module.less';
+import dayjs from 'dayjs';
+import { commandTran } from 'pc/utils';
+import { Popover, Tooltip } from 'antd';
+import { useResponsive } from 'pc/hooks';
+import { ScreenSize } from 'pc/components/common/component_display';
+import { ChangesetItemAction } from './changeset_item_action';
+import { find, get, toPairs } from 'lodash';
+import { IconButton } from '@apitable/components';
+import cls from 'classnames';
+import { EXPAND_RECORD_ACTIVITY_ITEM, EXPAND_RECORD_DELETE_COMMENT_MORE } from 'pc/utils/test_id_constant';
+import { CommentOutlined, DeleteOutlined, EmojiOutlined } from '@apitable/icons';
+import { resourceService } from 'pc/resource_service';
+import { ActivityContext } from '../activity_context';
+import { ReplyBox } from 'pc/components/expand_record/activity_pane/reply_box/reply_box';
+// @ts-ignore
+import { getSocialWecomUnitName } from 'enterprise';
 
 type IChangesetItem = IActivityPaneProps & {
   unit: IUnitValue | undefined;
@@ -61,18 +50,18 @@ type IChangesetItem = IActivityPaneProps & {
   cacheFieldOptions: object;
   datasheetId: string;
   setChooseComment: (item: IChooseComment) => void;
-  fieldPermissionMap: IFieldPermissionMap | undefined;
-  isMirror: boolean;
+  fieldPermissionMap: IFieldPermissionMap | undefined
+  isMirror: boolean
 };
 
-const ChangesetItemBase: React.FC<React.PropsWithChildren<IChangesetItem>> = (props) => {
+const ChangesetItemBase: React.FC<React.PropsWithChildren<IChangesetItem>> = props => {
   const { expandRecordId, changeset, cacheFieldOptions, datasheetId, setChooseComment, unit, fieldPermissionMap, isMirror } = props;
   const { operations, userId, createdAt, revision } = changeset;
 
   const { mobile: isMobile } = usePlatform();
 
   const { setReplyText, emojis, setFocus, setReplyUnitId } = useContext(ActivityContext);
-  const spaceInfo = useAppSelector((state) => state.space.curSpaceInfo);
+  const spaceInfo = useSelector(state => state.space.curSpaceInfo);
 
   const actions = operations.reduce((actionArr: IJOTAction[], op: IOperation) => {
     let { actions } = op;
@@ -95,7 +84,7 @@ const ChangesetItemBase: React.FC<React.PropsWithChildren<IChangesetItem>> = (pr
       }));
     }
 
-    actionArr = actionArr.concat(actions).filter((item) => {
+    actionArr = actionArr.concat(actions).filter(item => {
       if (!isMirror) {
         return true;
       }
@@ -113,11 +102,11 @@ const ChangesetItemBase: React.FC<React.PropsWithChildren<IChangesetItem>> = (pr
 
   const { cmd } = operations[0];
 
-  const selfUserId = useAppSelector((state) => state.user.info?.userId);
+  const selfUserId = useSelector(state => state.user.info?.userId);
   const isSelf = selfUserId === userId;
-  const relativeTime = dayjs.tz(Number(createdAt)).fromNow();
+  const relativeTime = dayjs(Number(createdAt)).fromNow();
 
-  const allowDeleteComment = useAppSelector((state) => {
+  const allowDeleteComment = useSelector(state => {
     const spacePermissions = state.spacePermissionManage.spaceResource?.permissions;
     const isSpaceAdmin = spacePermissions && spacePermissions.includes('MANAGE_WORKBENCH');
     return Boolean(isSpaceAdmin || isSelf);
@@ -129,7 +118,7 @@ const ChangesetItemBase: React.FC<React.PropsWithChildren<IChangesetItem>> = (pr
     // Distinguish between comment operations, other operations
     const commentOps: IOperation[] = [];
     const restOps: IOperation[] = [];
-    operations.forEach((op) => {
+    operations.forEach(op => {
       if ([CollaCommandName.InsertComment, CollaCommandName.SystemCorrectComment].includes(op.cmd as CollaCommandName)) {
         commentOps.push(op);
       } else {
@@ -152,19 +141,19 @@ const ChangesetItemBase: React.FC<React.PropsWithChildren<IChangesetItem>> = (pr
         }));
         // InsertComment Adding comments from the client
         const clientActions = commentOperations
-          .filter((op) => !op.cmd.includes('System'))
+          .filter(op => !op.cmd.includes('System'))
           .map((op, idx) => ({
             ...op.actions[0],
             p: [idx],
           }));
-        itemActions = jot.apply(clientActions, serverFixActions) as unknown as IJOTAction[];
+        itemActions = (jot.apply(clientActions, serverFixActions) as unknown) as IJOTAction[];
       } else {
-        itemActions = commentOperations.map((op) => get(op, 'actions.0.li'));
+        itemActions = commentOperations.map(op => get(op, 'actions.0.li'));
       }
     }
     if (restOperations.length > 0) {
       // Filter system op, mark non-comment operations with undefined placeholders
-      itemActions = itemActions.concat(restOperations.filter((op) => !op.cmd.includes('System')).map(() => undefined));
+      itemActions = itemActions.concat(restOperations.filter(op => !op.cmd.includes('System')).map(() => undefined));
     }
     return itemActions;
   }, [commentOperations, restOperations]);
@@ -174,7 +163,7 @@ const ChangesetItemBase: React.FC<React.PropsWithChildren<IChangesetItem>> = (pr
   }
 
   const handleEmoji = (emojiKey: string) => {
-    const comment = get(changeset, 'operations.0.actions.0.li') as any;
+    const comment = get(changeset, 'operations.0.actions.0.li');
     const { commentMsg, commentId } = comment;
     const emojiUsers = get(emojis, `${commentId}.${emojiKey}`, []) as string[];
 
@@ -199,7 +188,7 @@ const ChangesetItemBase: React.FC<React.PropsWithChildren<IChangesetItem>> = (pr
   const handleReply = () => {
     setFocus(true);
     const unitId = get(changeset, 'operations.0.actions.0.li.unitId');
-    const commentContent = get(changeset, 'operations.0.actions.0.li.commentMsg.content') as any;
+    const commentContent = get(changeset, 'operations.0.actions.0.li.commentMsg.content');
     const commentId = get(changeset, 'operations.0.actions.0.li.commentId');
     setReplyUnitId(unitId);
     setReplyText({
@@ -208,12 +197,11 @@ const ChangesetItemBase: React.FC<React.PropsWithChildren<IChangesetItem>> = (pr
     });
   };
 
-  const title =
-    getSocialWecomUnitName?.({
-      name: unit?.name,
-      isModified: unit?.isMemberNameModified,
-      spaceInfo,
-    }) || unit?.name;
+  const title = getSocialWecomUnitName?.({
+    name: unit?.name,
+    isModified: unit?.isMemberNameModified,
+    spaceInfo,
+  }) || unit?.name;
 
   return (
     <>
@@ -239,8 +227,8 @@ const ChangesetItemBase: React.FC<React.PropsWithChildren<IChangesetItem>> = (pr
               <div className={styles.title}>
                 <div className={styles.activityInfo}>
                   <div className={styles.nickName}>
-                    <div className={styles.name}>{isSelf ? t(Strings.you) : title || unit.name}</div>
-                    <div className={styles.op}>{commandTran(cmd)}</div>
+                    <span className={styles.name}>{isSelf ? t(Strings.you) : title || unit.name}</span>
+                    <span className={styles.op}>{commandTran(cmd)}</span>
                   </div>
                   {Boolean(action) && (
                     <div className={styles.activityAction}>
@@ -249,22 +237,22 @@ const ChangesetItemBase: React.FC<React.PropsWithChildren<IChangesetItem>> = (pr
                         content={
                           <div className={styles.emojiList}>
                             <span onClick={() => handleEmoji('good')}>
-                              <Emoji emoji="+1" size={16} />
+                              <Emoji emoji='+1' size={16} />
                             </span>
                             <span onClick={() => handleEmoji('ok')}>
-                              <Emoji emoji="ok_hand" size={16} />
+                              <Emoji emoji='ok_hand' size={16} />
                             </span>
                           </div>
                         }
                       >
-                        <IconButton icon={EmojiOutlined} shape="square" className={styles.icon} />
+                        <IconButton icon={EmojiOutlined} shape='square' className={styles.icon} />
                       </Popover>
-                      <IconButton onClick={handleReply} icon={CommentOutlined} shape="square" className={cls('replyIcon', styles.icon)} />
+                      <IconButton onClick={handleReply} icon={CommentOutlined} shape='square' className={cls('replyIcon', styles.icon)} />
                       {allowDeleteComment && (
                         <IconButton
                           onClick={() => {
                             const commentItem = {
-                              comment: get(changeset, 'operations.0.actions.0.li') as any,
+                              comment: get(changeset, 'operations.0.actions.0.li'),
                               expandRecordId,
                               datasheetId,
                               setChooseComment,
@@ -289,7 +277,7 @@ const ChangesetItemBase: React.FC<React.PropsWithChildren<IChangesetItem>> = (pr
                               });
                             }
                           }}
-                          shape="square"
+                          shape='square'
                           icon={DeleteOutlined}
                           className={styles.icon}
                           data-test-id={EXPAND_RECORD_DELETE_COMMENT_MORE}
@@ -299,7 +287,7 @@ const ChangesetItemBase: React.FC<React.PropsWithChildren<IChangesetItem>> = (pr
                   )}
                 </div>
                 <div className={styles.activityInfo}>
-                  <Tooltip title={dayjs.tz(Number(createdAt)).format('YYYY-MM-DD HH:mm:ss')}>
+                  <Tooltip title={dayjs(Number(createdAt)).format('YYYY-MM-DD HH:mm:ss')}>
                     <span className={styles.relativeTime}>{relativeTime}</span>
                   </Tooltip>
                 </div>
@@ -307,11 +295,13 @@ const ChangesetItemBase: React.FC<React.PropsWithChildren<IChangesetItem>> = (pr
             </div>
           </div>
           <div className={styles.activityBody}>
-            {action ? (
-              <ReplyBox action={action} handleEmoji={handleEmoji} datasheetId={datasheetId} expandRecordId={expandRecordId} />
-            ) : (
-              <ChangesetItemAction revision={revision} actions={actions} datasheetId={datasheetId} cacheFieldOptions={cacheFieldOptions} />
-            )}
+            {
+              action ? (
+                <ReplyBox action={action} handleEmoji={handleEmoji} datasheetId={datasheetId} expandRecordId={expandRecordId} />
+              ) : (
+                <ChangesetItemAction revision={revision} actions={actions} datasheetId={datasheetId} cacheFieldOptions={cacheFieldOptions} />
+              )
+            }
           </div>
         </div>
       ))}

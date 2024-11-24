@@ -43,7 +43,7 @@
     }
 
     .spaceIcon {
-      fill: var(--textCommonTertiary);
+      fill: var(--thirdLevelText);
       width: 16px;
       height: 16px;
     }
@@ -186,10 +186,6 @@
     .icon {
       fill: var(--secondLevelText);
     }
-    .img {
-      width: 24px;
-      height: 24px;
-    }
     &:hover {
       background-color: var(--rowSelectedBg);
       border-radius: 16px;
@@ -211,11 +207,6 @@
       background-color: var(--blackBlue_800);
     }
   }
-  .spaceLogo {
-    .spaceIcon {
-      fill: var(--textStaticTertiary);
-    }
-  }
 }
 
 .templateActived.noticeOpend {
@@ -232,6 +223,12 @@
   }
 }
 .templateActived:not(.noticeOpend) {
+  .spaceLogo {
+    .spaceIcon {
+// FIXME:THEME
+      fill: rgba(var(--defaultBg-rgb), 50%);
+    }
+  }
   .navWrapper {
     .navItem {
       background-color: transparent;

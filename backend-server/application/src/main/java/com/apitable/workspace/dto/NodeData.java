@@ -18,13 +18,11 @@
 
 package com.apitable.workspace.dto;
 
-import com.apitable.workspace.enums.NodeType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-/**
- * node data.
- */
+import com.apitable.workspace.enums.NodeType;
+
 @Data
 @AllArgsConstructor
 public class NodeData {

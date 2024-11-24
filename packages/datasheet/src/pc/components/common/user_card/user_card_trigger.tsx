@@ -16,41 +16,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import Trigger, { TriggerProps } from 'rc-trigger';
 import { FC, isValidElement, useRef, useEffect, useState } from 'react';
-import { IReduxState } from '@apitable/core';
-import { IAvatarProps } from 'pc/components/common/avatar/avatar';
-import { useAppSelector } from 'pc/store/react-redux';
+import Trigger, { TriggerProps } from 'rc-trigger';
 import { UserCard, IUserCard } from './user_card';
+import { useSelector } from 'react-redux';
+import { IReduxState } from '@apitable/core';
 import styles from './style.module.less';
-
+import { IAvatarProps } from 'pc/components/common';
 interface IUserCardTrigger extends IUserCard, Partial<TriggerProps> {
-  scrollTarget?: string;
+  scrollTarget?: string; 
   isDeleted?: boolean;
   isActive?: boolean;
   avatarProps?: IAvatarProps;
 }
 
-export const UserCardTrigger: FC<React.PropsWithChildren<IUserCardTrigger>> = (props) => {
-  const {
-    userId,
-    memberId,
-    spareName,
-    spareSrc,
-    spaceName,
-    children,
-    action = ['click'],
-    isAlien,
-    destroyPopupOnHide = true,
-    scrollTarget,
-    permissionVisible,
-    isDeleted,
-    isActive,
-    avatarProps,
-    ...rest
-  } = props;
-  const shareId = useAppSelector((state: IReduxState) => state.pageParams.shareId);
-  const embedId = useAppSelector((state: IReduxState) => state.pageParams.embedId);
+export const UserCardTrigger: FC<React.PropsWithChildren<IUserCardTrigger>> = props => {
+  const { userId, memberId, spareName, spareSrc, spaceName, children, action = ['click'], isAlien,
+    destroyPopupOnHide = true, scrollTarget, permissionVisible, isDeleted, isActive, avatarProps, ...rest } = props;
+  const shareId = useSelector((state: IReduxState) => state.pageParams.shareId);
+  const embedId = useSelector((state: IReduxState) => state.pageParams.embedId);
   const [cardVisible, setCardVisible] = useState(false);
   const ref = useRef<any>();
 
@@ -77,15 +61,15 @@ export const UserCardTrigger: FC<React.PropsWithChildren<IUserCardTrigger>> = (p
   }
   return (
     <>
-      {children && (
-        <Trigger
-          ref={ref}
-          action={action}
-          destroyPopupOnHide={destroyPopupOnHide}
-          popupVisible={cardVisible}
-          onPopupVisibleChange={(visible) => setCardVisible(visible)}
-          popup={
-            props.popup || (
+      {children &&
+        (
+          <Trigger
+            ref={ref}
+            action={action}
+            destroyPopupOnHide={destroyPopupOnHide}
+            popupVisible={cardVisible}
+            onPopupVisibleChange={visible => setCardVisible(visible)}
+            popup={props.popup ||
               <UserCard
                 userId={userId}
                 memberId={memberId}
@@ -99,15 +83,15 @@ export const UserCardTrigger: FC<React.PropsWithChildren<IUserCardTrigger>> = (p
                 onClose={() => setCardVisible(false)}
                 avatarProps={avatarProps}
               />
-            )
-          }
-          popupStyle={{ ...props.popupStyle, width: '240px' }}
-          popupClassName={styles.userCardTrigger}
-          {...rest}
-        >
-          {children}
-        </Trigger>
-      )}
+            }
+            popupStyle={{ ...props.popupStyle, width: '240px' }}
+            popupClassName={styles.userCardTrigger}
+            {...rest}
+          >
+            {children}
+          </Trigger>
+        )
+      }
     </>
   );
 };

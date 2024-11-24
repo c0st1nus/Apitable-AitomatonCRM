@@ -34,6 +34,7 @@ import { ResourceDataInterceptor } from 'database/resource/middleware/resource.d
 import type { ChangesetView, DatasheetPack } from '../../interfaces';
 import type { RecordHistoryQueryRo } from '../../datasheet/ros/record.history.query.ro';
 import type { RecordHistoryVo } from '../vos/record.history.vo';
+import type { DatasheetPackResponse } from '@apitable/room-native-api';
 
 @Controller('nest/v1')
 export class ResourceController {
@@ -49,7 +50,8 @@ export class ResourceController {
     private readonly otService: OtService,
   ) {}
 
-  @Get('resources/:resourceId/changesets')
+  // TODO(Chambers): deprecate revisions parameter
+  @Get(['resources/:resourceId/changesets', 'resource/:resourceId/changesets'])
   async getChangesetList(
     @Headers('cookie') cookie: string,
     @Param('resourceId') resourceId: string,
@@ -86,13 +88,13 @@ export class ResourceController {
     return await this.changesetService.getChangesetList(resourceId, Number(query.resourceType), query.startRevision, query.endRevision);
   }
 
-  @Get('resources/:resourceId/foreignDatasheets/:foreignDatasheetId/dataPack')
+  @Get(['resources/:resourceId/foreignDatasheets/:foreignDatasheetId/dataPack', 'resource/:resourceId/foreignDatasheet/:foreignDatasheetId/dataPack'])
   @UseInterceptors(ResourceDataInterceptor)
   async getForeignDatasheetPack(
     @Headers('cookie') cookie: string,
     @Param('resourceId') resourceId: string,
     @Param('foreignDatasheetId') foreignDatasheetId: string,
-  ): Promise<DatasheetPack> {
+  ): Promise<DatasheetPack | DatasheetPackResponse> {
     // check if the user belongs to this space
     const { userId } = await this.userService.getMe({ cookie });
     await this.nodeService.checkUserForNode(userId, resourceId);
@@ -101,14 +103,17 @@ export class ResourceController {
     return await this.resourceService.fetchForeignDatasheetPack(resourceId, foreignDatasheetId, { cookie }, true);
   }
 
-  @Get('shares/:shareId/resources/:resourceId/foreignDatasheets/:foreignDatasheetId/dataPack')
+  @Get([
+    'shares/:shareId/resources/:resourceId/foreignDatasheets/:foreignDatasheetId/dataPack',
+    'share/:shareId/resource/:resourceId/foreignDatasheet/:foreignDatasheetId/dataPack',
+  ])
   @UseInterceptors(ResourceDataInterceptor)
   async getShareForeignDatasheetPack(
     @Headers('cookie') cookie: string,
     @Param('resourceId') resourceId: string,
     @Param('foreignDatasheetId') foreignDatasheetId: string,
     @Param('shareId') shareId: string,
-  ): Promise<DatasheetPack> {
+  ): Promise<DatasheetPack | DatasheetPackResponse> {
     // check if the share link of the node is editable
     await this.nodeShareSettingService.checkNodeShareCanBeEdited(shareId, resourceId);
     return await this.resourceService.fetchForeignDatasheetPack(resourceId, foreignDatasheetId, { cookie }, true, shareId);
@@ -145,7 +150,7 @@ export class ResourceController {
     return ApiResponse.success(recordHistoryDto!);
   }
 
-  @Post('resources/apply/changesets')
+  @Post(['resource/apply/changesets', 'resources/apply/changesets'])
   async applyChangesets(
     @Headers('cookie') cookie: string,
     @Body()

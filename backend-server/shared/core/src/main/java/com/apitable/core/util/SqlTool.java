@@ -18,13 +18,10 @@
 
 package com.apitable.core.util;
 
-/**
- * sql tool.
- */
 public class SqlTool {
 
     /**
-     * return the execution result of SelectCount.
+     * return the execution result of SelectCount
      *
      * @param result ignore
      * @return int

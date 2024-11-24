@@ -16,26 +16,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { Test, TestingModule } from '@nestjs/testing';
 import { SocketConstants } from 'shared/common/constants/socket.module.constants';
 import { getSocketServerAddr } from 'shared/helpers/socket.helper';
 import { getIPAddress } from 'shared/helpers/system.helper';
-import { RedisService } from './redis.service';
-import { Test, TestingModule } from '@nestjs/testing';
 import { redisProviders } from './redis.provider';
+import { RedisService } from './redis.service';
 
 describe.skip('RedisService', () => {
-  let moduleFixture: TestingModule;
   let service: RedisService;
 
   beforeEach(async() => {
-    moduleFixture = await Test.createTestingModule({
+    const module: TestingModule = await Test.createTestingModule({
       providers: [RedisService, ...redisProviders],
-    }).compile();
-    service = moduleFixture.get<RedisService>(RedisService);
-  });
+    })
+      .compile();
 
-  afterEach(async() => {
-    await moduleFixture.close();
+    service = module.get<RedisService>(RedisService);
   });
 
   it('should be defined', () => {

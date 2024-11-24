@@ -54,16 +54,13 @@
         WHERE id = #{entity.id} AND is_deleted = 0
     </update>
 
-    <select id="selectByIdGreaterThanEqual"
+    <select id="selectInvalidAsset"
             resultType="com.apitable.asset.entity.AssetEntity">
         SELECT *
         FROM ${tablePrefix}asset
-        <where>
-            <if test="minId != null">
-                and id <![CDATA[>=]]> #{minId}
-            </if>
-            AND is_deleted = 0
-        </where>
-        ORDER BY id ASC LIMIT 1000
+        WHERE created_at &lt; DATE_SUB(NOW(),INTERVAL #{minutes} MINUTE)
+          AND file_size = 0
+          AND is_deleted = 0
+        ORDER BY id DESC LIMIT 100
     </select>
 </mapper>

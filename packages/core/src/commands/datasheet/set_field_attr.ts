@@ -18,21 +18,17 @@
 
 import { ExecuteResult, ICollaCommandDef, ICollaCommandExecuteContext, ILinkedActions } from 'command_manager';
 import { isEqual } from 'lodash';
-import {
-  getActiveDatasheetId,
-  getSnapshot,
-} from 'modules/database/store/selectors/resource/datasheet/base';
+import { Selectors } from '../../exports/store';
 import { ISnapshot } from '../../exports/store/interfaces';
-import { getDatasheet } from 'modules/database/store/selectors/resource/datasheet/base';
-import { getFieldMap } from 'modules/database/store/selectors/resource/datasheet/calc';
+import { getDatasheet, getFieldMap } from '../../exports/store/selectors';
 import { FieldType, IField } from 'types/field_types';
 import { IJOTAction } from 'engine';
 import { Strings, t } from '../../exports/i18n';
 import { ResourceType } from 'types';
-import { CollaCommandName } from 'commands/enum';
+import { CollaCommandName } from 'commands';
 import { clearOldBrotherField, createNewBrotherField, IInternalFix, setField } from '../common/field';
 import { Field } from 'model/field';
-import { DatasheetActions } from 'commands_actions/datasheet';
+import { DatasheetActions } from '../../model';
 
 export interface ISetFieldAttrOptions {
   cmd: CollaCommandName.SetFieldAttr;
@@ -50,7 +46,7 @@ function generateLinkedFieldActions(
 ): { actions: IJOTAction[], linkedActions?: ILinkedActions[] } {
   const actions: IJOTAction[] = [];
   const linkedActions: ILinkedActions[] = [];
-  const { state: state } = context;
+  const { model: state } = context;
   if (oldField.type === FieldType.Link && newField.type === FieldType.Link) {
     // If the associated table id has not changed, no related operations are required.
     if (oldField.property.foreignDatasheetId === newField.property.foreignDatasheetId) {
@@ -88,11 +84,11 @@ export const setFieldAttr: ICollaCommandDef<ISetFieldAttrOptions> = {
   undoable: true,
 
   execute: (context, options) => {
-    const { state: state } = context;
-    const activeDatasheetId = getActiveDatasheetId(state)!;
+    const { model: state } = context;
+    const activeDatasheetId = Selectors.getActiveDatasheetId(state)!;
     const { fieldId, datasheetId = activeDatasheetId, deleteBrotherField, internalFix } = options;
     const newField = { ...options.data };
-    const snapshot = getSnapshot(state, datasheetId);
+    const snapshot = Selectors.getSnapshot(state, datasheetId);
     if (!snapshot || fieldId !== newField.id) {
       return null;
     }

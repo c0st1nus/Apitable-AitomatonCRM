@@ -18,7 +18,12 @@
 
 import { IFieldProps } from '../../interface';
 
-import { getWidget, getUiOptions, optionsList, getDefaultRegistry } from '../../utils';
+import {
+  getWidget,
+  getUiOptions,
+  optionsList,
+  getDefaultRegistry,
+} from '../../utils';
 
 function BooleanField(props: IFieldProps) {
   const {
@@ -54,7 +59,11 @@ function BooleanField(props: IFieldProps) {
   } else {
     enumOptions = optionsList({
       enum: schema.enum || [true, false],
-      enumNames: (schema as any).enumNames || (schema.enum && schema.enum[0] === false ? ['No', 'Yes'] : ['Yes', 'No']),
+      enumNames:
+        (schema as any).enumNames ||
+        (schema.enum && schema.enum[0] === false
+          ? ['No', 'Yes']
+          : ['Yes', 'No']),
     });
   }
 

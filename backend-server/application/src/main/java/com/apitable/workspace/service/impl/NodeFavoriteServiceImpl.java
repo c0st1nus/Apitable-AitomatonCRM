@@ -37,18 +37,15 @@ import com.apitable.workspace.service.INodeService;
 import com.apitable.workspace.vo.FavoriteNodeInfo;
 import com.apitable.workspace.vo.NodeInfoVo;
 import com.baomidou.mybatisplus.extension.toolkit.SqlHelper;
-import jakarta.annotation.Resource;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * node favorite service implementation.
- */
 @Slf4j
 @Service
 public class NodeFavoriteServiceImpl implements INodeFavoriteService {
@@ -70,11 +67,11 @@ public class NodeFavoriteServiceImpl implements INodeFavoriteService {
     @Override
     public List<FavoriteNodeInfo> getFavoriteNodeList(String spaceId, Long memberId) {
         log.info("get favorite node list");
-        List<NodeTreeDTO> treeList = nodeFavoriteMapper.selectNodeTreeDTOByMemberId(memberId);
-        if (CollUtil.isEmpty(treeList)) {
+        List<NodeTreeDTO> nodeTreeDTOS = nodeFavoriteMapper.selectNodeTreeDTOByMemberId(memberId);
+        if (CollUtil.isEmpty(nodeTreeDTOS)) {
             return new ArrayList<>();
         }
-        List<String> nodeIds = iNodeService.sortNodeAtSameLevel(treeList);
+        List<String> nodeIds = iNodeService.sortNodeAtSameLevel(nodeTreeDTOS);
         // query node view information
         List<NodeInfoVo> nodeInfoVos =
             iNodeService.getNodeInfoByNodeIds(spaceId, memberId, nodeIds);
@@ -143,10 +140,8 @@ public class NodeFavoriteServiceImpl implements INodeFavoriteService {
             ExceptionUtil.isTrue(flag, DatabaseException.EDIT_ERROR);
             return;
         }
-
         // check whether the node exists
-        iNodeService.checkNodeIfExist(spaceId, nodeId,
-            StrUtil.toString(iNodeService.getUnitIdByNodeId(nodeId)));
+        iNodeService.checkNodeIfExist(spaceId, nodeId);
         // Check whether the node has the specified operation permission
         controlTemplate.checkNodePermission(memberId, nodeId, NodePermission.READ_NODE,
             status -> ExceptionUtil.isTrue(status, PermissionException.NODE_OPERATION_DENIED));

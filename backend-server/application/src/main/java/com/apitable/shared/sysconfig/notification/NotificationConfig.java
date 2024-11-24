@@ -19,11 +19,12 @@
 package com.apitable.shared.sysconfig.notification;
 
 import java.util.Map;
+
 import lombok.Data;
 
 /**
  * <p>
- * Notification Config.
+ * Notification Config
  * </p>
  */
 @Data

@@ -16,18 +16,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { Api, fastCloneDeep, IApi, Selectors, StoreActions, Strings, t } from '@apitable/core';
 import { difference, keyBy } from 'lodash';
+import { Message, Modal } from 'pc/components/common';
+import { ScreenSize } from 'pc/components/common/component_display';
+import { useResponsive } from 'pc/hooks';
+import { store } from 'pc/store';
+import { dispatch } from 'pc/worker/store';
 import * as React from 'react';
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
-import { Api, fastCloneDeep, IApi, Selectors, StoreActions, Strings, t } from '@apitable/core';
-import { ScreenSize } from 'pc/components/common/component_display';
-import { Message } from 'pc/components/common/message';
-import { Modal } from 'pc/components/common/modal/modal/modal';
-import { useResponsive } from 'pc/hooks';
-import { store } from 'pc/store';
-import { dispatch } from 'pc/worker/store';
 import styles from './style.module.less';
 
 export const sendRemind = () => {
@@ -38,7 +37,7 @@ export const sendRemind = () => {
   }
 };
 
-export const getNoPermissionMemberList = async (nodeId: string, unitsIds: string[]): Promise<IApi.INoPermissionMemberResponseData[] | null> => {
+export const getNoPermissionMemberList = async(nodeId: string, unitsIds: string[]): Promise<IApi.INoPermissionMemberResponseData[] | null> => {
   if (!nodeId) {
     return null;
   }
@@ -50,30 +49,29 @@ export const getNoPermissionMemberList = async (nodeId: string, unitsIds: string
   return null;
 };
 
-export const verificationPermission = async (commitRemindParam: IApi.ICommitRemind) => {
+export const verificationPermission = async(commitRemindParam: IApi.ICommitRemind) => {
   const state = store.getState();
-  const activeNodePrivate = Selectors.getActiveNodePrivate(state);
   const embedId = state.pageParams.embedId;
-  if (embedId || activeNodePrivate) return;
+  if(embedId) return;
   const newCommitRemindParam = fastCloneDeep(commitRemindParam);
   dispatch(StoreActions.setPermissionCommitRemindParameter(newCommitRemindParam));
-
+ 
   const nodeId = commitRemindParam.nodeId || '';
-  const unitsIds = newCommitRemindParam.unitRecs.map((unitRec) => unitRec.unitIds).flat();
+  const unitsIds = newCommitRemindParam.unitRecs.map(unitRec => unitRec.unitIds).flat();
   const noPermissionMemberData = await getNoPermissionMemberList(nodeId, unitsIds);
 
   const isNotify = !Selectors.getCurrentView(state);
 
   if (noPermissionMemberData && noPermissionMemberData.length > 0) {
     // Permission pre-fill information setting
-    const noPermissionUnitIds = noPermissionMemberData.map((member) => member.unitId);
+    const noPermissionUnitIds = noPermissionMemberData.map(member => member.unitId);
     dispatch(StoreActions.setNoPermissionMembers(noPermissionUnitIds));
 
     // Asynchronous Complementary Member Information
     const unitMap = Selectors.getUnitMap(state);
     const missUnitIds = difference(noPermissionUnitIds, Object.keys(unitMap || {}));
     if (missUnitIds.length) {
-      Api.loadOrSearch({ unitIds: missUnitIds.join(',') }).then((res) => {
+      Api.loadOrSearch({ unitIds: missUnitIds.join(',') }).then(res => {
         const {
           data: { data: resData, success },
         } = res;
@@ -130,7 +128,7 @@ const notificationVerification = (props: IUnitProps) => {
   );
 };
 
-export const NotificationVerificationModal: React.FC<React.PropsWithChildren<IUnitProps>> = (props) => {
+export const NotificationVerificationModal: React.FC<React.PropsWithChildren<IUnitProps>> = props => {
   const { members, setPermission, manageable, closeModal } = props;
   const { screenIsAtMost } = useResponsive();
   const isMobile = screenIsAtMost(ScreenSize.md);
@@ -189,7 +187,7 @@ const MessageContent = ({ members }: { members: IApi.INoPermissionMemberResponse
   const memberList = members.slice(0, 3);
   return (
     <>
-      {memberList.map((member) => '@' + member.memberName + ' ')}
+      {memberList.map(member => '@' + member.memberName + ' ')}
       {members.length > 3 && t(Strings.notified_assign_permissions_number, { number: members.length })}
       {t(Strings.unaccess_notified_message)}
     </>

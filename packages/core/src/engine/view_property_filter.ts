@@ -17,17 +17,13 @@
  */
 
 import { getDstViewDataPack, getShareDstViewDataPack } from '../modules/database/api/datasheet_api';
-import { CollaCommandName } from 'commands/enum';
-import { IJOTAction } from 'engine/ot/interface';
+import { CollaCommandName } from 'commands';
+import { IJOTAction } from 'engine/ot';
 import { Strings, t } from '../exports/i18n';
-import { DatasheetActions } from 'commands_actions/datasheet';
-import { IFieldMap, IKanbanStyle, IReduxState, IViewProperty } from '../exports/store/interfaces';
-import { applyJOTOperations } from 'modules/database/store/actions/resource';
-import { getSnapshot } from 'modules/database/store/selectors/resource/datasheet/base';
-import { getDatasheetClient } from 'modules/database/store/selectors/resource/datasheet/base';
-import { getResourceRevision } from 'modules/database/store/selectors/resource';
+import { DatasheetActions } from 'model';
+import { IFieldMap, IKanbanStyle, IPermissions, IReduxState, IViewProperty, Selectors, StoreActions } from '../exports/store';
+import { getCurrentViewBase, getSnapshot } from '../exports/store/selectors';
 import { ErrorCode, ErrorType, IError, IFilterInfo, IGroupInfo, ISortInfo, ResourceType, ModalType } from 'types';
-import { getReaderRolePermission } from 'engine/get_reader_role_permission';
 
 interface IViewPropertyFilterListener {
   onError?(error: IError): any;
@@ -48,10 +44,10 @@ export class ViewPropertyFilter {
   static ignoreViewProperty = ['id', 'type', 'rows', 'name', 'lockInfo'];
 
   constructor(
-      private _getState: () => IReduxState,
-      private _dispatch: (action: any) => void,
-      private _datasheetId: string,
-      private _listener: IViewPropertyFilterListener
+    private _getState: () => IReduxState,
+    private _dispatch: (action: any) => void,
+    private _datasheetId: string,
+    private _listener: IViewPropertyFilterListener
   ) {
   }
 
@@ -116,7 +112,7 @@ export class ViewPropertyFilter {
 
     const state = this._getState();
     const viewIndex = path[2]!;
-    const snapshot = getSnapshot(state, this._datasheetId);
+    const snapshot = Selectors.getSnapshot(state, this._datasheetId);
 
     if (!snapshot) {
       return false;
@@ -127,13 +123,6 @@ export class ViewPropertyFilter {
     const opViewId = view?.id;
 
     if (!view || !opViewId) {
-      return true;
-    }
-
-    const viewModified = getDatasheetClient(state, this._datasheetId)?.operateViewIds?.includes(opViewId) ?? false;
-    const shouldApplyManuallySave = !viewModified;
-
-    if (shouldApplyManuallySave) {
       return true;
     }
 
@@ -187,8 +176,8 @@ export class ViewPropertyFilter {
 
     if (
       commandName &&
-        [CollaCommandName.AddViews, CollaCommandName.DeleteViews, CollaCommandName.MoveViews, CollaCommandName.DeleteField,
-          CollaCommandName.SetFieldAttr].includes(commandName)
+      [CollaCommandName.AddViews, CollaCommandName.DeleteViews, CollaCommandName.MoveViews, CollaCommandName.DeleteField,
+        CollaCommandName.SetFieldAttr].includes(commandName)
     ) {
       // If it is detected that the collaborative state of the view is being modified, there is no need to filter this action.
       return actions;
@@ -218,7 +207,7 @@ export class ViewPropertyFilter {
     }
 
     const state = this._getState();
-    const snapshot = getSnapshot(state, this._datasheetId);
+    const snapshot = Selectors.getSnapshot(state, this._datasheetId);
 
     if (!snapshot) {
       return false;
@@ -234,11 +223,11 @@ export class ViewPropertyFilter {
 
   // Reset the current graph configuration, which is consistent with the database data
   static async resetViewProperty(state: IReduxState, { datasheetId, viewId, dispatch, onError, shareId }: IResetViewPropertyProps) {
-    const snapshot = getSnapshot(state, datasheetId)!;
+    const snapshot = Selectors.getSnapshot(state, datasheetId)!;
     const { success, data } = await ViewPropertyFilter.requestViewData(datasheetId, viewId);
 
     if (success) {
-      const revision = getResourceRevision(state, datasheetId, ResourceType.Datasheet);
+      const revision = Selectors.getResourceRevision(state, datasheetId, ResourceType.Datasheet);
 
       if (data['revision'] < revision!) {
         // The version of the database is smaller than the local version, it may be that the op is being processed
@@ -259,7 +248,7 @@ export class ViewPropertyFilter {
         return this.handleError(onError);
       }
 
-      dispatch(applyJOTOperations([{
+      dispatch(StoreActions.applyJOTOperations([{
         cmd: CollaCommandName.SetViewAutoSave,
         actions: resetActions
       }], ResourceType.Datasheet, datasheetId));
@@ -282,5 +271,35 @@ export class ViewPropertyFilter {
     return res.data;
   }
 
-  static getReaderRolePermission = getReaderRolePermission;
+  static getReaderRolePermission(state: IReduxState, datasheetId: string, permission?: IPermissions) {
+    const spaceManualSaveViewIsOpen = state.labs?.includes('view_manual_save') ||
+      Boolean(state.share?.featureViewManualSave) ||
+      Boolean(state.embedInfo?.viewManualSave);
+    const viewId = state.pageParams.viewId;
+    if (!viewId || !spaceManualSaveViewIsOpen || !permission) {
+      return permission;
+    }
+    const view = getCurrentViewBase(getSnapshot(state, datasheetId)!, viewId, datasheetId);
+
+    if (!view || view.autoSave) {
+      return permission;
+    }
+
+    return {
+      ...permission,
+      viewFilterable: true,
+      columnSortable: true,
+      columnHideable: true,
+      fieldSortable: true,
+      fieldGroupable: true,
+      rowHighEditable: true,
+      columnWidthEditable: true,
+      columnCountEditable: true,
+      viewLayoutEditable: true,
+      viewStyleEditable: true,
+      viewKeyFieldEditable: true,
+      viewColorOptionEditable: true,
+      visualizationEditable: true,
+    };
+  }
 }

@@ -16,17 +16,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { isNull } from 'lodash';
+import { useSelector, useDispatch } from 'react-redux';
 import { useCallback, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
 import { StoreActions } from '@apitable/core';
-import { ScreenSize } from 'pc/components/common/component_display';
 import { useResponsive } from 'pc/hooks';
-import { useAppSelector } from 'pc/store/react-redux';
+import { ScreenSize } from 'pc/components/common/component_display';
 import { getStorage, setStorage, StorageMethod, StorageName } from 'pc/utils/storage/storage';
+import { isNull } from 'lodash';
 
 export const useSideBarVisible = () => {
-  const sideBarVisible = useAppSelector((state) => state.space.sideBarVisible);
+  const sideBarVisible = useSelector(state => state.space.sideBarVisible);
   const { screenIsAtMost } = useResponsive();
   const dispatch = useDispatch();
   const setSideBarVisible = useCallback(

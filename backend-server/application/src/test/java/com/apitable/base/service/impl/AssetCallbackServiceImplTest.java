@@ -21,11 +21,14 @@ package com.apitable.base.service.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
+import cn.hutool.core.io.IoUtil;
 import com.apitable.AbstractIntegrationTest;
-import com.apitable.asset.entity.AssetEntity;
+import com.apitable.FileHelper;
 import com.apitable.asset.enums.AssetType;
 import com.apitable.asset.vo.AssetUploadResult;
 import com.apitable.core.exception.BusinessException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -50,18 +53,9 @@ public class AssetCallbackServiceImplTest extends AbstractIntegrationTest {
 
     @Test
     public void testLoadAssetUploadResultUsingDatasheetAsset() {
-        List<AssetEntity> assetEntities = new ArrayList<>();
-        assetEntities.add(AssetEntity.builder()
-            .bucket("QNY1")
-            .checksum("DekwyNBgUj3Shi1FzCfl1A==")
-            .fileSize(658436)
-            .fileUrl("space/2022/03/22/cc3737c2aef54d499502f4941ab81841")
-            .mimeType("image/png")
-            .extensionName("png")
-            .isTemplate(false)
-            .build());
-
-        iAssetService.saveBatch(assetEntities);
+        InputStream inputStream = FileHelper.getInputStreamFromResource("sql/asset-data.sql");
+        String sql = IoUtil.read(inputStream, StandardCharsets.UTF_8);
+        execute(sql);
 
         List<String> resourceKeys = new ArrayList<>();
         resourceKeys.add("space/2022/03/22/cc3737c2aef54d499502f4941ab81841");

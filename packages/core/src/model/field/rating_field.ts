@@ -21,16 +21,15 @@ import { isNumber } from 'lodash';
 import { ICellValue } from 'model/record';
 import { FieldType, IField, IRatingField, IStandardValue } from 'types/field_types';
 import { str2number } from 'utils/convert';
-import { DatasheetActions } from '../../commands_actions/datasheet';
+import { DatasheetActions } from '../datasheet';
 import { NumberBaseField, commonNumberFields } from './number_base_field';
-import { IReduxState } from '../../exports/store/interfaces';
+import { IReduxState } from '../../exports/store';
 import { FOperator, IFilterNumber } from 'types';
 import { getEmojiIconNativeString } from 'model/utils';
 import { IOpenRatingFieldProperty } from 'types/open/open_field_read_types';
 import { IUpdateOpenRatingFieldProperty } from 'types/open/open_field_write_types';
 import { EmojisConfig } from 'config/emojis_config';
 import { joiErrorResult } from './validate_schema';
-import { getFieldDefaultProperty } from './const';
 
 export class RatingField extends NumberBaseField {
   constructor(public override field: IRatingField, state: IReduxState) {
@@ -63,7 +62,7 @@ export class RatingField extends NumberBaseField {
   }
 
   static defaultProperty() {
-    return getFieldDefaultProperty(FieldType.Rating) as IOpenRatingFieldProperty;
+    return { icon: 'star', max: 5 };
   }
 
   override cellValueToString(cellValue: ICellValue): string | null {

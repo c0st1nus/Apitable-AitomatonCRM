@@ -15,26 +15,27 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+import { Test, TestingModule } from '@nestjs/testing';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AutomationRobotRepository } from './automation.robot.repository';
 import { AutomationRobotEntity } from '../entities/automation.robot.entity';
-import { DeepPartial, getConnection } from 'typeorm';
-import { Test, TestingModule } from '@nestjs/testing';
+import { DeepPartial } from 'typeorm';
 import { ConfigModule } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { DatabaseConfigService } from 'shared/services/config/database.config.service';
-import { clearDatabase } from 'shared/testing/test-util';
 
 describe('AutomationRobotRepository', () => {
-  let moduleFixture: TestingModule;
   let automationRobotRepository: AutomationRobotRepository;
+
   const theRobotResourceId = 'theRobotResourceId';
   const theRobotId = 'theRobotId';
   const theUserId = 'theUserId';
+  let module: TestingModule;
   let entity: AutomationRobotEntity;
   let addRobot: Function;
 
-  beforeEach(async() => {
-    moduleFixture = await Test.createTestingModule({
+  beforeAll(async() => {
+    module = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({ isGlobal: true }),
         TypeOrmModule.forRootAsync({
@@ -45,9 +46,7 @@ describe('AutomationRobotRepository', () => {
       providers: [AutomationRobotRepository],
     }).compile();
 
-    automationRobotRepository = moduleFixture.get<AutomationRobotRepository>(AutomationRobotRepository);
-    // clear database
-    await clearDatabase(getConnection());
+    automationRobotRepository = module.get<AutomationRobotRepository>(AutomationRobotRepository);
     addRobot = async(robotId: string): Promise<AutomationRobotEntity> => {
       const robot: DeepPartial<AutomationRobotEntity> = {
         resourceId: theRobotResourceId,
@@ -62,15 +61,16 @@ describe('AutomationRobotRepository', () => {
       return await automationRobotRepository.save(record);
     };
     entity = await addRobot(theRobotId);
+    expect(entity).toBeDefined();
   });
 
-  afterEach(async() => {
-    await moduleFixture.close();
+  afterAll(async() => {
+    await automationRobotRepository.delete(entity.id);
+    await automationRobotRepository.manager.connection.close();
   });
 
   it('should be defined', () => {
     expect(automationRobotRepository).toBeDefined();
-    expect(entity).toBeDefined();
   });
 
   it('given one active robot entity when get active robots by resource id', async() => {

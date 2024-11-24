@@ -22,9 +22,6 @@ import com.apitable.core.support.serializer.IBaseEnum;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-/**
- * widget package status.
- */
 @Getter
 @AllArgsConstructor
 public enum WidgetPackageStatus implements IBaseEnum {

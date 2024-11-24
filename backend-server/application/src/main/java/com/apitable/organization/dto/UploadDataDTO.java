@@ -20,9 +20,6 @@ package com.apitable.organization.dto;
 
 import lombok.Data;
 
-/**
- * upload data dto.
- */
 @Data
 public class UploadDataDTO {
 

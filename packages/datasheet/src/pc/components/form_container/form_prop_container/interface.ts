@@ -20,11 +20,11 @@ import { IFormProps } from '@apitable/core';
 
 export enum IModeEnum {
   Preview = 'Preview',
-  Edit = 'Edit',
+  Edit = 'Edit'
 }
 
 export interface IBasePropEditorProps {
-  nodeId: string;
+  formId: string;
   mode: IModeEnum;
   updateProps: (props: Partial<IFormProps>) => void;
 }

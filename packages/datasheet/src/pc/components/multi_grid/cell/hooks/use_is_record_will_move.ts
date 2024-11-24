@@ -16,14 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useEffect, useState } from 'react';
-import { shallowEqual } from 'react-redux';
 import { RecordMoveType, Selectors } from '@apitable/core';
-
-import { useAppSelector } from 'pc/store/react-redux';
+import { useEffect, useState } from 'react';
+import { shallowEqual, useSelector } from 'react-redux';
 
 export const useIsRecordWillMove = (recordId: string) => {
-  const { activeRecordId, recordMoveType } = useAppSelector((state) => {
+  const { activeRecordId, recordMoveType } = useSelector(state => {
     return {
       activeRecordId: Selectors.getActiveRecordId(state),
       recordMoveType: Selectors.getRecordMoveType(state),

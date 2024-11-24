@@ -16,12 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { CollaCommandName } from 'commands/enum';
+import { CollaCommandName } from 'commands';
 import { ExecuteResult, ICollaCommandDef, ICollaCommandExecuteContext } from 'command_manager';
-import { getInstalledWidgetInDashboard,getDashboardSnapshot } from 'modules/database/store/selectors/resource/dashboard';
-
+import { Selectors } from '../../exports/store';
 import { ResourceType } from 'types';
-import { DashboardAction } from '../../commands_actions/dashboard';
+import { DashboardAction } from '../../model/dashboard';
 
 export interface IDeleteDashboardWidget {
   cmd: CollaCommandName.DeleteDashboardWidget;
@@ -33,15 +32,15 @@ export const deleteDashboardWidget: ICollaCommandDef<IDeleteDashboardWidget> = {
   undoable: false,
 
   execute(context: ICollaCommandExecuteContext, options: IDeleteDashboardWidget) {
-    const { state: state } = context;
+    const { model: state } = context;
     const { dashboardId, widgetId } = options;
-    const snapshot = getDashboardSnapshot(state);
+    const snapshot = Selectors.getDashboardSnapshot(state);
 
     if (!snapshot) {
       return null;
     }
 
-    const installedIds = getInstalledWidgetInDashboard(state);
+    const installedIds = Selectors.getInstalledWidgetInDashboard(state);
 
     if (!installedIds) {
       return null;

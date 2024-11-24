@@ -20,9 +20,6 @@ package com.apitable.interfaces.user.model;
 
 import com.apitable.shared.cache.bean.SocialAuthInfo;
 
-/**
- * user link request.
- */
 public class UserLinkRequest {
 
     private Long userId;

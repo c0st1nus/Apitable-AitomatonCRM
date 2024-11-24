@@ -18,7 +18,9 @@
 
 package com.apitable.shared.cache.service.impl;
 
-import static com.apitable.core.constants.RedisConstants.GENERAL_CONFIG;
+import java.util.List;
+
+import javax.annotation.Resource;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
@@ -30,14 +32,12 @@ import com.apitable.shared.cache.bean.CategoryDto;
 import com.apitable.shared.cache.service.TemplateConfigCacheService;
 import com.apitable.shared.component.LanguageManager;
 import com.apitable.template.service.ITemplatePropertyService;
-import jakarta.annotation.Resource;
-import java.util.List;
+
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-/**
- * template config cache in redis.
- */
+import static com.apitable.core.constants.RedisConstants.GENERAL_CONFIG;
+
 @Service
 public class TemplateConfigCacheInRedisImpl implements TemplateConfigCacheService {
 
@@ -90,7 +90,8 @@ public class TemplateConfigCacheInRedisImpl implements TemplateConfigCacheServic
 
         if (RECOMMEND.equals(configKey)) {
             dbValue = systemConfigService.findConfig(SystemConfigType.RECOMMEND_CONFIG, lang);
-        } else if (ONLINE.equals(configKey)) {
+        }
+        else if (ONLINE.equals(configKey)) {
             List<CategoryDto> categories = templatePropertyService.getCategories(lang);
             if (CollUtil.isNotEmpty(categories)) {
                 dbValue = JSONUtil.toJsonStr(categories);
@@ -103,7 +104,7 @@ public class TemplateConfigCacheInRedisImpl implements TemplateConfigCacheServic
         }
 
         String oldConfig = StrUtil.format(GENERAL_CONFIG, "template",
-            LanguageManager.me().getDefaultLanguageTagWithUnderLine() + configKey);
+                LanguageManager.me().getDefaultLanguageTagWithUnderLine() + configKey);
         return redisTemplate.opsForValue().get(oldConfig);
     }
 }

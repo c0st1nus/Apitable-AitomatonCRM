@@ -16,15 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { DatasheetActions } from 'commands_actions/datasheet';
+import { DatasheetActions } from 'model';
 import { ExecuteResult, ICollaCommandDef } from 'command_manager';
 import { CollaCommandName } from '..';
 import { ResourceType } from 'types';
 import { isEmpty } from 'lodash';
 import { IJOTAction } from '../../engine';
-import {
-  getSnapshot,
-} from 'modules/database/store/selectors/resource/datasheet/base';
+import { Selectors } from '../../exports/store';
+
 export interface IFixOneWayLinkDstId {
   cmd: CollaCommandName.FixOneWayLinkDstId;
   data: IFixOneWayLinkOptions[];
@@ -43,9 +42,9 @@ export const fixOneWayLinkDstId: ICollaCommandDef<IFixOneWayLinkDstId> = {
   undoable: false,
 
   execute: (context, options) => {
-    const { state: state } = context;
+    const { model: state } = context;
     const { datasheetId, fieldId, data } = options;
-    const snapshot = getSnapshot(state, datasheetId);
+    const snapshot = Selectors.getSnapshot(state, datasheetId);
 
     if (isEmpty(data) || !snapshot) {
       return null;

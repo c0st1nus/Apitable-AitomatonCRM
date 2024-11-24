@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { EventRealTypeEnums, OPEventNameEnums } from 'event_manager/enum';
+import { EventRealTypeEnums, OPEventNameEnums } from 'event_manager/const';
 import { testPath } from 'event_manager/helper';
 import { ResourceType } from 'types/resource_types';
 import { IAtomEventType } from '../interface';
@@ -31,17 +31,11 @@ export class OPEventRecordDeleted extends IAtomEventType<IRecordDelete> {
   realType = EventRealTypeEnums.REAL;
   scope = ResourceType.Datasheet;
   test(args: IOPBaseContext) {
-    const { op, action, resourceId } = args;
+    const { action, resourceId } = args;
     const { pass, recordId } = testPath(action.p, ['recordMap', ':recordId'], action.n === 'OD');
-
-    let success = pass;
-    if (op.cmd === 'ArchiveRecords') {
-      success = false;
-    }
     return {
-      pass: success,
+      pass,
       context: {
-        action,
         datasheetId: resourceId,
         recordId,
       }

@@ -19,7 +19,7 @@
 package com.apitable.workspace.ro;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotNull;
+import javax.validation.constraints.NotNull;
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -44,7 +44,4 @@ public class NodeBundleOpRo {
 
     @Schema(description = "Password", example = "***")
     private String password;
-
-    @Schema(description = "unit id", example = "111")
-    private String unitId;
 }

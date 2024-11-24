@@ -18,12 +18,13 @@
 
 package com.apitable.base.enums;
 
-import com.apitable.core.exception.BaseException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import com.apitable.core.exception.BaseException;
+
 /**
- * ActionException.
+ * ActionException
  * status code range（230-299）
  *
  * @author Chambers
@@ -32,11 +33,9 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum ActionException implements BaseException {
 
-    MOBILE_SEND_MAX_COUNT_LIMIT(230,
-        "The maximum number of SMS messages sent by this phone in one day"),
+    MOBILE_SEND_MAX_COUNT_LIMIT(230, "The maximum number of SMS messages sent by this phone in one day"),
 
-    EMAIL_SEND_MAX_COUNT_LIMIT(230,
-        "The maximum number of emails sent by this phone today has been reached"),
+    EMAIL_SEND_MAX_COUNT_LIMIT(230, "The maximum number of emails sent by this phone today has been reached"),
 
     SMS_SEND_ONLY_ONE_MINUTE(230, "Cannot get repeated within 60 seconds, please try again later"),
 
@@ -44,8 +43,7 @@ public enum ActionException implements BaseException {
 
     CODE_ERROR_OFTEN(231, "The current verification code is invalid, please get it again"),
 
-    CODE_EXPIRE(231,
-        "The verification code has not been obtained or has expired, please obtain it again"),
+    CODE_EXPIRE(231, "The verification code has not been obtained or has expired, please obtain it again"),
 
     CODE_ERROR(231, "incorrect verification code please reenter"),
 
@@ -79,13 +77,11 @@ public enum ActionException implements BaseException {
 
     ENABLE_SMS_VERIFICATION(252, "The current environment is at risk, please re-validate"),
 
-    OFFICE_PREVIEW_API_FAILED(253,
-        "The request failed, the file transfer to preview failed, please try again"),
+    OFFICE_PREVIEW_API_FAILED(253, "The request failed, the file transfer to preview failed, please try again"),
 
     OFFICE_PREVIEW_GET_URL_FAILED(254, "The file could not get the preview URL, please try again"),
 
-    OFFICE_PREVIEW_DESTROYED_FAILED(255,
-        "The file is corrupt or encrypted and cannot be previewed, please try again");
+    OFFICE_PREVIEW_DESTROYED_FAILED(255, "The file is corrupt or encrypted and cannot be previewed, please try again");
 
     private final Integer code;
 

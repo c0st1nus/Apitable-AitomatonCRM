@@ -18,10 +18,10 @@
 
 import classNames from 'classnames';
 import dayjs from 'dayjs';
+import { KeyCode } from 'pc/utils';
 import Trigger from 'rc-trigger';
 import * as React from 'react';
 import { ChangeEvent } from 'react';
-import { KeyCode } from 'pc/utils';
 import { Panel } from './panel';
 
 // import './time_picker.less';
@@ -102,7 +102,7 @@ export class TimePicker extends React.Component<ITimePickerProps, ITimePickerSta
     this.props.onOpenChange?.(open);
     if (open) {
       if (!this.state.value) {
-        const date = this.props.timeZone ? dayjs.tz(dayjs.tz(), this.props.timeZone) : dayjs.tz();
+        const date = this.props.timeZone ? dayjs.tz(dayjs(), this.props.timeZone) : dayjs();
         this.setValue(date.format('HH:mm'));
       }
       this.saveInputRef.focus();
@@ -143,7 +143,10 @@ export class TimePicker extends React.Component<ITimePickerProps, ITimePickerSta
   }
 
   getPanelElement() {
-    const { prefixCls, minuteStep } = this.props;
+    const {
+      prefixCls,
+      minuteStep,
+    } = this.props;
     return (
       <Panel
         prefixCls={`${prefixCls}-panel`}
@@ -192,7 +195,7 @@ export class TimePicker extends React.Component<ITimePickerProps, ITimePickerSta
         <span className={classNames(prefixCls, className)} style={style}>
           <input
             className={`${prefixCls}-input`}
-            ref={(el: HTMLInputElement) => (this.saveInputRef = el)}
+            ref={(el: HTMLInputElement) => this.saveInputRef = el}
             type="text"
             placeholder={placeholder}
             name={props.name}
@@ -205,7 +208,7 @@ export class TimePicker extends React.Component<ITimePickerProps, ITimePickerSta
             value={value}
             id={id}
             onDoubleClick={this.handleDoubleClick}
-            onFocus={(e) => {
+            onFocus={e => {
               e.stopPropagation();
             }}
           />

@@ -23,10 +23,12 @@ interface IMobileHeaderBarProps {
   loading?: boolean;
 }
 
-export const MobileToolBar: React.FC<React.PropsWithChildren<IMobileHeaderBarProps & IToolBarWrapperProps>> = (props) => {
+export const MobileToolBar: React.FC<React.PropsWithChildren<IMobileHeaderBarProps & IToolBarWrapperProps>> = props => {
   const { loading, ...rest } = props;
   if (loading) {
     return <></>;
   }
-  return <ToolBarWrapper {...rest} />;
+  return (
+    <ToolBarWrapper {...rest} />
+  );
 };

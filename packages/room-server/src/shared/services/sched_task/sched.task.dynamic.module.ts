@@ -17,10 +17,9 @@
  */
 
 import { DynamicModule, Module } from '@nestjs/common';
-import { DatabaseModule } from 'database/database.module';
-import * as fs from 'fs';
-import { NodeModule } from 'node/node.module';
 import path from 'path';
+import * as fs from 'fs';
+import { DatabaseModule } from 'database/database.module';
 
 /**
  * original sched.task.module
@@ -30,7 +29,9 @@ export class SchedTaskDynamicModule {
   static register(enabled: boolean): DynamicModule {
     const dynamicModule = {
       module: SchedTaskDynamicModule,
-      imports: [DatabaseModule, NodeModule],
+      imports: [
+        DatabaseModule, 
+      ],
       providers: [],
     };
 

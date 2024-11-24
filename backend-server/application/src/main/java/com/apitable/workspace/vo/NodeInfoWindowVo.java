@@ -18,14 +18,16 @@
 
 package com.apitable.workspace.vo;
 
-import com.apitable.shared.support.serializer.ImageSerializer;
-import com.apitable.shared.support.serializer.LocalDateTimeToMilliSerializer;
-import com.apitable.shared.support.serializer.NullBooleanSerializer;
-import com.apitable.shared.support.serializer.NullStringSerializer;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.time.LocalDateTime;
+
+import com.apitable.shared.support.serializer.LocalDateTimeToMilliSerializer;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Builder;
 import lombok.Data;
+
+import com.apitable.shared.support.serializer.ImageSerializer;
+import com.apitable.shared.support.serializer.NullBooleanSerializer;
+import com.apitable.shared.support.serializer.NullStringSerializer;
 
 /**
  * <p>
@@ -66,9 +68,6 @@ public class NodeInfoWindowVo {
      */
     private MemberInfo lastModifier;
 
-    /**
-     * member info.
-     */
     @Data
     @Builder(toBuilder = true)
     public static class MemberInfo {

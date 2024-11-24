@@ -16,12 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import produce from 'immer';
 import { Field, FOperator, IExpressionOperand, IField, IFieldMap, IViewColumn, OperandTypeEnums, OperatorEnums, t, Strings } from '@apitable/core';
+import produce from 'immer';
 
 export const getFields = (columns: IViewColumn[], fieldMap: IFieldMap) => {
-  if(!columns) return [];
-  return columns?.map((column) => {
+  return columns.map(column => {
     return fieldMap[column.fieldId];
   });
 };
@@ -44,28 +43,22 @@ const fOperator2Operator = (fOperator: FOperator) => {
 
 export const op2fop = (op: OperatorEnums) => {
   // fop2opMap key value reverse
-  const op2fopMap = Object.keys(fop2opMap).reduce(
-    (acc, key) => {
-      acc[fop2opMap[key]] = key as FOperator;
-      return acc;
-    },
-    {} as { [key: string]: FOperator },
-  );
+  const op2fopMap = Object.keys(fop2opMap).reduce((acc, key) => {
+    acc[fop2opMap[key]] = key as FOperator;
+    return acc;
+  }, {} as { [key: string]: FOperator });
   return op2fopMap[op];
 };
 
 export const getOperatorOptions = (field: IField) => {
   const fOperators: FOperator[] = Field.bindModel(field).acceptFilterOperators;
   // No support for "IsRepeat" operations
-  return fOperators
-    .filter((fop) => fop != FOperator.IsRepeat)
-    .map((fop) => {
-      return {
-        value: fOperator2Operator(fop),
-        label: Field.bindModel(field).showFOperatorDesc(fop),
-      };
-    })
-    .filter(Boolean);
+  return fOperators.filter(fop => fop != FOperator.IsRepeat).map(fop => {
+    return {
+      value: fOperator2Operator(fop),
+      label: Field.bindModel(field).showFOperatorDesc(fop),
+    };
+  }).filter(Boolean);
 };
 
 export const getBooleanOptionName = (value: string): string => {
@@ -83,7 +76,7 @@ export enum FilterTypeEnums {
   FilterGroup = 'filterGroup',
 }
 
-export const addNewFilter = (filter: { operator: OperatorEnums }, type: FilterTypeEnums, primaryFieldId?: string) => {
+export const addNewFilter = (filter: { operator: OperatorEnums; }, type: FilterTypeEnums, primaryFieldId?: string) => {
   const getNewFilter = () => {
     const newFilter: IExpressionOperand = {
       type: OperandTypeEnums.Expression,
@@ -91,17 +84,19 @@ export const addNewFilter = (filter: { operator: OperatorEnums }, type: FilterTy
         operator: OperatorEnums.IsNotNull,
         operands: [
           { type: OperandTypeEnums.Literal, value: primaryFieldId },
-          { type: OperandTypeEnums.Literal, value: '' },
-        ],
-      },
+          { type: OperandTypeEnums.Literal, value: '' }
+        ]
+      }
     };
     if (type === FilterTypeEnums.FilterGroup) {
       const newFilterExpression: IExpressionOperand = {
         type: OperandTypeEnums.Expression,
         value: {
           operator: filter?.operator || OperatorEnums.And,
-          operands: [newFilter],
-        },
+          operands: [
+            newFilter
+          ]
+        }
       };
       return newFilterExpression;
     }
@@ -117,6 +112,8 @@ export const addNewFilter = (filter: { operator: OperatorEnums }, type: FilterTy
   // When the filter is created initially, it is always returned as a group.
   return {
     operator: OperatorEnums.And,
-    operands: [newFilter],
+    operands: [
+      newFilter
+    ]
   };
 };

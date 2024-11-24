@@ -17,14 +17,13 @@
  */
 
 import { IApiWrapper, ICollaborator, IMirror, IMirrorClient, IReduxState, IServerMirror, ITemporaryView } from 'exports/store/interfaces';
-import { getMirror, getMirrorLoading, getMirrorSourceInfo } from 'modules/database/store/selectors/resource/mirror';
-import { getDatasheet } from 'modules/database/store/selectors/resource/datasheet/base';
+import { getDatasheet, getMirror, getMirrorLoading, getMirrorSourceInfo } from 'exports/store/selectors';
 import { deleteNode } from 'modules/space/store/actions/catalog_tree';
 import { StatusCode } from 'config';
 import { AxiosResponse } from 'axios';
 import { Dispatch } from 'redux';
 import { fetchMirrorDataPack, fetchMirrorInfo, fetchShareMirrorDataPack, fetchShareMirrorInfo } from '../../../../api/mirror_api';
-import * as ActionConstants from 'modules/shared/store/action_constants';
+import { ActionConstants } from 'exports/store';
 import { batchActions } from 'redux-batched-actions';
 import { CACHE_TEMPORARY_VIEW, UPDATE_MIRROR_INFO, UPDATE_MIRROR_NAME } from 'modules/shared/store/action_constants';
 import { datasheetErrorCode, fetchDatasheetPackSuccess } from 'modules/database/store/actions/resource/datasheet';

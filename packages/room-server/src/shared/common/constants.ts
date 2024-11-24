@@ -15,7 +15,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import util from 'util';
 
 // constant definition only
 
@@ -28,15 +27,8 @@ export enum CacheKeys {
   DATASHEET_FIELD_RE_REF = 'apitable:nest:fieldReRef:%s',
   DATASHEET_REVISION_CACHE = 'apitable:nest:datasheetCacheRevision:%s',
   DATASHEET_PACK_CACHE = 'apitable:nest:datasheetCache:%s',
-  DATASHEET_CASCADER_TREE = 'apitable:nest:datasheetCascaderCache:%s:%s',
-  // first is space id, second is month start date
+  DATASHEET_CASCADER_TREE = 'apitable:nest:datasheetCascaderCache:%s:%s'
 }
-
-export const SPACE_AUTOMATION_RUN_COUNT_KEY = (spaceId: string): string => {
-  const currentYear = new Date().getFullYear();
-  const currentMonth = new Date().getMonth() + 1;
-  return util.format('cache:space:automation:count:%s:%s', spaceId, currentYear + '-' + currentMonth);
-};
 
 // Redis expire time, units are in seconds
 export const STORAGE_EXPIRE_TIME = parseInt(process.env.STORAGE_EXPIRE_TIME!) || 5 * 24 * 3600;
@@ -88,7 +80,6 @@ export const FILE_UPLOAD_TMP_PATH = '_upload';
  */
 export const USER_HTTP_DECORATE = 'user';
 export const DATASHEET_META_HTTP_DECORATE = 'datasheet-meta';
-export const DATASHEET_FIELD_MAP_HTTP_DECORATE = 'datasheet-field-map';
 export const DATASHEET_HTTP_DECORATE = 'datasheet';
 export const SPACE_ID_HTTP_DECORATE = 'space-id';
 export const NODE_INFO = 'node-info';
@@ -118,6 +109,8 @@ export const X_MAX_AGE = 'x-max-age';
  */
 export const DEFAULT_X_MAX_AGE = parseInt(process.env.DEFAULT_X_MAX_AGE!, 10) || 24 * 60 * 60;
 
+export const USE_NATIVE_MODULE = Boolean(process.env.USE_NATIVE_MODULE);
+
 /**
  * API Cache prefix
  */
@@ -146,8 +139,6 @@ export class NodeExtraConstant {
   public static readonly SHOW_RECORD_HISTORY = 'showRecordHistory';
 }
 
-export const BACKEND_GRPC_CLIENT = 'BACKEND_GRPC_CLIENT';
-export const ROOM_GRPC_CLIENT = 'ROOM_GRPC_CLIENT';
 export const SOCKET_GRPC_CLIENT = 'SOCKET_GRPC_CLIENT';
 
 // 100M

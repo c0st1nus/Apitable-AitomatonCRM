@@ -18,15 +18,16 @@
 
 package com.apitable.shared.support.serializer;
 
+import java.io.IOException;
+
 import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import java.io.IOException;
 
 /**
  * <p>
- * User nickname encryption serialization.
+ * User nickname encryption serialization
  * </p>
  *
  * @author Chambers
@@ -34,8 +35,7 @@ import java.io.IOException;
 public class NicknameEncryptSerializer extends JsonSerializer<String> {
 
     @Override
-    public void serialize(String value, JsonGenerator gen, SerializerProvider serializers)
-        throws IOException {
+    public void serialize(String value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
         int length = value.length();
         int percent = 3;
         if (length < percent) {

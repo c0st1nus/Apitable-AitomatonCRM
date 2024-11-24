@@ -18,25 +18,23 @@
 
 package com.apitable.space.service.impl;
 
-import static com.apitable.space.enums.SpacePermissionException.NO_RESOURCE_ASSIGNABLE;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
+import com.apitable.space.mapper.SpaceResourceMapper;
+import com.apitable.space.service.ISpaceResourceService;
 import com.apitable.core.util.ExceptionUtil;
 import com.apitable.core.util.SqlTool;
 import com.apitable.space.entity.SpaceResourceEntity;
-import com.apitable.space.mapper.SpaceResourceMapper;
-import com.apitable.space.service.ISpaceResourceService;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-/**
- * space resource service implementation.
- */
+import java.util.List;
+
+import static com.apitable.space.enums.SpacePermissionException.NO_RESOURCE_ASSIGNABLE;
+
 @Service
 @Slf4j
-public class SpaceResourceServiceImpl extends ServiceImpl<SpaceResourceMapper, SpaceResourceEntity>
-    implements ISpaceResourceService {
+public class SpaceResourceServiceImpl extends ServiceImpl<SpaceResourceMapper, SpaceResourceEntity> implements ISpaceResourceService {
 
     @Override
     public void checkResourceAssignable(List<String> resourceCodes) {

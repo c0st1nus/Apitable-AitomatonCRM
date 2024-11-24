@@ -18,7 +18,6 @@
 
 import { t, Strings } from '@apitable/core';
 
-// eslint-disable-next-line import/no-anonymous-default-export
 export default {
   // Block-level elements
   paragraph: t(Strings.paragraph),
@@ -69,5 +68,5 @@ export default {
   copyFailed: t(Strings.copy_failed),
   delete: t(Strings.delete),
   visit: t(Strings.visit),
-  linkInputPlaceholder: t(Strings.link_input_placeholder),
+  linkInputPlaceholder: t(Strings.link_input_placeholder)
 };

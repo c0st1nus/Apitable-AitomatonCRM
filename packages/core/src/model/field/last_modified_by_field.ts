@@ -18,11 +18,10 @@
 
 import Joi from 'joi';
 import { isEqual } from 'lodash';
-import { DatasheetActions } from 'commands_actions/datasheet';
+import { DatasheetActions } from 'model/datasheet';
 import { ICellValue } from 'model/record';
 import { getApiMetaUserProperty } from 'model/utils';
-import { IFieldUpdatedMap, IRecord, IRecordMap, IReduxState } from '../../exports/store/interfaces';
-import { getUserMap } from 'modules/org/store/selectors/unit_info';
+import { IFieldUpdatedMap, IRecord, IRecordMap, IReduxState, Selectors } from '../../exports/store';
 import {
   BasicValueType, CollectType, FieldType, IAPIMetaLastModifiedByFieldProperty, IField, ILastModifiedByField, ILastModifiedByProperty, IUuids
 } from '../../types';
@@ -31,7 +30,6 @@ import { datasheetIdString, joiErrorResult } from './validate_schema';
 import { t, Strings } from '../../exports/i18n';
 import { IUpdateOpenLastModifiedByFieldProperty } from 'types/open/open_field_write_types';
 import { IOpenLastModifiedByFieldProperty } from 'types/open/open_field_read_types';
-import { getFieldDefaultProperty } from './const';
 
 export class LastModifiedByField extends MemberBaseField {
   constructor(public override field: ILastModifiedByField, public override state: IReduxState) {
@@ -48,10 +46,10 @@ export class LastModifiedByField extends MemberBaseField {
   }).required();
 
   override get apiMetaProperty(): IAPIMetaLastModifiedByFieldProperty {
-    const userMap = getUserMap(this.state);
+    const userMap = Selectors.getUserMap(this.state);
     return getApiMetaUserProperty(this.field.property.uuids, userMap);
   }
-
+  
   get openValueJsonSchema() {
     return {
       type: 'object',
@@ -74,7 +72,12 @@ export class LastModifiedByField extends MemberBaseField {
   }
 
   static defaultProperty() {
-    return getFieldDefaultProperty(FieldType.LastModifiedBy) as ILastModifiedByProperty;
+    return {
+      uuids: [],
+      datasheetId: '',
+      collectType: CollectType.AllFields,
+      fieldIdCollection: [],
+    };
   }
 
   static createDefault(fieldMap: { [fieldId: string]: IField }): ILastModifiedByField {
@@ -167,7 +170,7 @@ export class LastModifiedByField extends MemberBaseField {
   }
 
   override getUnitNames(cellValue: IUuids) {
-    const userMap = getUserMap(this.state);
+    const userMap = Selectors.getUserMap(this.state);
     if (!userMap) return null;
     return cellValue.map(uuid => {
       if (!userMap[uuid]) { return ''; }
@@ -188,7 +191,7 @@ export class LastModifiedByField extends MemberBaseField {
   }
 
   override getUnits(cellValue: IUuids) {
-    const userMap = getUserMap(this.state);
+    const userMap = Selectors.getUserMap(this.state);
     if (!userMap) return null;
     return cellValue.reduce((ids, uuid) => {
       if (userMap[uuid]) {
@@ -214,7 +217,7 @@ export class LastModifiedByField extends MemberBaseField {
   override validateUpdateOpenProperty(updateProperty: IUpdateOpenLastModifiedByFieldProperty) {
     return LastModifiedByField.openUpdatePropertySchema.validate(updateProperty);
   }
-
+  
   override updateOpenFieldPropertyTransformProperty(openFieldProperty: IUpdateOpenLastModifiedByFieldProperty): ILastModifiedByProperty {
     const { collectType, fieldIdCollection } = openFieldProperty;
     const { uuids, datasheetId } = this.field.property;
@@ -226,5 +229,5 @@ export class LastModifiedByField extends MemberBaseField {
       fieldIdCollection: fieldIdCollection || []
     };
   }
-
+  
 }

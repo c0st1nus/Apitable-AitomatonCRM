@@ -16,17 +16,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { LinkButton, useTheme } from '@apitable/components';
+import { Api, AutoTestID, ConfigConstant, Events, IReduxState, Navigation, Player, StoreActions, Strings, t } from '@apitable/core';
+import { CollapseOpenOutlined, CollapseOutlined } from '@apitable/icons';
 import { useMount } from 'ahooks';
 import classNames from 'classnames';
+// @ts-ignore
+import { destroyVikaby, showOrderModal, showVikaby } from 'enterprise';
+import { TriggerCommands } from 'modules/shared/apphook/trigger_commands';
 import { ShortcutActionManager, ShortcutActionName } from 'modules/shared/shortcut_key';
 import { getShortcutKeyString } from 'modules/shared/shortcut_key/keybinding_config';
 import { useRouter } from 'next/router';
-import * as React from 'react';
-import { useEffect, useRef, useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { LinkButton, useTheme } from '@apitable/components';
-import { Api, AutoTestID, Events, IReduxState, Navigation, Player, StoreActions, Strings, t } from '@apitable/core';
-import { CollapseOpenOutlined, CollapseOutlined } from '@apitable/icons';
 import { TComponent } from 'pc/components/common/t_component';
 import { Navigation as SiderNavigation } from 'pc/components/navigation';
 import { Router } from 'pc/components/route_manager/router';
@@ -36,16 +36,16 @@ import Trash from 'pc/components/trash/trash';
 import { ISideBarContextProps, SideBarClickType, SideBarContext, SideBarType } from 'pc/context';
 import { getPageParams, useCatalogTreeRequest, useQuery, useRequest, useResponsive } from 'pc/hooks';
 import { store } from 'pc/store';
-import { useAppSelector } from 'pc/store/react-redux';
-import { StorageMethod, StorageName, getStorage, setStorage } from 'pc/utils/storage/storage';
+import { isHiddenLivechat } from 'pc/utils/env';
+import { getStorage, setStorage, StorageMethod, StorageName } from 'pc/utils/storage/storage';
+import * as React from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import UpgradeSucceedDark from 'static/icon/workbench/workbench_upgrade_succeed_dark.png';
 import UpgradeSucceedLight from 'static/icon/workbench/workbench_upgrade_succeed_light.png';
 import { Tooltip, VikaSplitPanel } from '../common';
 import { ComponentDisplay, ScreenSize } from '../common/component_display';
 import { CommonSide } from '../common_side';
-import { usePaymentReminder } from './hooks/usePaymentReminder';
-// @ts-ignore
-import { showOrderModal } from 'enterprise/subscribe_system/order_modal/pay_order_success';
 import styles from './style.module.less';
 
 // Restore the user's last opened datasheet.
@@ -53,7 +53,8 @@ const resumeUserHistory = (path: string) => {
   const state = store.getState();
   const user = state.user.info!;
   const spaceId = state.space.activeId;
-  const { nodeId, datasheetId, viewId, recordId, widgetId, mirrorId } = getPageParams(path);
+  const { datasheetId, folderId, viewId, recordId, formId, widgetId, mirrorId, dashboardId } = getPageParams(path);
+  const nodeId = datasheetId || folderId || formId || mirrorId || dashboardId;
   if (spaceId === user.spaceId) {
     if (mirrorId) {
       Router.replace(Navigation.WORKBENCH, {
@@ -93,10 +94,12 @@ export const Workspace: React.FC<React.PropsWithChildren<unknown>> = () => {
   const dispatch = useDispatch();
   const localSize = getStorage(StorageName.SplitPos);
   const defaultSidePanelSize = localSize && localSize !== 280 ? localSize : 335;
-  const editNodeId = useAppSelector((state: IReduxState) => state.catalogTree.editNodeId);
-  const favoriteEditNodeId = useAppSelector((state: IReduxState) => state.catalogTree.favoriteEditNodeId);
-  const userSpaceId = useAppSelector((state: IReduxState) => state.user.info!.spaceId);
-  const { getTreeDataReq } = useCatalogTreeRequest();
+  const editNodeId = useSelector((state: IReduxState) => state.catalogTree.editNodeId);
+  const favoriteEditNodeId = useSelector((state: IReduxState) => state.catalogTree.favoriteEditNodeId);
+  const shareId = useSelector((state: IReduxState) => state.pageParams.shareId);
+  const userSpaceId = useSelector((state: IReduxState) => state.user.info!.spaceId);
+  const { getFavoriteNodeListReq, getTreeDataReq } = useCatalogTreeRequest();
+  const { run: getFavoriteNodeList } = useRequest(getFavoriteNodeListReq, { manual: true });
   const { run: getTreeData } = useRequest(getTreeDataReq, { manual: true });
   const { screenIsAtMost } = useResponsive();
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -105,26 +108,15 @@ export const Workspace: React.FC<React.PropsWithChildren<unknown>> = () => {
   const query = useQuery();
   const router = useRouter();
   const theme = useTheme();
-  const spaceInfo = useAppSelector((state) => state.space.curSpaceInfo);
-  const social = spaceInfo?.social;
 
   // Directory tree toggle source status, directory tree click status, sidebar switch.
   const [toggleType, setToggleType] = useState<SideBarType>(SideBarType.None);
   const [clickType, setClickType] = useState<SideBarClickType>(SideBarClickType.None);
   const [panelVisible, setPanelVisible] = useState(false);
-  const [newTdbId, setNewTdbId] = useState('');
-  const sideBarVisible = useAppSelector((state) => state.space.sideBarVisible);
-  const showUpgradeSpaceModal = useRef(false);
+  const sideBarVisible = useSelector(state => state.space.sideBarVisible);
 
-  usePaymentReminder();
-
-  useEffect(() => {
-    if (showUpgradeSpaceModal.current) return;
+  useMount(() => {
     if (!query.get('choosePlan') || isMobile) return;
-    if (!social || social?.appType === 1 || social?.appType === 2) {
-      return;
-    }
-    showUpgradeSpaceModal.current = true;
     expandUpgradeSpace();
   });
 
@@ -132,46 +124,41 @@ export const Workspace: React.FC<React.PropsWithChildren<unknown>> = () => {
     if (!query.get('stripePaySuccess') || isMobile) return;
     showOrderModal({
       modalTitle: t(Strings.upgrade_success_model, { orderType: t(Strings.upgrade) }),
-      modalSubTitle: () => (
-        <>
-          <div className={styles.desc1} style={{ marginTop: 24, fontSize: 16 }}>
-            {
-              <TComponent
-                tkey={t(Strings.upgrade_success_1_desc)}
-                params={{
-                  orderType: t(Strings.upgrade),
-                  position: (
-                    <LinkButton
-                      className={styles.linkButton}
-                      style={{
-                        display: 'inline-block',
-                      }}
-                      onClick={() => {
-                        if (isMobile) {
-                          return;
-                        }
-                        Router.redirect(Navigation.SPACE_MANAGE, { params: { pathInSpace: 'overview' }, clearQuery: true });
-                      }}
-                    >
-                      {t(Strings.space_overview)}
-                    </LinkButton>
-                  ),
-                }}
-              />
-            }
-          </div>
-        </>
-      ),
+      modalSubTitle: () => <>
+        <div className={styles.desc1} style={{ marginTop: 24, fontSize: 16 }}>
+          {
+            <TComponent
+              tkey={t(Strings.upgrade_success_1_desc)}
+              params={{
+                orderType: t(Strings.upgrade),
+                position:
+                  <LinkButton
+                    className={styles.linkButton}
+                    style={{
+                      display: 'inline-block',
+                    }}
+                    onClick={() => {
+                      if (isMobile) {
+                        return;
+                      }
+                      Router.redirect(Navigation.SPACE_MANAGE, { params: { pathInSpace: 'overview' }, clearQuery: true });
+                    }}
+                  >
+                    {t(Strings.space_overview)}
+                  </LinkButton>,
+
+              }}
+            />
+          }
+        </div>
+      </>,
       qrCodeUrl: '',
-      illustrations: (
-        <img
-          width={'250px'}
-          src={theme.palette.type === 'light' ? UpgradeSucceedLight.src : UpgradeSucceedDark.src}
-          style={{ marginTop: 16 }}
-          alt="Upgrade Succeed"
-        />
-      ),
-      btnText: t(Strings.got_it),
+      illustrations: <img
+        width={'250px'}
+        src={theme.palette.type === 'light' ? UpgradeSucceedLight.src : UpgradeSucceedDark.src}
+        style={{ marginTop: 16 }}
+      />,
+      btnText: t(Strings.got_it)
     });
   });
 
@@ -222,6 +209,19 @@ export const Workspace: React.FC<React.PropsWithChildren<unknown>> = () => {
     window.dispatchEvent(new Event('resize'));
   }, [sideBarVisible]);
 
+  useEffect(() => {
+    if (isMobile || shareId || isHiddenLivechat()) {
+      destroyVikaby?.();
+      return;
+    }
+
+    const isVikabyClosed = Boolean(localStorage.getItem('vikaby_closed'));
+    !isVikabyClosed && showVikaby?.();
+    return () => {
+      destroyVikaby?.();
+    };
+  }, [isMobile, shareId]);
+
   // Binding/unbinding shortcut keys.
   useEffect(() => {
     const eventBundle = new Map([
@@ -230,7 +230,7 @@ export const Workspace: React.FC<React.PropsWithChildren<unknown>> = () => {
         () => {
           handleSetSideBarByUser(!sideBarVisible, panelVisible);
         },
-      ],
+      ]
     ]);
 
     eventBundle.forEach((cb, key) => {
@@ -248,6 +248,7 @@ export const Workspace: React.FC<React.PropsWithChildren<unknown>> = () => {
     if (userSpaceId) {
       dispatch(StoreActions.initCatalogTree());
       getTreeData();
+      getFavoriteNodeList();
     }
     // eslint-disable-next-line
   }, [userSpaceId, dispatch]);
@@ -271,6 +272,14 @@ export const Workspace: React.FC<React.PropsWithChildren<unknown>> = () => {
     return () => window.removeEventListener('mousemove', move);
   }, [templeVisible, defaultSidePanelSize, menuRef, editNodeId, favoriteEditNodeId]);
 
+  useMount(async() => {
+    const wizardId = ConfigConstant.WizardIdConstant.AGREE_TERMS_OF_SERVICE;
+    await TriggerCommands.set_wizard_completed?.({
+      wizardId,
+    });
+    localStorage.removeItem(`${wizardId}`);
+  });
+
   const closeBtnClass = classNames({
     [styles.closeBtn]: true,
     [styles.isPanelClose]: !sideBarVisible,
@@ -287,8 +296,6 @@ export const Workspace: React.FC<React.PropsWithChildren<unknown>> = () => {
     onSetPanelVisible: setPanelVisible,
     onSetSideBarVisibleByUser: handleSetSideBarByUser,
     onSetSideBarVisibleByOhter: handleSetSideBarByOther,
-    newTdbId,
-    setNewTdbId,
   };
 
   return (
@@ -305,7 +312,7 @@ export const Workspace: React.FC<React.PropsWithChildren<unknown>> = () => {
            that can not be dragged, the next version to solve. 0.4 temporarily do not add animation */}
           <VikaSplitPanel
             panelLeft={
-              <div style={{ width: sideBarVisible ? '100%' : 0 }} className={styles.splitLeft} data-test-id="workspace-sidebar">
+              <div style={{ width: sideBarVisible ? '100%' : 0 }} className={styles.splitLeft} data-test-id='workspace-sidebar'>
                 <div
                   style={{
                     width: sideBarVisible ? '100%' : templeVisible ? defaultSidePanelSize : 0,
@@ -337,7 +344,7 @@ export const Workspace: React.FC<React.PropsWithChildren<unknown>> = () => {
                         setTempleVisible(true);
                       }
                     }}
-                    data-test-id="sidebar-toggle-btn"
+                    data-test-id='sidebar-toggle-btn'
                   >
                     {!sideBarVisible ? <CollapseOpenOutlined /> : <CollapseOutlined />}
                   </div>
@@ -345,7 +352,7 @@ export const Workspace: React.FC<React.PropsWithChildren<unknown>> = () => {
               </div>
             }
             panelRight={<div className={styles.splitRight}>{children}</div>}
-            split="vertical"
+            split='vertical'
             minSize={335}
             defaultSize={defaultSidePanelSize}
             maxSize={640}

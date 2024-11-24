@@ -1,8 +1,16 @@
 {
   "root": true,
   "parser": "@typescript-eslint/parser",
-  "plugins": ["vika", "@typescript-eslint", "react-hooks", "react"],
-  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended", "prettier"],
+  "plugins": [
+    "vika",
+    "@typescript-eslint",
+    "react-hooks",
+    "react"
+  ],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
   "rules": {
     "@typescript-eslint/no-var-requires": 0,
     "vika/use-t-function": 0,
@@ -32,14 +40,15 @@
     // any is not allowed
     "semi": "off",
     "@typescript-eslint/semi": 1,
-    "comma-dangle": ["warn", "only-multiline"],
+    "comma-dangle": [
+      "warn",
+      "only-multiline"
+    ],
     "max-len": [
       // The maximum number of characters allowed on a single line
       "warn",
       {
-        "code": 150,
-        "ignoreComments": true,
-        "ignoreTrailingComments": true
+        "code": 150
       }
     ],
     "no-console": 0,
@@ -53,33 +62,42 @@
     // Whether spaces are allowed before the parentheses of the function
     "space-before-function-paren": [
       "warn",
-      {
-        "anonymous": "always",
-        "named": "never",
-        "asyncArrow": "always"
-      }
+      "never"
     ],
     "@typescript-eslint/naming-convention": [
       "warn",
       {
         "selector": "enumMember",
-        "format": ["PascalCase", "UPPER_CASE"]
+        "format": [
+          "PascalCase",
+          "UPPER_CASE"
+        ]
       },
       {
         "selector": "interface",
-        "prefix": ["I"],
-        "format": ["PascalCase"]
+        "prefix": [
+          "I"
+        ],
+        "format": [
+          "PascalCase"
+        ]
       },
       {
         "selector": "typeLike",
         // "prefix": [
         //   "I"
         // ],
-        "format": ["PascalCase"]
+        "format": [
+          "PascalCase"
+        ]
       },
       {
         "selector": "variable",
-        "format": ["camelCase", "UPPER_CASE", "PascalCase"],
+        "format": [
+          "camelCase",
+          "UPPER_CASE",
+          "PascalCase"
+        ],
         "leadingUnderscore": "allow",
         // variable names start with _
         "trailingUnderscore": "forbid"
@@ -87,7 +105,10 @@
       },
       {
         "selector": "parameter",
-        "format": ["camelCase", "PascalCase"],
+        "format": [
+          "camelCase",
+          "PascalCase"
+        ],
         "leadingUnderscore": "allow"
       }
     ],
@@ -98,12 +119,18 @@
         "html": true
       }
     ],
-    "react/jsx-equals-spacing": [2, "never"],
+    "react/jsx-equals-spacing": [
+      2,
+      "never"
+    ],
     "react/jsx-wrap-multilines": 0,
     "no-fallthrough": 1,
     "no-unused-expressions": 0,
     // disallow unused expressions
-    "quote-props": ["warn", "as-needed"],
+    "quote-props": [
+      "warn",
+      "as-needed"
+    ],
     "quotes": [
       "warn",
       "single",
@@ -118,7 +145,10 @@
         "maxEOF": 1
       }
     ],
-    "react/jsx-boolean-value": ["warn", "never"],
+    "react/jsx-boolean-value": [
+      "warn",
+      "never"
+    ],
     "indent": [
       "warn",
       2,
@@ -148,7 +178,7 @@
       "warn",
       "always",
       {
-        "objectsInObjects": true
+        "objectsInObjects": false
       }
     ]
   }

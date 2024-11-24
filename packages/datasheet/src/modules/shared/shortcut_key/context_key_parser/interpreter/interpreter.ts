@@ -16,8 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import {
+  AstNode,
+  AstNodeType,
+  BinaryOperatorNode,
+  UnaryOperatorNode,
+  ValueOperandNode,
+} from '../parser/ast';
 import { TokenType } from '../lexer/token';
-import { AstNode, AstNodeType, BinaryOperatorNode, UnaryOperatorNode, ValueOperandNode } from '../parser/ast';
 
 export type ResolverFunction = (value: string) => any;
 
@@ -76,8 +82,9 @@ export class Interpreter {
       return true;
     } else if (node.value === 'false' || node.value === 'null') {
       return false;
-    }
+    } 
     return this.resolveValue(node.value);
+    
   }
 
   private resolveValue(value: string): boolean {

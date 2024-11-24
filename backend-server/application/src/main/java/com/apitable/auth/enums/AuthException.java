@@ -18,13 +18,14 @@
 
 package com.apitable.auth.enums;
 
-import com.apitable.core.exception.BaseException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import com.apitable.core.exception.BaseException;
+
 /**
  * <p>
- * authorization exception.
+ * authorization exception
  * </p>
  *
  * @author Shawn Deng

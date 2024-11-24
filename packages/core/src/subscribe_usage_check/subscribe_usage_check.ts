@@ -19,7 +19,7 @@
 import { AnyAction, Store } from 'redux';
 // @ts-ignore
 import { ISubscription } from '../modules/enterprise';
-import { IReduxState } from '../exports/store/interfaces';
+import { IReduxState } from '../exports/store';
 
 export class SubscribeUsageCheck {
 

@@ -21,9 +21,8 @@ package com.apitable.workspace.ro;
 import com.apitable.core.support.deserializer.StringToLongDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
@@ -34,12 +33,12 @@ import lombok.Data;
 public class NodeRoleRo {
 
     @NotNull(message = "Organization unit cannot be empty")
-    @Schema(description = "Org Unit ID", type = "java.lang.String",
-        requiredMode = RequiredMode.REQUIRED, example = "761263712638")
+    @Schema(description = "Org Unit ID", type = "java.lang.String", required = true, example =
+        "761263712638")
     @JsonDeserialize(using = StringToLongDeserializer.class)
     private Long unitId;
 
-    @Schema(description = "Role", requiredMode = RequiredMode.REQUIRED, example = "readonly")
+    @Schema(description = "Role", example = "readonly", required = true)
     @NotBlank(message = "Role cannot be empty")
     private String role;
 }

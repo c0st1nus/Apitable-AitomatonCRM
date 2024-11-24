@@ -16,22 +16,40 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useContext, useLayoutEffect } from 'react';
 import { useStoreState, useZoomPanHelper } from '@apitable/react-flow';
+import { useContext, useLayoutEffect } from 'react';
 import { CARD_WIDTH, BOUNDS_PADDING } from '../../constants';
 import { FlowContext } from '../../context/flow_context';
 import { ScrollBarType } from '../../interfaces';
 
 export const useScrollEvents = (direction: ScrollBarType, containerRef: React.RefObject<HTMLDivElement>) => {
-  const { bounds, offsetLeft, offsetTop, bodySize, orgChartViewStatus } = useContext(FlowContext);
+  const {
+    bounds,
+    offsetLeft,
+    offsetTop,
+    bodySize,
+    orgChartViewStatus,
+  } = useContext(FlowContext);
 
-  const { settingPanelVisible, settingPanelWidth, rightPanelWidth, rightPanelVisible } = orgChartViewStatus;
+  const {
+    settingPanelVisible,
+    settingPanelWidth,
+    rightPanelWidth,
+    rightPanelVisible,
+  } = orgChartViewStatus;
 
-  const [translateX, translateY, scale] = useStoreState((state) => state.transform);
+  const [translateX, translateY, scale] = useStoreState(state => state.transform);
 
-  const { transform } = useZoomPanHelper();
+  const {
+    transform
+  } = useZoomPanHelper();
 
-  const { left, top, right, bottom } = bounds;
+  const {
+    left,
+    top,
+    right,
+    bottom,
+  } = bounds;
 
   // Coordinate conversion: Convert graph coordinate system to container coordinate system
   const leftInContainer = left * scale + translateX;
@@ -66,6 +84,7 @@ export const useScrollEvents = (direction: ScrollBarType, containerRef: React.Re
   const translateYMax = containerHeight - BOUNDS_PADDING - top * scale;
 
   useLayoutEffect(() => {
+
     if (direction === ScrollBarType.Horizontal) {
       // The distance of the left boundary of the graph from the right boundary of the container
       const scrollLeft = containerWidth - leftInContainer - BOUNDS_PADDING;

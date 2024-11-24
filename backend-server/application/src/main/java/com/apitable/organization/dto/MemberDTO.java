@@ -20,9 +20,6 @@ package com.apitable.organization.dto;
 
 import lombok.Data;
 
-/**
- * member dto.
- */
 @Data
 public class MemberDTO {
 
@@ -32,11 +29,7 @@ public class MemberDTO {
 
     private Long userId;
 
-    private Long unitId;
-
     private String memberName;
-
-    private String openId;
 
     private String avatar;
 

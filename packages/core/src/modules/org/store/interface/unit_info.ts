@@ -64,8 +64,6 @@ export interface IUserMap {
 export interface IUnitValue extends IUnitBase {
   unitId: string;
   type: MemberType
-  // real unitId
-  originalUnitId?: string;
 }
 
 export interface IUserValue extends IUnitBase {

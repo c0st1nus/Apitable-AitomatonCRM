@@ -4,7 +4,7 @@
     "allowJs": true,
     "strict": true,
     "noImplicitThis": true,
-    "noImplicitAny": false,
+    "noImplicitAny": true,
     "alwaysStrict": true,
     "strictNullChecks": true,
     "noUnusedLocals": true,

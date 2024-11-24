@@ -16,36 +16,33 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import classNames from 'classnames';
-import { useRouter } from 'next/router';
-import * as React from 'react';
-import { useEffect, useState } from 'react';
-import { shallowEqual } from 'react-redux';
-import AutoSizer from 'react-virtualized-auto-sizer';
 import { ContextMenu, Message, useThemeColors } from '@apitable/components';
 import {
-  ConfigConstant,
-  IReduxState,
-  Selectors,
-  StoreActions,
-  Strings,
-  t,
-  ViewType,
-  ICellUpdatedContext,
-  OPEventNameEnums,
-  FieldType,
-  EventSourceTypeEnums,
+  ConfigConstant, IReduxState, Selectors, StoreActions, Strings, t, ViewType,
+  ICellUpdatedContext, OPEventNameEnums, FieldType, EventSourceTypeEnums,
 } from '@apitable/core';
-import { ArrowDownOutlined, ArrowUpOutlined, CopyOutlined, DeleteOutlined, EditOutlined, EyeOpenOutlined, InfoCircleOutlined } from '@apitable/icons';
+import {
+  ArrowDownOutlined,
+  ArrowUpOutlined,
+  CopyOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  EyeOpenOutlined,
+  InfoCircleOutlined
+} from '@apitable/icons';
+import classNames from 'classnames';
+import { useRouter } from 'next/router';
 import { MobileGrid } from 'pc/components/mobile_grid';
-import { useTriggerTypes } from 'pc/components/robot/robot_panel/hook_trigger';
 import { useShowViewLockModal } from 'pc/components/view_lock/use_show_view_lock_modal';
 import { useQuery, useResponsive } from 'pc/hooks';
 import { useExpandWidget } from 'pc/hooks/use_expand_widget';
-import { resourceService } from 'pc/resource_service';
 import { store } from 'pc/store';
-import { useAppSelector } from 'pc/store/react-redux';
 import { flatContextData } from 'pc/utils';
+import { resourceService } from 'pc/resource_service';
+import * as React from 'react';
+import { useEffect } from 'react';
+import { shallowEqual, useSelector } from 'react-redux';
+import AutoSizer from 'react-virtualized-auto-sizer';
 import { CalendarView } from '../calendar_view';
 import { ComponentDisplay, ScreenSize } from '../common/component_display';
 import { expandRecordIdNavigate } from '../expand_record';
@@ -55,36 +52,30 @@ import { KanbanView } from '../kanban_view';
 import { KonvaGridView } from '../konva_grid';
 import { OrgChartView } from '../org_chart_view';
 import { Toolbar } from '../tool_bar';
-import { DATASHEET_VIEW_CONTAINER_ID } from './id';
 import styles from './style.module.less';
-export { DATASHEET_VIEW_CONTAINER_ID };
 
-export const View: React.FC<React.PropsWithChildren<any>> = () => {
+export const DATASHEET_VIEW_CONTAINER_ID = 'DATASHEET_VIEW_CONTAINER_ID';
+export const View: React.FC<React.PropsWithChildren> = () => {
   const colors = useThemeColors();
-  const { currentView, rows, fieldMap } = useAppSelector((state: IReduxState) => {
+  const { currentView, rows, fieldMap } = useSelector((state: IReduxState) => {
     const currentView = Selectors.getCurrentView(state)!;
     const fieldMap = Selectors.getFieldMap(state, state.pageParams.datasheetId!)!;
     return {
       rows: Selectors.getVisibleRows(state),
       linearRows: Selectors.getLinearRows(state),
       currentView,
-      fieldMap,
+      fieldMap
     };
   }, shallowEqual);
-
-  const { data: triggerTypes } = useTriggerTypes();
-  const buttonFieldTriggerId = triggerTypes.find((item) => item.endpoint === 'button_field' || item.endpoint === 'button_clicked');
-  const dstId = useAppSelector(Selectors.getActiveDatasheetId);
-
   const { screenIsAtMost } = useResponsive();
   const query = useQuery();
   const activeRecordId = query.get('activeRecordId');
-  const views = useAppSelector(Selectors.getViewsList);
-  const { datasheetId, mirrorId, shareId, templateId, embedId } = useAppSelector((state) => {
+  const views = useSelector(Selectors.getViewsList);
+  const { datasheetId, mirrorId, shareId, templateId, embedId } = useSelector(state => {
     const { datasheetId, mirrorId, shareId, templateId, embedId } = state.pageParams;
     return { datasheetId, mirrorId, shareId, templateId, embedId };
   }, shallowEqual);
-  const isSideRecordOpen = useAppSelector((state) => state.space.isSideRecordOpen);
+  const isSideRecordOpen = useSelector(state => state.space.isSideRecordOpen);
   const router = useRouter();
   const isViewLock = useShowViewLockModal();
 
@@ -92,7 +83,7 @@ export const View: React.FC<React.PropsWithChildren<any>> = () => {
     if (!activeRecordId) {
       return;
     }
-    if (activeRecordId && rows.every((row) => row.recordId !== activeRecordId)) {
+    if (activeRecordId && rows.every(row => row.recordId !== activeRecordId)) {
       Message.warning({ content: t(Strings.active_record_hidden) });
     } else {
       if (datasheetId && activeRecordId) {
@@ -141,7 +132,7 @@ export const View: React.FC<React.PropsWithChildren<any>> = () => {
 
   const isOrgChart = currentView.type === ViewType.OrgChart;
   const isMobile = screenIsAtMost(ScreenSize.md);
-  const embedInfo = useAppSelector((state) => Selectors.getEmbedInfo(state));
+  const embedInfo = useSelector(state => Selectors.getEmbedInfo(state));
   const { isShowEmbedToolBar = true } = embedInfo;
 
   return (
@@ -155,22 +146,19 @@ export const View: React.FC<React.PropsWithChildren<any>> = () => {
         padding: isMobile ? '0' : '',
         height: '100%',
         background: currentView.type === ViewType.Kanban ? colors.defaultBg : '',
-        paddingLeft: isMobile || (!isShowEmbedToolBar && !embedInfo.viewControl?.tabBar) ? 0 : embedInfo.viewControl?.tabBar ? '24px' : '32px',
+        paddingLeft: isMobile || (!isShowEmbedToolBar && !embedInfo.viewControl?.tabBar) ? 0 : embedInfo.viewControl?.tabBar ? '24px' : '32px'
       }}
     >
-      {isShowEmbedToolBar && (
-        <ComponentDisplay minWidthCompatible={ScreenSize.md}>
-          <Toolbar />
-        </ComponentDisplay>
-      )}
-      <div
-        style={{
-          flex: '1 1 auto',
-          height: '100%',
-          paddingTop: !isShowEmbedToolBar && embedInfo.viewControl?.tabBar ? '16px' : '',
-        }}
-      >
-        <AutoSizer className={classNames(styles.viewContainer, 'viewContainer')} style={{ width: '100%', height: '100%' }}>
+      {isShowEmbedToolBar && <ComponentDisplay minWidthCompatible={ScreenSize.md}>
+        <Toolbar />
+      </ComponentDisplay>}
+      <div style={{
+        flex: '1 1 auto',
+        height: '100%',
+        paddingTop: !isShowEmbedToolBar && embedInfo.viewControl?.tabBar ? '16px' : ''
+      }}>
+        <AutoSizer className={classNames(styles.viewContainer, 'viewContainer')}
+          style={{ width: '100%', height: '100%' }}>
           {({ height, width }) => {
             switch (currentView.type) {
               case ViewType.Grid: {

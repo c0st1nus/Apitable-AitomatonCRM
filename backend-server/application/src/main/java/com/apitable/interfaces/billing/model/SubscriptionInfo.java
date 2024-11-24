@@ -112,19 +112,6 @@ public interface SubscriptionInfo {
     }
 
     /**
-     * return billing cycle day of month.
-     *
-     * @param defaultDayOfMonth default day of month if not free
-     * @return billing cycle day of month
-     */
-    default int cycleDayOfMonth(int defaultDayOfMonth) {
-        if (getRecurringInterval() == null || getRecurringInterval().isEmpty()) {
-            return defaultDayOfMonth;
-        }
-        return getStartDate().getDayOfMonth();
-    }
-
-    /**
      * feature map.
      *
      * @return billing plan feature
@@ -146,15 +133,6 @@ public interface SubscriptionInfo {
      * @return total capacity
      */
     default CapacitySize getTotalCapacity() {
-        return new CapacitySize(getFeature().getCapacitySize().getValue().toBytes());
-    }
-
-    /**
-     * return config.
-     *
-     * @return config
-     */
-    default SubscriptionConfig getConfig() {
-        return SubscriptionConfig.create();
+        return new CapacitySize(getFeature().getCapacitySize().getValue());
     }
 }

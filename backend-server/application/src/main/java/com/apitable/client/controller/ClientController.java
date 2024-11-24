@@ -37,7 +37,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.annotation.Resource;
+import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -69,9 +69,10 @@ public class ClientController {
     /**
      * Get application version information.
      */
-    @GetResource(path = "/info", requiredLogin = false)
-    @Operation(summary = "Get application version information",
-        description = "Get the application client version rendering information")
+    @GetResource(name = "Get application version information", path = "/info", requiredLogin =
+        false, requiredPermission = false)
+    @Operation(summary = "Get application version information", description = "Get the "
+        + "application client version rendering information")
     @Parameter(name = "pipeline", description = "Construction serial number",
         schema = @Schema(type = "string"), in = ParameterIn.QUERY, example = "4818")
     public ClientInfoVO getTemplateInfo(

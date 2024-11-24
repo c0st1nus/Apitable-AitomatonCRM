@@ -19,7 +19,7 @@
 package com.apitable.asset.ro;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
+import javax.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -46,8 +46,8 @@ public class AttachOfficePreviewRo {
 
 
     @NotBlank(message = "Source file name and suffix of cloud files")
-    @Schema(description = "Source file name and suffix of cloud files",
-        example = "Leida Team Books.xls")
+    @Schema(description = "Source file name and suffix of cloud files", example = "Leida Team "
+        + "Books.xls")
     private String attname;
 
 }

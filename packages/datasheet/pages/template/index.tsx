@@ -23,13 +23,11 @@ const TemplateCentre = dynamic(() => import('pc/components/template_centre/templ
 const TemplatePreview = dynamic(() => import('pc/components/template_centre/template_preview'), { ssr: true });
 
 const App = () => {
-  return (
-    <>
-      <TemplateCentre>
-        <TemplatePreview />
-      </TemplateCentre>
-    </>
-  );
+  return <>
+    <TemplateCentre>
+      <TemplatePreview />
+    </TemplateCentre>
+  </>;
 };
 
 export default App;

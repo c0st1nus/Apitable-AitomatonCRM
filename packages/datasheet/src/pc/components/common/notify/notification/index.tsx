@@ -20,8 +20,8 @@ import classNames from 'classnames';
 import Notification from 'rc-notification';
 import { NotificationInstance as RCNotificationInstance } from 'rc-notification/lib/Notification';
 import * as React from 'react';
-import { CheckCircleOutlined, CloseCircleOutlined, CloseOutlined, WarnCircleOutlined, InfoCircleOutlined } from '@apitable/icons';
 import createUseNotification from './hooks/useNotification';
+import { CheckCircleOutlined, CloseCircleOutlined, CloseOutlined, WarnCircleOutlined, InfoCircleOutlined } from '@apitable/icons';
 
 export type NotificationPlacement = 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight';
 export type CustomNotificationPlacement = NotificationPlacement | 'bottom' | 'top';
@@ -82,7 +82,11 @@ function setNotificationConfig(options: IConfigProps) {
   }
 }
 
-function getPlacementStyle(placement: CustomNotificationPlacement, top: number = defaultTop, bottom: number = defaultBottom) {
+function getPlacementStyle(
+  placement: CustomNotificationPlacement,
+  top: number = defaultTop,
+  bottom: number = defaultBottom,
+) {
   let style;
   switch (placement) {
     case 'topLeft':
@@ -123,15 +127,24 @@ function getPlacementStyle(placement: CustomNotificationPlacement, top: number =
   return style;
 }
 
-function getNotificationInstance(args: IArgsProps, callback: (info: { prefixCls: string; instance: RCNotificationInstance }) => void) {
-  const { placement = defaultPlacement, top, bottom, getContainer = defaultGetContainer, closeIcon = defaultCloseIcon } = args;
+function getNotificationInstance(
+  args: IArgsProps,
+  callback: (info: { prefixCls: string; instance: RCNotificationInstance }) => void,
+) {
+  const {
+    placement = defaultPlacement,
+    top,
+    bottom,
+    getContainer = defaultGetContainer,
+    closeIcon = defaultCloseIcon,
+  } = args;
   const outerPrefixCls = args.prefixCls || defaultPrefixCls;
   const prefixCls = `${outerPrefixCls}-notice`;
 
   const cacheKey = `${outerPrefixCls}-${placement}`;
   const cacheInstance = notificationInstance[cacheKey];
   if (cacheInstance) {
-    Promise.resolve(cacheInstance).then((instance) => {
+    Promise.resolve(cacheInstance).then(instance => {
       callback({ prefixCls, instance });
     });
 
@@ -139,14 +152,16 @@ function getNotificationInstance(args: IArgsProps, callback: (info: { prefixCls:
   }
 
   const closeIconToRender = (
-    <span className={`${outerPrefixCls}-close-x`}>{closeIcon || <CloseOutlined className={`${outerPrefixCls}-close-icon`} />}</span>
+    <span className={`${outerPrefixCls}-close-x`}>
+      {closeIcon || <CloseOutlined className={`${outerPrefixCls}-close-icon`} />}
+    </span>
   );
 
   const notificationClass = classNames(`${outerPrefixCls}-${placement}`, {
     [`${outerPrefixCls}-rtl`]: rtl === true,
   });
 
-  notificationInstance[cacheKey] = new Promise((resolve) => {
+  notificationInstance[cacheKey] = new Promise(resolve => {
     Notification.newInstance(
       {
         prefixCls: outerPrefixCls,
@@ -155,7 +170,7 @@ function getNotificationInstance(args: IArgsProps, callback: (info: { prefixCls:
         getContainer,
         closeIcon: closeIconToRender,
       },
-      (notification) => {
+      notification => {
         resolve(notification);
         callback({
           prefixCls,
@@ -205,7 +220,10 @@ function getRCNoticeProps(args: IArgsProps, prefixCls: string) {
     });
   }
 
-  const autoMarginTag = !args.description && iconNode ? <span className={`${prefixCls}-message-single-line-auto-margin`} /> : null;
+  const autoMarginTag =
+    !args.description && iconNode ? (
+      <span className={`${prefixCls}-message-single-line-auto-margin`} />
+    ) : null;
 
   return {
     content: (
@@ -236,16 +254,16 @@ const api: any = {
     });
   },
   close(key: string) {
-    Object.keys(notificationInstance).forEach((cacheKey) =>
-      Promise.resolve(notificationInstance[cacheKey]).then((instance) => {
+    Object.keys(notificationInstance).forEach(cacheKey =>
+      Promise.resolve(notificationInstance[cacheKey]).then(instance => {
         instance.removeNotice(key);
       }),
     );
   },
   config: setNotificationConfig,
   destroy() {
-    Object.keys(notificationInstance).forEach((cacheKey) => {
-      Promise.resolve(notificationInstance[cacheKey]).then((instance) => {
+    Object.keys(notificationInstance).forEach(cacheKey => {
+      Promise.resolve(notificationInstance[cacheKey]).then(instance => {
         instance.destroy();
       });
       delete notificationInstance[cacheKey]; // lgtm[js/missing-await]
@@ -253,7 +271,7 @@ const api: any = {
   },
 };
 
-['success', 'info', 'warning', 'error'].forEach((type) => {
+['success', 'info', 'warning', 'error'].forEach(type => {
   api[type] = (args: IArgsProps) =>
     api.open({
       ...args,

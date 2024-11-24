@@ -16,12 +16,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useCreation, useUpdate } from 'ahooks';
 import { isEqual } from 'lodash';
+import { shallowEqual, useSelector } from 'react-redux';
+import { useCreation, useUpdate } from 'ahooks';
+import { useSetState } from 'pc/hooks';
 import { FC, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { shallowEqual } from 'react-redux';
-import { useTheme } from '@apitable/components';
 import { CellType, ConfigConstant, Field, ICell, IGridViewProperty, KONVA_DATASHEET_ID, RowHeightLevel, Selectors } from '@apitable/core';
+import { useAllowDownloadAttachment } from 'pc/components/upload_modal/preview_item';
+import { useDispatch } from 'pc/hooks';
+import { useCacheScroll } from 'pc/context';
+import { IContainerEdit } from '../editors/interface';
 import { getDetailByTargetName, getLinearRowHeight } from 'pc/components/gantt_view';
 import {
   AreaType,
@@ -34,6 +38,7 @@ import {
   TimeoutID,
 } from 'pc/components/gantt_view/interface';
 import { cancelTimeout, requestTimeout } from 'pc/components/gantt_view/utils';
+import styles from './style.module.less';
 import {
   GridCoordinate,
   KonvaGridStage,
@@ -58,16 +63,11 @@ import {
   GridExport,
   FieldHeadIconType,
   FIELD_HEAD_ICON_GAP_SIZE,
-  FIELD_HEAD_TEXT_MIN_WIDTH,
+  FIELD_HEAD_TEXT_MIN_WIDTH
 } from 'pc/components/konva_grid';
-import { useAllowDownloadAttachment } from 'pc/components/upload_modal/preview_item';
-import { useCacheScroll } from 'pc/context';
-import { useSetState, useDispatch } from 'pc/hooks';
-import { useAppSelector } from 'pc/store/react-redux';
-import { IContainerEdit } from '../editors/interface';
-import { getFieldLock } from '../field_permission';
+import { useTheme } from '@apitable/components';
 import { autoSizerCanvas } from '../konva_components';
-import styles from './style.module.less';
+import { getFieldLock } from '../field_permission';
 
 interface IGridViewProps {
   height: number;
@@ -106,7 +106,7 @@ export const DEFAULT_POINT_POSITION = {
   offsetLeft: 0,
 };
 
-export const KonvaGridView: FC<React.PropsWithChildren<IGridViewProps>> = memo((props) => {
+export const KonvaGridView: FC<React.PropsWithChildren<IGridViewProps>> = memo(props => {
   const { width: _containerWidth, height: containerHeight } = props;
   const {
     datasheetId,
@@ -148,7 +148,7 @@ export const KonvaGridView: FC<React.PropsWithChildren<IGridViewProps>> = memo((
     viewId,
     isManualSaveView,
     exportViewId,
-  } = useAppSelector((state) => {
+  } = useSelector(state => {
     const datasheetId = Selectors.getActiveDatasheetId(state)!;
     const view = Selectors.getCurrentView(state)! as IGridViewProperty;
     const rowHeightLevel = view.rowHeightLevel || RowHeightLevel.Short;
@@ -190,8 +190,9 @@ export const KonvaGridView: FC<React.PropsWithChildren<IGridViewProps>> = memo((
       visibleRecordIds: Selectors.getVisibleRowIds(state),
       collaboratorCursorMap: Selectors.collaboratorCursorSelector(state),
       groupBreakpoint: Selectors.getGroupBreakpoint(state),
-      isManualSaveView:
-        state.labs.includes('view_manual_save') || Boolean(state.share.featureViewManualSave) || Boolean(state.embedInfo.viewManualSave),
+      isManualSaveView: state.labs.includes('view_manual_save') ||
+        Boolean(state.share.featureViewManualSave) ||
+        Boolean(state.embedInfo.viewManualSave),
       exportViewId: Selectors.getDatasheetClient(state)?.exportViewId,
     };
   }, shallowEqual);
@@ -267,7 +268,7 @@ export const KonvaGridView: FC<React.PropsWithChildren<IGridViewProps>> = memo((
   // Height of field header
   const fieldHeadHeight = useMemo(() => {
     if (!autoHeadHeight) return GRID_FIELD_HEAD_HEIGHT;
-    textSizer.current.setFont({ fontSize: 13 });
+    textSizer.current.setFont({ fontWeight: 'bold', fontSize: 13 });
     const fieldHeight = visibleColumns.reduce((prev, cur, index) => {
       const { fieldId } = cur;
       const field = fieldMap[fieldId];
@@ -275,22 +276,25 @@ export const KonvaGridView: FC<React.PropsWithChildren<IGridViewProps>> = memo((
       const columnWidth = columnIndicesMap[index];
       const textWidth = Math.max(
         columnWidth - 2 * (GRID_CELL_VALUE_PADDING + GRID_ICON_COMMON_SIZE + FIELD_HEAD_ICON_GAP_SIZE),
-        FIELD_HEAD_TEXT_MIN_WIDTH,
+        FIELD_HEAD_TEXT_MIN_WIDTH
       );
       const { lastLineWidth, height } = textSizer.current.measureText(name, textWidth);
       let realLastLineWidth = Math.ceil(lastLineWidth);
 
       if (desc) {
-        realLastLineWidth += FIELD_HEAD_ICON_SIZE_MAP[FieldHeadIconType.Description] + FIELD_HEAD_ICON_GAP_SIZE;
+        realLastLineWidth += (FIELD_HEAD_ICON_SIZE_MAP[FieldHeadIconType.Description] + FIELD_HEAD_ICON_GAP_SIZE);
       }
 
       if (Field.bindModel(field).isComputed && Field.bindModel(field).hasError) {
-        realLastLineWidth += FIELD_HEAD_ICON_SIZE_MAP[FieldHeadIconType.Error] + FIELD_HEAD_ICON_GAP_SIZE;
+        realLastLineWidth += (FIELD_HEAD_ICON_SIZE_MAP[FieldHeadIconType.Error] + FIELD_HEAD_ICON_GAP_SIZE);
       }
 
       const fieldRole = Selectors.getFieldRoleByFieldId(fieldPermissionMap, fieldId);
-      if (fieldPermissionMap && fieldRole && getFieldLock(fieldPermissionMap[fieldId].manageable ? ConfigConstant.Role.Manager : fieldRole)) {
-        realLastLineWidth += FIELD_HEAD_ICON_SIZE_MAP[FieldHeadIconType.Permission] + FIELD_HEAD_ICON_GAP_SIZE;
+      if (
+        fieldPermissionMap && fieldRole &&
+        getFieldLock(fieldPermissionMap[fieldId].manageable ? ConfigConstant.Role.Manager : fieldRole)
+      ) {
+        realLastLineWidth += (FIELD_HEAD_ICON_SIZE_MAP[FieldHeadIconType.Permission] + FIELD_HEAD_ICON_GAP_SIZE);
       }
 
       const finalHeight = realLastLineWidth > textWidth ? height + 32 : height + 8;
@@ -303,7 +307,7 @@ export const KonvaGridView: FC<React.PropsWithChildren<IGridViewProps>> = memo((
   const originFrozenColumnCount = (view as IGridViewProperty).frozenColumnCount;
   // Number of frozen columns after adapting to the current container width
   const frozenColumnCount = useMemo(() => {
-    let count = view.columns.slice(0, originFrozenColumnCount).filter((column) => !column.hidden).length;
+    let count = view.columns.slice(0, originFrozenColumnCount).filter(column => !column.hidden).length;
     let curWidth = GRID_ROW_HEAD_WIDTH + offsetX;
 
     for (let i = 0; i < count; i++) {
@@ -373,11 +377,7 @@ export const KonvaGridView: FC<React.PropsWithChildren<IGridViewProps>> = memo((
     firstColumnWidth,
   });
 
-  const {
-    onMouseEnter,
-    clearTooltip: clearScrollbarTooltip,
-    tooltip: scrollbarTooltip,
-  } = useScrollbarTip({
+  const { onMouseEnter, clearTooltip: clearScrollbarTooltip, tooltip: scrollbarTooltip } = useScrollbarTip({
     horizontalBarRef,
     containerWidth,
     totalWidth,
@@ -401,7 +401,7 @@ export const KonvaGridView: FC<React.PropsWithChildren<IGridViewProps>> = memo((
 
   const handleHorizontalScroll = (e: any) => {
     const { scrollLeft } = e.target;
-    setScrollState((prev) => ({
+    setScrollState(prev => ({
       ...prev,
       isScrolling: true,
       scrollLeft,
@@ -413,7 +413,7 @@ export const KonvaGridView: FC<React.PropsWithChildren<IGridViewProps>> = memo((
 
   const handleVerticalScroll = (e: any) => {
     const { scrollTop } = e.target;
-    setScrollState((prev) => ({
+    setScrollState(prev => ({
       ...prev,
       isScrolling: true,
       scrollTop,
@@ -423,7 +423,7 @@ export const KonvaGridView: FC<React.PropsWithChildren<IGridViewProps>> = memo((
   };
 
   const resetScrolling = useCallback(() => {
-    setScrollState((prev) => {
+    setScrollState(prev => {
       return {
         ...prev,
         isScrolling: false,
@@ -576,7 +576,7 @@ export const KonvaGridView: FC<React.PropsWithChildren<IGridViewProps>> = memo((
     instance.containerWidth = containerWidth;
     instance.containerHeight = containerHeight;
     if (containerWidth >= totalWidth + GRID_SCROLL_BAR_OFFSET_X) {
-      return setScrollState((prev) => ({ ...prev, scrollLeft: 0 }));
+      return setScrollState(prev => ({ ...prev, scrollLeft: 0 }));
     }
     forceRender();
   }, [instance, containerWidth, containerHeight, forceRender, totalWidth]);
@@ -589,12 +589,10 @@ export const KonvaGridView: FC<React.PropsWithChildren<IGridViewProps>> = memo((
 
   const { unitTitleMap } = useWxTitleMap();
   const theme = useTheme();
-  const activeNodePrivate = useAppSelector(Selectors.getActiveNodePrivate);
-  const cacheTheme = useAppSelector(Selectors.getTheme);
+  const cacheTheme = useSelector(Selectors.getTheme);
 
   const konvaGridContext = {
     theme,
-    activeNodePrivate,
     tooltipInfo,
     setTooltipInfo,
     clearTooltipInfo,

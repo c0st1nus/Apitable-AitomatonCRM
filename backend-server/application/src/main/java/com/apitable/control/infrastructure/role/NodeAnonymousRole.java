@@ -21,8 +21,7 @@ package com.apitable.control.infrastructure.role;
 import com.apitable.control.infrastructure.role.RoleConstants.Node;
 
 /**
- * Anonymous Role of Node.
- *
+ * Anonymous Role of Node
  * @author Shawn Deng
  */
 public class NodeAnonymousRole extends NodeReaderRole {

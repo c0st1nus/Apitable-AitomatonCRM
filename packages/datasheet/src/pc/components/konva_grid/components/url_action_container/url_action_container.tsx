@@ -12,12 +12,10 @@ interface IUrlActionContainer {
   fieldId?: string;
   recordId?: string;
   datasheetId: string;
-  scrollTop?: number;
-  scrollLeft?: number;
 }
 
 export const UrlActionContainer = (props: IUrlActionContainer) => {
-  const { rectCalculator, activeCell, fieldId, recordId, datasheetId, scrollLeft = 0, scrollTop = 0 } = props;
+  const { rectCalculator, activeCell, fieldId, recordId, datasheetId } = props;
   const { setActiveUrlAction, activeUrlAction } = useContext(KonvaGridContext);
   const [editPositionInfo, setEditPositionInfo] = useState<IEditorPosition>(() => ({
     x: 0,
@@ -33,7 +31,7 @@ export const UrlActionContainer = (props: IUrlActionContainer) => {
     const rect = rectCalculator ? rectCalculator(activeCell) : getCellRelativeRect(activeCell);
     if (rect) {
       const { x, y, width, height } = rect;
-      setEditPositionInfo((prev) => ({
+      setEditPositionInfo(prev => ({
         x: x || prev.x,
         y: y || prev.y,
         width: width || prev.width,
@@ -64,10 +62,7 @@ export const UrlActionContainer = (props: IUrlActionContainer) => {
       fieldId={fieldId}
       recordId={recordId}
       datasheetId={datasheetId}
-      style={{
-        left: x - scrollLeft,
-        top: y + height + 2 - scrollTop,
-      }}
+      style={{ left: x, top: y + height + 2 }}
     />
   );
 };

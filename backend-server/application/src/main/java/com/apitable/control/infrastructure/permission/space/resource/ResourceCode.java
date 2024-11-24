@@ -23,7 +23,7 @@ import lombok.Getter;
 
 /**
  * <p>
- * Space Resource code for widget permission validate.
+ * Space Resource code for widget permission validate
  * </p>
  *
  * @author Pengap
@@ -84,20 +84,7 @@ public enum ResourceCode {
 
     UNPUBLISH_WIDGET("UNPUBLISH_WIDGET"),
 
-    TRANSFER_WIDGET("TRANSFER_WIDGET"),
-
-    CREATE_ROLE("CREATE_ROLE"),
-
-    READ_ROLE("READ_ROLE"),
-
-    UPDATE_ROLE("UPDATE_ROLE"),
-
-    DELETE_ROLE("DELETE_ROLE"),
-
-    ADD_ROLE_MEMBER("ADD_ROLE_MEMBER"),
-
-    REMOVE_ROLE_MEMBER("REMOVE_ROLE_MEMBER");
-
+    TRANSFER_WIDGET("TRANSFER_WIDGET");
 
     private final String code;
 }

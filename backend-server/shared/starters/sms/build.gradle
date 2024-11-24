@@ -1,16 +1,11 @@
 plugins {
-    id 'java-library'
-    id 'testing.java-conventions'
+  id 'java-library'
 }
 
 dependencies {
-    implementation platform(libs.spring.boot.dependencies)
-    implementation(libs.spring.boot.starter)
-    implementation(libs.qcloud.sms) {
-        exclude(group: 'org.json', module: 'json')
-    }
-    implementation(libs.json)
-    implementation(libs.yunpian)
-    implementation(libs.slf4j)
-    implementation(libs.bundles.hutool)
+  implementation(rootProject.ext.dependencies['boot-starter'])
+  implementation(rootProject.ext.dependencies['qcloudsms'])
+  implementation(rootProject.ext.dependencies['yunpian-sms'])
+  implementation(rootProject.ext.dependencies['slf4j'])
+  implementation(rootProject.ext.dependencies['hutool'])
 }

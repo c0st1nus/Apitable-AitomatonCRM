@@ -17,8 +17,8 @@
  */
 
 import { Selection } from 'slate';
-import { META_KEYS } from '../plugins/constant';
 import { IElement } from './element';
+import { META_KEYS } from '../plugins/constant';
 
 export declare type EditorValue = Array<IElement>;
 

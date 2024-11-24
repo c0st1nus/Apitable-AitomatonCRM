@@ -18,30 +18,17 @@
 
 package com.apitable.shared.component.notification;
 
-import static com.apitable.shared.constants.MailPropConstants.SUBJECT_ACCEPT_INVITE;
 import static com.apitable.shared.constants.MailPropConstants.SUBJECT_ADD_RECORD_LIMITED;
 import static com.apitable.shared.constants.MailPropConstants.SUBJECT_ADD_RECORD_SOON_LIMITED;
-import static com.apitable.shared.constants.MailPropConstants.SUBJECT_ADD_SUB_ADMIN;
-import static com.apitable.shared.constants.MailPropConstants.SUBJECT_ASSIGN_GROUP;
-import static com.apitable.shared.constants.MailPropConstants.SUBJECT_ASSIGN_ROLE;
-import static com.apitable.shared.constants.MailPropConstants.SUBJECT_AUTOMATION_ERROR;
 import static com.apitable.shared.constants.MailPropConstants.SUBJECT_CAPACITY_FULL;
 import static com.apitable.shared.constants.MailPropConstants.SUBJECT_CHANGE_ADMIN;
 import static com.apitable.shared.constants.MailPropConstants.SUBJECT_DATASHEET_REMIND;
 import static com.apitable.shared.constants.MailPropConstants.SUBJECT_INVITE_NOTIFY;
-import static com.apitable.shared.constants.MailPropConstants.SUBJECT_MEMBER_APPLY_CLOSE_ACCOUNT;
 import static com.apitable.shared.constants.MailPropConstants.SUBJECT_PAI_SUCCESS;
 import static com.apitable.shared.constants.MailPropConstants.SUBJECT_RECORD_COMMENT;
 import static com.apitable.shared.constants.MailPropConstants.SUBJECT_REGISTER;
 import static com.apitable.shared.constants.MailPropConstants.SUBJECT_REMOVE_MEMBER;
-import static com.apitable.shared.constants.MailPropConstants.SUBJECT_REMOVE_ROLE;
-import static com.apitable.shared.constants.MailPropConstants.SUBJECT_REMOVE_SUB_ADMIN;
 import static com.apitable.shared.constants.MailPropConstants.SUBJECT_SPACE_APPLY;
-import static com.apitable.shared.constants.MailPropConstants.SUBJECT_SPACE_APPLY_APPROVE;
-import static com.apitable.shared.constants.MailPropConstants.SUBJECT_SPACE_APPLY_REFUSE;
-import static com.apitable.shared.constants.MailPropConstants.SUBJECT_SPACE_BETA_FEATURE_APPLY_SUCCESS;
-import static com.apitable.shared.constants.MailPropConstants.SUBJECT_SPACE_CERTIFICATION_FAIL_NOTIFY;
-import static com.apitable.shared.constants.MailPropConstants.SUBJECT_SPACE_CERTIFICATION_NOTIFY;
 import static com.apitable.shared.constants.MailPropConstants.SUBJECT_SUBSCRIBED_ADMIN_LIMIT;
 import static com.apitable.shared.constants.MailPropConstants.SUBJECT_SUBSCRIBED_API_LIMIT;
 import static com.apitable.shared.constants.MailPropConstants.SUBJECT_SUBSCRIBED_CALENDAR_LIMIT;
@@ -85,8 +72,6 @@ import com.apitable.starter.mail.autoconfigure.EmailMessage;
 import com.apitable.starter.mail.autoconfigure.MailTemplate;
 import com.apitable.starter.mail.core.CloudEmailMessage;
 import com.apitable.starter.mail.core.CloudMailSender;
-import com.google.common.base.CaseFormat;
-import jakarta.annotation.Resource;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -97,6 +82,7 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.annotation.Resource;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -113,32 +99,38 @@ import org.springframework.stereotype.Component;
 @Component
 public class NotifyMailFactory {
 
+    /** */
     @Resource
     private BeetlTemplate beetlTemplate;
 
+    /** */
     @Resource
     private EmailSendProperties emailSendProperties;
 
+    /** */
     @Resource
     private MailFacade mailFacade;
 
+    /** */
     @Autowired(required = false)
     private CloudMailSender cloudMailSender;
 
+    /** */
     @Autowired(required = false)
     private MailTemplate mailTemplate;
 
+    /**
+     * @return NotifyMailFactory
+     */
     public static NotifyMailFactory me() {
         return SpringContextHolder.getBean(NotifyMailFactory.class);
     }
 
     /**
-     * send mail.
-     *
      * @param subjectType subjectType
      * @param subjectDict subjectDict
-     * @param dict        dict
-     * @param tos         tos
+     * @param dict dict
+     * @param tos tos
      */
     public void sendMail(
         final String subjectType,
@@ -166,12 +158,10 @@ public class NotifyMailFactory {
     }
 
     /**
-     * send mail.
-     *
-     * @param lang        lang
+     * @param lang lang
      * @param subjectType subjectType
-     * @param dict        dict
-     * @param to          to
+     * @param dict dict
+     * @param to to
      */
     public void sendMail(
         final String lang,
@@ -183,13 +173,11 @@ public class NotifyMailFactory {
     }
 
     /**
-     * send mail.
-     *
-     * @param language    language
+     * @param language language
      * @param subjectType subjectType
      * @param subjectDict subjectDict
-     * @param dict        dict
-     * @param to          to
+     * @param dict dict
+     * @param to to
      */
     public void sendMail(
         final String language,
@@ -197,8 +185,8 @@ public class NotifyMailFactory {
         final Dict subjectDict,
         final Dict dict,
         final List<String> to) {
-        String lang = StrUtil.isNotBlank(language)
-            ? language.replace("_", "-") : Locale.US.toLanguageTag();
+        String lang =
+            StrUtil.isNotBlank(language) ? language : Locale.US.toLanguageTag();
         // load subject.properties
         Properties properties = loadSubjectProperties(lang);
         String subject =
@@ -250,8 +238,6 @@ public class NotifyMailFactory {
     }
 
     /**
-     * notify.
-     *
      * @param subject subject
      * @param textBtl textBtl
      */
@@ -266,14 +252,14 @@ public class NotifyMailFactory {
     }
 
     /**
-     * notify.
+     * *
      *
-     * @param personal    personal
-     * @param subject     subject
+     * @param personal personal
+     * @param subject subject
      * @param subjectType subjectType
-     * @param dict        dict
-     * @param textBtl     textBtl
-     * @param to          to
+     * @param dict dict
+     * @param textBtl textBtl
+     * @param to to
      */
     public void notify(
         final String personal,
@@ -308,7 +294,6 @@ public class NotifyMailFactory {
         }
         EmailMessage emailMessage = new EmailMessage();
         emailMessage.setPersonal(personal);
-        emailMessage.setFrom(emailSendProperties.getFrom());
         emailMessage.setSubject(subject);
         emailMessage.setTo(to);
         if (subjectType != null) {
@@ -352,7 +337,6 @@ public class NotifyMailFactory {
         for (int i = 0; i < to.size(); i++) {
             EmailMessage emailMessage = new EmailMessage();
             emailMessage.setPersonal(emailSendProperties.getPersonal());
-            emailMessage.setFrom(emailSendProperties.getFrom());
             emailMessage.setSubject(subject);
             emailMessage.setTo(Collections.singletonList(to.get(i)));
             emailMessage.setPlainText(plainText);
@@ -366,22 +350,19 @@ public class NotifyMailFactory {
         }
     }
 
-    /**
-     * mail with lang.
-     */
     @Data
     @NoArgsConstructor
     public static class MailWithLang {
-
+        /** * */
         private String locale;
 
+        /** * */
         private String to;
 
         /**
-         * constructor.
          *
          * @param targetLocale targetLocale
-         * @param email        email
+         * @param email email
          */
         public MailWithLang(final String targetLocale, final String email) {
             this.locale = targetLocale;
@@ -389,12 +370,12 @@ public class NotifyMailFactory {
         }
 
         /**
-         * convert.
+         * *
          *
-         * @param data   data
+         * @param data data
          * @param mapper mapper
-         * @param <T>    T
-         * @return list
+         * @param <T> T
+         * @return List<MailWithLang>
          */
         public static <T> List<MailWithLang> convert(
             final List<T> data,
@@ -408,15 +389,19 @@ public class NotifyMailFactory {
 
     static final class MailText {
 
+        /** * */
         @Getter
         private String htmlTemplateName;
 
+        /** * */
         @Getter
         private String textTemplateName;
 
+        /** * */
         @Getter
         private final String subjectType;
 
+        /** * */
         @Getter
         private final Dict subjectDict;
 
@@ -428,34 +413,6 @@ public class NotifyMailFactory {
         public MailText getTemplate() {
             // switch email template
             switch (this.subjectType) {
-                case SUBJECT_MEMBER_APPLY_CLOSE_ACCOUNT:
-                    this.htmlTemplateName = "member-applied-to-close-account-html.btl";
-                    this.textTemplateName = "member-applied-to-close-account-text.btl";
-                    break;
-                case SUBJECT_ADD_SUB_ADMIN:
-                    this.htmlTemplateName = "add-sub-admin-html.btl";
-                    this.textTemplateName = "add-sub-admin-text.btl";
-                    break;
-                case SUBJECT_REMOVE_SUB_ADMIN:
-                    this.htmlTemplateName = "changed-ordinary-user-html.btl";
-                    this.textTemplateName = "changed-ordinary-user-text.btl";
-                    break;
-                case SUBJECT_ASSIGN_GROUP:
-                    this.htmlTemplateName = "assigned-to-group-html.btl";
-                    this.textTemplateName = "assigned-to-group-text.btl";
-                    break;
-                case SUBJECT_ASSIGN_ROLE:
-                    this.htmlTemplateName = "assigned-to-role-html.btl";
-                    this.textTemplateName = "assigned-to-role-text.btl";
-                    break;
-                case SUBJECT_REMOVE_ROLE:
-                    this.htmlTemplateName = "remove-from-role-html.btl";
-                    this.textTemplateName = "remove-from-role-text.btl";
-                    break;
-                case SUBJECT_ACCEPT_INVITE:
-                    this.htmlTemplateName = "accept-invite-html.btl";
-                    this.textTemplateName = "accept-invite-text.btl";
-                    break;
                 case SUBJECT_INVITE_NOTIFY:
                     this.htmlTemplateName = "invite-email-html.btl";
                     this.textTemplateName = "invite-email-text.btl";
@@ -471,26 +428,6 @@ public class NotifyMailFactory {
                 case SUBJECT_SPACE_APPLY:
                     this.htmlTemplateName = "space-apply-html.btl";
                     this.textTemplateName = "space-apply-text.btl";
-                    break;
-                case SUBJECT_SPACE_APPLY_APPROVE:
-                    this.htmlTemplateName = "space-apply-approved-html.btl";
-                    this.textTemplateName = "space-apply-approved-text.btl";
-                    break;
-                case SUBJECT_SPACE_APPLY_REFUSE:
-                    this.htmlTemplateName = "space-apply-refused-html.btl";
-                    this.textTemplateName = "space-apply-refused-text.btl";
-                    break;
-                case SUBJECT_SPACE_BETA_FEATURE_APPLY_SUCCESS:
-                    this.htmlTemplateName = "apply-space-beta-feature-success-html.btl";
-                    this.textTemplateName = "apply-space-beta-feature-success-text.btl";
-                    break;
-                case SUBJECT_SPACE_CERTIFICATION_NOTIFY:
-                    this.htmlTemplateName = "space-certification-notify-html.btl";
-                    this.textTemplateName = "space-certification-notify-text.btl";
-                    break;
-                case SUBJECT_SPACE_CERTIFICATION_FAIL_NOTIFY:
-                    this.htmlTemplateName = "space-certification-fail-notify-html.btl";
-                    this.textTemplateName = "space-certification-fail-notify-text.btl";
                     break;
                 case SUBJECT_RECORD_COMMENT:
                     this.htmlTemplateName = "remind-comment-html.btl";
@@ -616,17 +553,7 @@ public class NotifyMailFactory {
                     htmlTemplateName = "subscribed-admin-limit-html.btl";
                     textTemplateName = "subscribed-admin-limit-text.btl";
                     break;
-                case SUBJECT_AUTOMATION_ERROR:
-                    htmlTemplateName = "automation-fail-html.btl";
-                    textTemplateName = "automation-fail-text.btl";
-                    break;
                 default:
-                    htmlTemplateName =
-                        CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, this.subjectType)
-                            + "-html.btl";
-                    textTemplateName =
-                        CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, this.subjectType)
-                            + "-text.btl";
                     break;
             }
             return this;

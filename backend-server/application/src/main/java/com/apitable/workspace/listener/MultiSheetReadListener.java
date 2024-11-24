@@ -76,15 +76,15 @@ public class MultiSheetReadListener extends AnalysisEventListener<Map<Integer, S
     /**
      * sheet[index] -> index head.
      */
-    private final Map<String, Map<Integer, String>> sheetHeadMap = new LinkedHashMap<>();
+    private Map<String, Map<Integer, String>> sheetHeadMap = new LinkedHashMap<>();
 
-    private final Map<String, NodeData> nodeMap = new LinkedHashMap<>();
+    private Map<String, NodeData> nodeMap = new LinkedHashMap<>();
 
-    private final Map<String, Meta> metaMap = new LinkedHashMap<>();
+    private Map<String, Meta> metaMap = new LinkedHashMap<>();
 
-    private final JSONObject fieldUpdatedInfo = new JSONObject();
+    private JSONObject fieldUpdatedInfo = new JSONObject();
 
-    private final INodeService iNodeService;
+    private INodeService iNodeService;
 
     private final Long userId;
 
@@ -98,8 +98,6 @@ public class MultiSheetReadListener extends AnalysisEventListener<Map<Integer, S
 
     private final String fileName;
 
-    private final Long unitId;
-
     private final LimitProperties limitProperties = new LimitProperties();
 
     private NodeData retNodeData = null;
@@ -108,8 +106,7 @@ public class MultiSheetReadListener extends AnalysisEventListener<Map<Integer, S
      * Multi Sheet Read Listener.
      */
     public MultiSheetReadListener(INodeService nodeService, Long userId, String uuid,
-                                  String spaceId, Long memberId, String parentNodeId, Long unitId,
-                                  String viewName, String fileName) {
+        String spaceId, Long memberId, String parentNodeId, String viewName, String fileName) {
         this.iNodeService = nodeService;
         this.userId = userId;
         this.spaceId = spaceId;
@@ -117,7 +114,6 @@ public class MultiSheetReadListener extends AnalysisEventListener<Map<Integer, S
         this.parentNodeId = parentNodeId;
         this.viewName = viewName;
         this.fileName = fileName;
-        this.unitId = unitId;
 
         fieldUpdatedInfo.set("createdAt",
             Instant.now(Clock.system(ZoneId.of("+8"))).toEpochMilli());
@@ -165,7 +161,7 @@ public class MultiSheetReadListener extends AnalysisEventListener<Map<Integer, S
             ? context.readSheetHolder().getApproximateTotalRowNumber() : 0;
         View view = new View(headSize, totalRow);
         view.id = IdUtil.createViewId();
-        view.name = viewName != null ? viewName : I18nStringsUtil.t("default_view");
+        view.name = viewName != null ? viewName: I18nStringsUtil.t("default_view");
         view.type = ViewType.GRID.getType();
         view.frozenColumnCount = 1;
 
@@ -364,7 +360,6 @@ public class MultiSheetReadListener extends AnalysisEventListener<Map<Integer, S
                 .isTemplate(false)
                 .creator(memberId)
                 .createdBy(userId)
-                .unitId(unitId)
                 .updatedBy(userId).build());
         }
 
@@ -382,7 +377,6 @@ public class MultiSheetReadListener extends AnalysisEventListener<Map<Integer, S
                 .isTemplate(false)
                 .creator(memberId)
                 .createdBy(userId)
-                .unitId(unitId)
                 .updatedBy(userId).build());
 
             DatasheetEntity datasheet = DatasheetEntity.builder()

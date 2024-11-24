@@ -22,8 +22,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 
 /**
- * default properties.
- *
+ * default properties
  * @author Shawn Deng
  */
 @Configuration(proxyBeanMethods = false)

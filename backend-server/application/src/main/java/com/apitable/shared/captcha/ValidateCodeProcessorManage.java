@@ -18,14 +18,16 @@
 
 package com.apitable.shared.captcha;
 
-import com.apitable.core.util.SpringContextHolder;
 import java.util.Map;
+
+import com.apitable.core.util.SpringContextHolder;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
  * <p>
- * captcha processing manager.
+ * captcha processing manager
  * </p>
  *
  * @author Shawn Deng
@@ -48,12 +50,6 @@ public class ValidateCodeProcessorManage {
         return findValidateCodeProcessor(type.toString().toLowerCase());
     }
 
-    /**
-     * find captcha processor by type.
-     *
-     * @param type captcha type
-     * @return captcha processor
-     */
     public ValidateCodeProcessor findValidateCodeProcessor(String type) {
         String name = type.toLowerCase() + ValidateCodeProcessor.class.getSimpleName();
         ValidateCodeProcessor processor = validateCodeProcessors.get(name);

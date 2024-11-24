@@ -19,8 +19,12 @@
 package com.apitable.organization.controller;
 
 import static com.apitable.base.enums.ParameterException.NO_ARG;
+import static com.apitable.core.constants.RedisConstants.GENERAL_LOCKED;
 import static com.apitable.organization.enums.OrganizationException.DELETE_MEMBER_PARAM_ERROR;
 import static com.apitable.organization.enums.OrganizationException.DELETE_SPACE_ADMIN_ERROR;
+import static com.apitable.organization.enums.OrganizationException.INVITE_EMAIL_HAS_ACTIVE;
+import static com.apitable.organization.enums.OrganizationException.INVITE_EMAIL_NOT_FOUND;
+import static com.apitable.organization.enums.OrganizationException.INVITE_TOO_OFTEN;
 import static com.apitable.organization.enums.OrganizationException.NOT_EXIST_MEMBER;
 import static com.apitable.shared.constants.NotificationConstants.INVOLVE_MEMBER_ID;
 import static com.apitable.shared.constants.PageConstants.PAGE_DESC;
@@ -28,6 +32,7 @@ import static com.apitable.shared.constants.PageConstants.PAGE_PARAM;
 import static com.apitable.shared.constants.PageConstants.PAGE_SIMPLE_EXAMPLE;
 import static com.apitable.space.enums.SpaceException.NOT_IN_SPACE;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.lang.Dict;
 import cn.hutool.core.text.CharSequenceUtil;
@@ -36,18 +41,21 @@ import cn.hutool.core.util.StrUtil;
 import com.apitable.core.exception.BusinessException;
 import com.apitable.core.support.ResponseData;
 import com.apitable.core.util.ExceptionUtil;
-import com.apitable.interfaces.billing.facade.EntitlementServiceFacade;
-import com.apitable.interfaces.billing.model.SubscriptionInfo;
 import com.apitable.interfaces.security.facade.BlackListServiceFacade;
 import com.apitable.interfaces.security.facade.HumanVerificationServiceFacade;
 import com.apitable.interfaces.security.model.NonRobotMetadata;
 import com.apitable.interfaces.social.facade.SocialServiceFacade;
+import com.apitable.interfaces.user.facade.InvitationServiceFacade;
+import com.apitable.interfaces.user.model.InvitationMetadata;
 import com.apitable.organization.entity.MemberEntity;
 import com.apitable.organization.enums.DeleteMemberType;
 import com.apitable.organization.mapper.MemberMapper;
 import com.apitable.organization.mapper.TeamMapper;
 import com.apitable.organization.ro.DeleteBatchMemberRo;
 import com.apitable.organization.ro.DeleteMemberRo;
+import com.apitable.organization.ro.InviteMemberAgainRo;
+import com.apitable.organization.ro.InviteMemberRo;
+import com.apitable.organization.ro.InviteRo;
 import com.apitable.organization.ro.TeamAddMemberRo;
 import com.apitable.organization.ro.UpdateMemberOpRo;
 import com.apitable.organization.ro.UpdateMemberRo;
@@ -57,6 +65,7 @@ import com.apitable.organization.service.IMemberSearchService;
 import com.apitable.organization.service.IMemberService;
 import com.apitable.organization.service.IRoleService;
 import com.apitable.organization.service.ITeamService;
+import com.apitable.organization.service.IUnitService;
 import com.apitable.organization.vo.MemberInfoVo;
 import com.apitable.organization.vo.MemberPageVo;
 import com.apitable.organization.vo.MemberUnitsVo;
@@ -90,16 +99,20 @@ import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.annotation.Resource;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.Valid;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.BoundValueOperations;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -133,6 +146,9 @@ public class MemberController {
     private UserMapper userMapper;
 
     @Resource
+    private RedisTemplate<String, String> redisTemplate;
+
+    @Resource
     private ISpaceService iSpaceService;
 
     @Resource
@@ -145,13 +161,16 @@ public class MemberController {
     private ITeamService iTeamService;
 
     @Resource
+    private IUnitService iUnitService;
+
+    @Resource
     private SocialServiceFacade socialServiceFacade;
 
     @Resource
     private HumanVerificationServiceFacade humanVerificationServiceFacade;
 
     @Resource
-    private EntitlementServiceFacade entitlementServiceFacade;
+    private InvitationServiceFacade invitationServiceFacade;
 
     /**
      * Fuzzy Search Members.
@@ -160,12 +179,12 @@ public class MemberController {
     @Parameters({
         @Parameter(name = ParamsConstants.SPACE_ID, description = "space id", required = true,
             schema = @Schema(type = "string"), in = ParameterIn.HEADER, example = "spcyQkKp9XJEl"),
-        @Parameter(name = "className", description = "the highlighting style",
-            schema = @Schema(type = "string"), in = ParameterIn.QUERY, example = "highLight"),
+        @Parameter(name = "className", description = "the highlighting style", schema =
+            @Schema(type = "string"), in = ParameterIn.QUERY, example = "highLight"),
         @Parameter(name = "filter", description = "whether to filter unadded members",
             schema = @Schema(type = "boolean"), in = ParameterIn.QUERY, example = "true"),
-        @Parameter(name = "keyword", description = "keyword", required = true,
-            schema = @Schema(type = "string"), in = ParameterIn.QUERY, example = "Luck")
+        @Parameter(name = "keyword", description = "keyword", required = true, schema =
+            @Schema(type = "string"), in = ParameterIn.QUERY, example = "Luck")
     })
     @Operation(summary = "Fuzzy Search Members", description = "Fuzzy Search Members")
     public ResponseData<List<SearchMemberVo>> getMembers(
@@ -188,19 +207,55 @@ public class MemberController {
     }
 
     /**
-     * Page query the team's member.
+     * Query the team's members.
      */
-    @GetResource(path = "/page")
-    @Operation(summary = "Page query the team's member",
-        description = "Query all the members of the department, "
-            + " including the members of the sub department. "
-            + "The query must be paging not full query.\n" + PAGE_DESC)
+    @GetResource(path = "/list")
+    @Operation(summary = "Query the team's members", description = "Query all the members of the "
+        + "department, including the members of the sub department.if root team can lack teamId, "
+        + "teamId default 0.")
     @Parameters({
         @Parameter(name = ParamsConstants.SPACE_ID, description = "space id", required = true,
             schema = @Schema(type = "string"), in = ParameterIn.HEADER, example = "spcyQkKp9XJEl"),
-        @Parameter(name = "teamId", in = ParameterIn.QUERY,
-            description = "team id. if root team can lack teamId, teamId default 0.",
-            schema = @Schema(type = "string"), example = "1"),
+        @Parameter(name = "teamId", description = "team id. if root team can lack teamId, teamId"
+            + " default 0.", schema = @Schema(type = "string"), in = ParameterIn.QUERY, example = "0")
+    })
+    public ResponseData<List<MemberInfoVo>> getMemberList(
+        @RequestParam(name = "teamId", required = false, defaultValue = "0") Long teamId) {
+        String spaceId = LoginContext.me().getSpaceId();
+        SpaceGlobalFeature feature = iSpaceService.getSpaceGlobalFeature(spaceId);
+        SpaceHolder.setGlobalFeature(feature);
+        if (teamId == 0) {
+            // query the members of the root department
+            List<MemberInfoVo> resultList = memberMapper.selectMembersByRootTeamId(spaceId);
+            if (CollUtil.isNotEmpty(resultList)) {
+                // handle member's team name, get full hierarchy team names
+                iTeamService.handleListMemberTeams(resultList, spaceId);
+            }
+            return ResponseData.success(resultList);
+        }
+        // query the ids of all sub departments
+        List<Long> teamIds = iTeamService.getAllTeamIdsInTeamTree(teamId);
+        List<MemberInfoVo> resultList = memberMapper.selectMembersByTeamId(teamIds);
+        if (CollUtil.isNotEmpty(resultList)) {
+            // handle member's team name, get full hierarchy team names
+            iTeamService.handleListMemberTeams(resultList, spaceId);
+        }
+        return ResponseData.success(resultList);
+    }
+
+    /**
+     * Page query the team's member.
+     */
+    @GetResource(path = "/page")
+    @Operation(summary = "Page query the team's member", description =
+        "Query all the members of the department, including the members of the sub department. "
+            + "The query must be paging not full query.\n"
+            + PAGE_DESC)
+    @Parameters({
+        @Parameter(name = ParamsConstants.SPACE_ID, description = "space id", required = true,
+            schema = @Schema(type = "string"), in = ParameterIn.HEADER, example = "spcyQkKp9XJEl"),
+        @Parameter(name = "teamId", description = "team id. if root team can lack teamId, teamId"
+            + " default 0.", schema = @Schema(type = "string"), in = ParameterIn.QUERY, example = "1"),
         @Parameter(name = "isActive", description = "whether to filter unadded members",
             schema = @Schema(type = "string"), in = ParameterIn.QUERY, example = "1"),
         @Parameter(name = PAGE_PARAM, description = "page's parameter", required = true,
@@ -239,7 +294,8 @@ public class MemberController {
      */
     @Deprecated
     @GetResource(path = "/checkEmail")
-    @Operation(summary = "Check whether email in space")
+    @Operation(summary = "Check whether email in space", description = "Check whether email in "
+        + "space")
     @Parameters({
         @Parameter(name = ParamsConstants.SPACE_ID, description = "space id", required = true,
             schema = @Schema(type = "string"), in = ParameterIn.HEADER, example = "spcyQkKp9XJEl"),
@@ -268,8 +324,7 @@ public class MemberController {
     public ResponseData<MemberInfoVo> read(
         @RequestParam(value = "memberId", required = false) Long memberId,
         @RequestParam(value = "uuid", required = false) String uuid) {
-        ExceptionUtil.isTrue(ObjectUtil.isNotNull(memberId)
-            || StrUtil.isNotBlank(uuid), NO_ARG);
+        ExceptionUtil.isTrue(ObjectUtil.isNotNull(memberId) || StrUtil.isNotBlank(uuid), NO_ARG);
         String spaceId = LoginContext.me().getSpaceId();
         // For member information hiding use
         SpaceGlobalFeature feature = iSpaceService.getSpaceGlobalFeature(spaceId);
@@ -294,8 +349,8 @@ public class MemberController {
      * Query the units which a user belongs in space.
      */
     @GetResource(path = "/units")
-    @Operation(summary = "Query the units which a user belongs in space",
-        description = "Query the units which a user belongs, include self")
+    @Operation(summary = "Query the units which a user belongs in space", description = "Query "
+        + "the units which a user belongs, include self")
     @Parameter(name = ParamsConstants.SPACE_ID, description = "space id", required = true,
         schema = @Schema(type = "string"), in = ParameterIn.HEADER, example = "spcyQkKp9XJEl")
     public ResponseData<MemberUnitsVo> getUnits() {
@@ -303,6 +358,75 @@ public class MemberController {
         List<Long> unitIds = iMemberService.getUnitsByMember(memberId);
         MemberUnitsVo unitsVo = MemberUnitsVo.builder().unitIds(unitIds).build();
         return ResponseData.success(unitsVo);
+    }
+
+    /**
+     * Send an email to invite members.
+     */
+    @PostResource(path = "/sendInvite", tags = "INVITE_MEMBER")
+    @Operation(summary = "Send an email to invite members",
+        description = "Send an email to invite. The email is automatically bound to the platform "
+            + "user. The invited member will be in the state to be activated, and will not take "
+            + "effect until the user self activates.")
+    @Parameter(name = ParamsConstants.SPACE_ID, description = "space id", required = true,
+        schema = @Schema(type = "string"), in = ParameterIn.HEADER, example = "spcyQkKp9XJEl")
+    public ResponseData<MemberUnitsVo> inviteMember(@RequestBody @Valid InviteRo data) {
+        // human verification
+        humanVerificationServiceFacade.verifyNonRobot(new NonRobotMetadata(data.getData()));
+        // space id be invited
+        String spaceId = LoginContext.me().getSpaceId();
+        // whether in black list
+        blackListServiceFacade.checkSpace(spaceId);
+        Long userId = SessionContext.getUserId();
+        // check whether space can invite user
+        iSpaceService.checkCanOperateSpaceUpdate(spaceId);
+        List<InviteMemberRo> inviteMembers = data.getInvite();
+        MemberUnitsVo unitsVo = MemberUnitsVo.builder().build();
+        // get invited emails
+        List<String> inviteEmails = inviteMembers.stream()
+            .map(InviteMemberRo::getEmail)
+            .filter(StrUtil::isNotBlank).collect(Collectors.toList());
+        if (CollUtil.isEmpty(inviteEmails)) {
+            // without email, response success directly
+            return ResponseData.success(unitsVo);
+        }
+        // invite new members
+        List<Long> memberIds = iMemberService.emailInvitation(userId, spaceId, inviteEmails);
+        if (!memberIds.isEmpty()) {
+            List<Long> unitIds = iUnitService.getUnitIdsByRefIds(memberIds);
+            unitsVo.setUnitIds(unitIds);
+        }
+        return ResponseData.success(unitsVo);
+    }
+
+    /**
+     * Again send an email to invite members.
+     */
+    @PostResource(path = "/sendInviteSingle", tags = "INVITE_MEMBER")
+    @Operation(summary = "Again send an email to invite members", description = "If a member is "
+        + "not activated, it can send an invitation again regardless of whether the invitation "
+        + "has expired. After the invitation is successfully sent, the invitation link sent last "
+        + "time will be invalid.")
+    @Parameter(name = ParamsConstants.SPACE_ID, description = "space id", required = true,
+        schema = @Schema(type = "string"), in = ParameterIn.HEADER, example = "spcyQkKp9XJEl")
+    public ResponseData<Void> inviteMemberSingle(@RequestBody @Valid InviteMemberAgainRo data) {
+        String spaceId = LoginContext.me().getSpaceId();
+        // check black space
+        blackListServiceFacade.checkSpace(spaceId);
+        iSpaceService.checkCanOperateSpaceUpdate(spaceId);
+        // Again email invite members
+        MemberEntity member = memberMapper.selectBySpaceIdAndEmail(spaceId, data.getEmail());
+        ExceptionUtil.isNotNull(member, INVITE_EMAIL_NOT_FOUND);
+        ExceptionUtil.isFalse(member.getIsActive(), INVITE_EMAIL_HAS_ACTIVE);
+        // Limit the frequency for 10 minutes
+        String lockKey = StrUtil.format(GENERAL_LOCKED, "invite:email", data.getEmail());
+        BoundValueOperations<String, String> ops = redisTemplate.boundValueOps(lockKey);
+        ExceptionUtil.isNull(ops.get(), INVITE_TOO_OFTEN);
+        ops.set("", 10, TimeUnit.MINUTES);
+        Long userId = SessionContext.getUserId();
+        invitationServiceFacade.sendInvitationEmail(
+            new InvitationMetadata(spaceId, userId, data.getEmail()));
+        return ResponseData.success();
     }
 
     /**
@@ -325,8 +449,8 @@ public class MemberController {
      * Edit self member information.
      */
     @PostResource(path = "/update")
-    @Operation(summary = "Edit self member information",
-        description = "Edit self member information")
+    @Operation(summary = "Edit self member information", description = "Edit self member "
+        + "information")
     @Parameter(name = ParamsConstants.SPACE_ID, description = "space id", required = true,
         schema = @Schema(type = "string"), in = ParameterIn.HEADER, example = "spcyQkKp9XJEl")
     public ResponseData<Void> update(@RequestBody @Valid UpdateMemberOpRo opRo) {
@@ -345,10 +469,9 @@ public class MemberController {
     @Parameter(name = ParamsConstants.SPACE_ID, description = "space id", required = true,
         schema = @Schema(type = "string"), in = ParameterIn.HEADER, example = "spcyQkKp9XJEl")
     public ResponseData<Void> updateInfo(@RequestBody @Valid UpdateMemberRo data) {
-        Long userId = SessionContext.getUserId();
         String spaceId = LoginContext.me().getSpaceId();
         socialServiceFacade.checkCanOperateSpaceUpdate(spaceId, SpaceUpdateOperate.UPDATE_MEMBER);
-        iMemberService.updateMember(userId, data);
+        iMemberService.updateMember(data);
         return ResponseData.success();
     }
 
@@ -372,8 +495,8 @@ public class MemberController {
      * Delete a Member.
      */
     @PostResource(path = "/delete", method = {RequestMethod.DELETE}, tags = "DELETE_MEMBER")
-    @Operation(summary = "Delete a Member", description = "action provides two deletion modes."
-        + "1.delete from organization 2. delete from team")
+    @Operation(summary = "Delete a Member", description = "action provides two deletion modes，1"
+        + ".delete from organization 2. delete from team")
     @Parameter(name = ParamsConstants.SPACE_ID, description = "space id", required = true,
         schema = @Schema(type = "string"), in = ParameterIn.HEADER, example = "spcyQkKp9XJEl")
     public ResponseData<Void> deleteMember(@RequestBody @Valid DeleteMemberRo data) {
@@ -472,8 +595,7 @@ public class MemberController {
             response.setCharacterEncoding(StandardCharsets.UTF_8.name());
             // fileName is the name of the file that displays the download dialog box
             String name = "员工信息模板";
-            String fileName =
-                URLEncoder.encode(name, StandardCharsets.UTF_8).replaceAll("\\+", "%20");
+            String fileName = URLEncoder.encode(name, "UTF-8").replaceAll("\\+", "%20");
             response.setHeader("Content-disposition",
                 "attachment;filename*=utf-8''" + fileName + ".xlsx");
             InputStream inputStream =
@@ -502,8 +624,8 @@ public class MemberController {
      * Upload employee sheet.
      */
     @PostResource(path = "/uploadExcel", tags = "INVITE_MEMBER")
-    @Operation(summary = "Upload employee sheet",
-        description = "Upload employee sheet，then parse it.")
+    @Operation(summary = "Upload employee sheet", description = "Upload employee sheet，then parse"
+        + " it.")
     @Parameter(name = ParamsConstants.SPACE_ID, description = "space id", required = true,
         schema = @Schema(type = "string"), in = ParameterIn.HEADER, example = "spcyQkKp9XJEl")
     public ResponseData<UploadParseResultVO> uploadExcel(UploadMemberTemplateRo data) {
@@ -513,11 +635,6 @@ public class MemberController {
         // check black space
         blackListServiceFacade.checkSpace(spaceId);
         iSpaceService.checkCanOperateSpaceUpdate(spaceId);
-        SubscriptionInfo subscriptionInfo =
-            entitlementServiceFacade.getSpaceSubscription(spaceId);
-        if (subscriptionInfo.isFree() && iMemberService.shouldPreventInvitation(spaceId)) {
-            return ResponseData.success(new UploadParseResultVO());
-        }
         UploadParseResultVO resultVo = iMemberService.parseExcelFile(spaceId, data.getFile());
         return ResponseData.success(resultVo);
     }

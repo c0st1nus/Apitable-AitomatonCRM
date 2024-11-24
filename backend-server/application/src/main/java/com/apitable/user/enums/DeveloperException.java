@@ -18,13 +18,11 @@
 
 package com.apitable.user.enums;
 
-import com.apitable.core.exception.BaseException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-/**
- * developer exception.
- */
+import com.apitable.core.exception.BaseException;
+
 @Getter
 @AllArgsConstructor
 public enum DeveloperException implements BaseException {

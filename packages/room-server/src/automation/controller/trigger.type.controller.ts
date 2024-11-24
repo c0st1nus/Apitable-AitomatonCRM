@@ -19,15 +19,16 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { RobotTriggerTypeService } from '../services/robot.trigger.type.service';
 
-@Controller(['nest/v1/robots/trigger-types', 'nest/v1/automation/trigger-types'])
+@Controller('nest/v1/robots/trigger-types')
 export class RobotTriggerTypeController {
   constructor(
     private readonly robotTriggerTypeService: RobotTriggerTypeService,
   ) { }
 
   @Get(['/'])
-  getTriggerTypes(@Query('lang') lang: string) {
-    return this.robotTriggerTypeService.getTriggerType(lang);
+  getTriggerTypes(@Query('lang') lang: string | string[]) {
+    const language = (!lang || lang.includes('zh')) ? 'zh' : 'en';
+    return this.robotTriggerTypeService.getTriggerType(language);
   }
 
 }

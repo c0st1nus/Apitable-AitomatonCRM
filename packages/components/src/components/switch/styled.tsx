@@ -22,11 +22,11 @@ import { ISwitchProps } from './interface';
 
 const duration = '.3s';
 
-export const SIZE_MAP = {
+const SIZE_MAP = {
   small: {
-    height: 16,
-    width: 28,
-    innerSize: 12,
+    height: 14,
+    width: 24,
+    innerSize: 10,
   },
   default: {
     height: 20,
@@ -37,12 +37,6 @@ export const SIZE_MAP = {
     height: 28,
     width: 48,
     innerSize: 20,
-  },
-
-  xl: {
-    height: 48,
-    width: 116,
-    innerSize: 40,
   }
 };
 
@@ -107,9 +101,9 @@ export const SwitchBeforeBase = styled.span.attrs(applyDefaultTheme) <ISwitchPro
     const { innerSize, height, width } = SIZE_MAP[propsSize];
     const innerSpace = (height - innerSize) / 2;
     const fontSize = `calc(${innerSize}px - 4px);`;
-    const { bgStaticLightDefault } = props.theme.color;
+    const { bgStaticLight } = props.theme.color;
     return css`
-      background-color: ${bgStaticLightDefault};
+      background-color: ${bgStaticLight};
       width: ${innerSize}px;
       height: ${innerSize}px;
       border-radius: ${innerSize / 2}px;

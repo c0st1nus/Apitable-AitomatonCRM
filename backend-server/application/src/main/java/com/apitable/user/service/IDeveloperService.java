@@ -18,13 +18,10 @@
 
 package com.apitable.user.service;
 
-/**
- * developer service.
- */
 public interface IDeveloperService {
 
     /**
-     * check whether the user has been configured.
+     * check whether the user has been configured
      *
      * @param userId user id
      * @return true | false
@@ -32,15 +29,14 @@ public interface IDeveloperService {
     boolean checkHasCreate(Long userId);
 
     /**
-     * get api key.
-     *
+     * get api key
      * @param userId user id
      * @return api key
      */
     String getApiKeyByUserId(Long userId);
 
     /**
-     * validate api key.
+     * validate api key
      *
      * @param apiKey access token
      * @return true | false
@@ -48,7 +44,7 @@ public interface IDeveloperService {
     boolean validateApiKey(String apiKey);
 
     /**
-     * create api key.
+     * create api key
      *
      * @param userId user id
      * @return API KEY
@@ -56,7 +52,7 @@ public interface IDeveloperService {
     String createApiKey(Long userId);
 
     /**
-     * refresh api key.
+     * refresh api key
      *
      * @param userId user id
      * @return new api api

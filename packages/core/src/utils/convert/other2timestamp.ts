@@ -21,16 +21,16 @@ import type { IDateTimeField, ITimestamp } from 'types/field_types';
 import duration from 'dayjs/plugin/duration';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { getTimeZoneOffsetByUtc, getTimeZone } from '../../config';
-import moment from 'moment-timezone';
-
 dayjs.extend(duration);
 dayjs.extend(customParseFormat);
 
-export function str2timestamp(value: string | null, dateFormat?: string): ITimestamp | null {
+export function str2timestamp(
+  value: string | null,
+): ITimestamp | null {
   if (!value) {
     return null;
   }
-  const dateTime = dayjs(value, dateFormat);
+  const dateTime = dayjs(value);
 
   return dateTime.isValid() ? dateTime.valueOf() : null;
 }
@@ -62,29 +62,20 @@ export function str2time(value: string, _field?: IDateTimeField) {
   if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
     return;
   }
-  return dayjs
-    .duration({
-      hours,
-      minutes,
-      // seconds: parseInt(s, 10),
-      // milliseconds: dateTime.millisecond(),
-    })
-    .asMilliseconds();
+  return dayjs.duration({
+    hours,
+    minutes,
+    // seconds: parseInt(s, 10),
+    // milliseconds: dateTime.millisecond(),
+  }).asMilliseconds();
 }
 
-export const isDstDate = (date: string, timeZone?: string) => {
-  if (!timeZone) return false;
-  return moment(date).tz(timeZone).isDST();
-};
-
-export const diffTimeZone = (timeZone?: string, isdstDate?: boolean) => {
+export const diffTimeZone = (timeZone?: string) => {
   if (!timeZone) return 0;
-  const tzOffset = getTimeZoneOffsetByUtc(timeZone, isdstDate)!;
+  const tzOffset = getTimeZoneOffsetByUtc(timeZone)!;
   const clientTimeZone = getTimeZone();
-  const clientTzOffset = getTimeZoneOffsetByUtc(clientTimeZone, isdstDate)!;
-  return dayjs
-    .duration({
-      hours: clientTzOffset - tzOffset,
-    })
-    .asMilliseconds();
+  const clientTzOffset = getTimeZoneOffsetByUtc(clientTimeZone)!;
+  return dayjs.duration({
+    hours: clientTzOffset - tzOffset
+  }).asMilliseconds();
 };

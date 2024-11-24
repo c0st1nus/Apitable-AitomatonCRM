@@ -20,9 +20,6 @@ package com.apitable.space.dto;
 
 import lombok.Data;
 
-/**
- * space link dto.
- */
 @Data
 public class SpaceLinkDTO {
 

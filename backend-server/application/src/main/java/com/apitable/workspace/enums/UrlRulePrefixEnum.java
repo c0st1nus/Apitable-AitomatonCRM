@@ -19,8 +19,6 @@
 package com.apitable.workspace.enums;
 
 /**
- * url rule prefix enum.
- *
  * @author tao
  */
 public enum UrlRulePrefixEnum {

@@ -18,20 +18,22 @@
 
 package com.apitable.workspace.service.impl;
 
-import com.apitable.workspace.entity.DatasheetWidgetEntity;
+import javax.annotation.Resource;
+
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+
 import com.apitable.workspace.mapper.DatasheetWidgetMapper;
 import com.apitable.workspace.service.IDatasheetWidgetService;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import jakarta.annotation.Resource;
+import com.apitable.workspace.entity.DatasheetWidgetEntity;
+
 import org.springframework.stereotype.Service;
 
 /**
- * datasheet widget service implement.
+ * 
+ * 
  */
 @Service
-public class DatasheetWidgetServiceImpl
-    extends ServiceImpl<DatasheetWidgetMapper, DatasheetWidgetEntity>
-    implements IDatasheetWidgetService {
+public class DatasheetWidgetServiceImpl extends ServiceImpl<DatasheetWidgetMapper, DatasheetWidgetEntity> implements IDatasheetWidgetService {
 
     @Resource
     private DatasheetWidgetMapper datasheetWidgetMapper;

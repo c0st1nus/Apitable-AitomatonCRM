@@ -20,7 +20,6 @@ package com.apitable.user.ro;
 
 import com.apitable.base.enums.ValidateType;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import lombok.Data;
 
 /**
@@ -36,16 +35,30 @@ public class RetrievePwdOpRo {
     @Schema(description = "Area code（Required for SMS verification code）", example = "+86")
     private String areaCode;
 
-    @Schema(description = "Login Name（Phone number/Email）",
-        requiredMode = RequiredMode.REQUIRED, example = "13829291111 ｜ xxx@xx.com")
+    @Schema(description = "Login Name（Phone number/Email）", example = "13829291111 ｜ xxx@xx.com",
+        required = true)
     private String username;
 
-    @Schema(description = "Phone number/Email Verification Code",
-        requiredMode = RequiredMode.REQUIRED, example = "123456")
+    @Deprecated
+    @Schema(description = "Phone number", example = "135...")
+    private String phone;
+
+    @Schema(description = "Phone number/Email Verification Code", example = "123456", required =
+        true)
     private String code;
 
-    @Schema(description = "Password", requiredMode = RequiredMode.REQUIRED,
-        example = "qwer1234")
+    @Schema(description = "Password", example = "qwer1234", required = true)
     private String password;
 
+    /**
+     * Get User name.
+     */
+    @Deprecated
+    public String getUsername() {
+        // Compatible processing
+        if (username == null) {
+            return phone;
+        }
+        return username;
+    }
 }

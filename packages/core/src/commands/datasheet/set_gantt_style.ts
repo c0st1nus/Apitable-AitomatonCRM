@@ -16,14 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { CollaCommandName } from 'commands/enum';
+import { CollaCommandName } from 'commands';
 import { ExecuteResult, ICollaCommandDef } from 'command_manager';
 import { IJOTAction } from 'engine';
 import { Strings, t } from '../../exports/i18n';
-import { ISetGanttStyle } from '../../exports/store/interfaces';
-import { getActiveDatasheetId, getDatasheet } from 'modules/database/store/selectors/resource/datasheet/base';
+import { GanttView } from 'model';
+import { ISetGanttStyle } from '../../exports/store';
+import { getActiveDatasheetId, getDatasheet } from '../../exports/store/selectors';
 import { ResourceType } from 'types';
-import { ViewAction } from 'commands_actions/view';
 
 export type ISetGanttStyleOptions = {
   cmd: CollaCommandName.SetGanttStyle;
@@ -35,7 +35,7 @@ export const setGanttStyle: ICollaCommandDef<ISetGanttStyleOptions> = {
   undoable: true,
 
   execute: (context, options) => {
-    const { state: state } = context;
+    const { model: state } = context;
     const { viewId } = options;
     const datasheetId = getActiveDatasheetId(state)!;
     const datasheet = getDatasheet(state, datasheetId);
@@ -49,7 +49,7 @@ export const setGanttStyle: ICollaCommandDef<ISetGanttStyleOptions> = {
     }
 
     const actions: IJOTAction[] = [];
-    const setGanttStyleAction = ViewAction.setGanttStyle2Action(datasheet.snapshot, options);
+    const setGanttStyleAction = GanttView.setGanttStyle2Action(datasheet.snapshot, options);
     setGanttStyleAction && actions.push(...setGanttStyleAction);
     if (actions.length === 0) {
       return null;

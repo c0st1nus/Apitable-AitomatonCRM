@@ -16,57 +16,60 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { Box, IOption, Skeleton } from '@apitable/components';
+import {
+  ConfigConstant,
+  DatasheetApi,
+  IFieldPermissionMember,
+  IFieldPermissionRole,
+  IMember,
+  IUnitValue,
+  MemberType,
+  Selectors,
+  StoreActions,
+  Strings,
+  t,
+} from '@apitable/core';
 import { useMount, useToggle } from 'ahooks';
+import { Switch } from 'antd';
 import { TriggerCommands } from 'modules/shared/apphook/trigger_commands';
-import { useEffect, useState } from 'react';
-import { Box, IOption, Skeleton, Switch } from '@apitable/components';
-import { ConfigConstant, DatasheetApi, IFieldPermissionRole, IUnitValue, MemberType, Selectors, StoreActions, Strings, t } from '@apitable/core';
-import { MembersDetail } from 'pc/components/catalog/permission_settings_plus/permission/members_detail';
+import { MembersDetail } from 'pc/components/catalog/permission_settings/permission/members_detail';
 import { UnitItem } from 'pc/components/catalog/permission_settings_plus/permission/unit_item';
 import { Message } from 'pc/components/common/message/message';
 import { IEnablePermissionPlus } from 'pc/components/field_permission/interface';
 import styles from 'pc/components/field_permission/styles.module.less';
 import { UnitPermissionSelect } from 'pc/components/field_permission/unit_permission_select';
-import { useRequest, useCatalogTreeRequest } from 'pc/hooks';
-import { useAppSelector } from 'pc/store/react-redux';
+import { useRequest } from 'pc/hooks';
 import { dispatch } from 'pc/worker/store';
-import { IMemberList } from '../catalog/permission_settings_plus/permission/permission';
+import { useState } from 'react';
+import { useSelector } from 'react-redux';
 import { PermissionInfoSetting } from '../catalog/permission_settings_plus/permission/permission_info_setting';
 // @ts-ignore
-import { SubscribeUsageTipType, triggerUsageAlert } from 'enterprise/billing';
+import { SubscribeUsageTipType, triggerUsageAlert } from 'enterprise';
 
 const defaultSetting = { formSheetAccessible: false };
 
 export const EnableFieldPermissionPlus: React.FC<React.PropsWithChildren<IEnablePermissionPlus>> = (props) => {
   const { field } = props;
   const [roleList, setRoleList] = useState<IFieldPermissionRole[]>([]);
-
+  const [memberList, setMemberList] = useState<IFieldPermissionMember[]>([]);
   const [setting, setSetting] = useState<{ formSheetAccessible: boolean }>();
-  const datasheetId = useAppSelector((state) => state.pageParams.datasheetId)!;
+  const datasheetId = useSelector(state => state.pageParams.datasheetId)!;
   const [isMemberDetail, { toggle: toggleIsMemberDetail }] = useToggle(false);
-  const fieldPermission = useAppSelector(Selectors.getFieldPermissionMap)!;
+  const fieldPermission = useSelector(Selectors.getFieldPermissionMap)!;
   const readonly = fieldPermission[field.id] && !fieldPermission[field.id].manageable;
   const [enabledFieldPermission, setEnabledFieldPermission] = useState<boolean>();
-  const spaceInfo = useAppSelector((state) => state.space.curSpaceInfo);
-  const spaceId = useAppSelector((state) => state.space.activeId);
-
-  const [memberList, setMemberList] = useState<IMemberList[]>([]);
-  const [pageNo, setPageNo] = useState<number>(1);
-  const { getFieldPermissionMemberListPage } = useCatalogTreeRequest();
-  const { run: getCollaboratorReq, data: collaboratorInfo } = useRequest(
-    (pageNo) => getFieldPermissionMemberListPage(datasheetId, field.id, pageNo),
-    {
-      manual: true,
-    },
-  );
+  const spaceInfo = useSelector(state => state.space.curSpaceInfo)!;
+  const spaceId = useSelector(state => state.space.activeId)!;
 
   const { run } = useRequest(DatasheetApi.fetchFieldPermissionRoleList, {
     manual: true,
     onSuccess(res) {
       const { success, data } = res.data;
       if (success) {
-        const { roles, setting, enabled } = data;
+        const { members, roles, setting, enabled } = data;
         setEnabledFieldPermission(enabled);
+        setMemberList(members);
         setRoleList(roles || []);
         setSetting(setting || defaultSetting);
         setTimeout(() => {
@@ -84,17 +87,6 @@ export const EnableFieldPermissionPlus: React.FC<React.PropsWithChildren<IEnable
     fetchRoleList();
   });
 
-  useEffect(() => {
-    getCollaboratorReq(pageNo);
-  }, [pageNo, getCollaboratorReq]);
-
-  useEffect(() => {
-    if (collaboratorInfo) {
-      setMemberList([...memberList, ...collaboratorInfo.records]);
-    }
-    // eslint-disable-next-line
-  }, [collaboratorInfo, setMemberList]);
-
   /**
    * Open column permissions
    * If the permission settings are not currently enabled, you will need to manually invoke them before the following actions can be performed
@@ -104,15 +96,13 @@ export const EnableFieldPermissionPlus: React.FC<React.PropsWithChildren<IEnable
    * 4. Batch update roles
    * @returns
    */
-  const openFieldPermission = async () => {
+  const openFieldPermission = async() => {
     if (enabledFieldPermission) {
       return true;
     }
-    if (spaceInfo) {
-      const result = triggerUsageAlert('fieldPermissionNums', { usage: spaceInfo.fieldRoleNums + 1, alwaysAlert: true }, SubscribeUsageTipType.Alert);
-      if (result) {
-        return false;
-      }
+    const result = triggerUsageAlert('fieldPermissionNums', { usage: spaceInfo.fieldRoleNums + 1, alwaysAlert: true }, SubscribeUsageTipType.Alert);
+    if (result) {
+      return false;
     }
 
     const res = await DatasheetApi.setFieldPermissionStatus(datasheetId, field.id, true, true);
@@ -124,21 +114,19 @@ export const EnableFieldPermissionPlus: React.FC<React.PropsWithChildren<IEnable
       });
       return false;
     }
-    if (spaceId) {
-      dispatch(StoreActions.getSpaceInfo(spaceId, true));
-    }
+    dispatch(StoreActions.getSpaceInfo(spaceId, true));
     return true;
   };
 
-  const submitAddRole = async (unitInfos: IUnitValue[], permission: IOption) => {
+  const submitAddRole = async(unitInfos: IUnitValue[], permission: IOption) => {
     if (!unitInfos.length || !permission) {
       return;
     }
-    if (unitInfos.some(({ unitId }) => roleList.some((v) => v.unitId === unitId && (v.isAdmin || v.isOwner)))) {
+    if (unitInfos.some(({ unitId }) => roleList.some(v => v.unitId === unitId && (v.isAdmin || v.isOwner)))) {
       Message.error({ content: t(Strings.no_permission_setting_admin) });
       return;
     }
-    const unitIds = unitInfos.map((item) => {
+    const unitIds = unitInfos.map(item => {
       return item.unitId;
     });
     const role = permission.value + '';
@@ -180,7 +168,7 @@ export const EnableFieldPermissionPlus: React.FC<React.PropsWithChildren<IEnable
     });
   };
 
-  const editRole = async (unitId: string, role: string) => {
+  const editRole = async(unitId: string, role: string) => {
     const openFieldPermissionRes = await openFieldPermission();
     if (!openFieldPermissionRes) {
       return;
@@ -200,7 +188,7 @@ export const EnableFieldPermissionPlus: React.FC<React.PropsWithChildren<IEnable
     await fetchRoleList();
   };
 
-  const onRemove = async (unitId: string) => {
+  const onRemove = async(unitId: string) => {
     const openFieldPermissionRes = await openFieldPermission();
     if (!openFieldPermissionRes) {
       return;
@@ -217,11 +205,11 @@ export const EnableFieldPermissionPlus: React.FC<React.PropsWithChildren<IEnable
     await fetchRoleList();
   };
 
-  const fetchRoleList = async () => {
+  const fetchRoleList = async() => {
     await run(datasheetId, field.id);
   };
 
-  const changeFormSheetAccessible = async (checked: boolean) => {
+  const changeFormSheetAccessible = async(checked: boolean) => {
     const res = await DatasheetApi.updateFieldPermissionSetting(datasheetId, field.id, checked);
     const { success, message } = res.data;
     if (!success) {
@@ -244,25 +232,23 @@ export const EnableFieldPermissionPlus: React.FC<React.PropsWithChildren<IEnable
     };
   };
 
-  const resetPermission = async () => {
+  const resetPermission = async() => {
     const res = await DatasheetApi.setFieldPermissionStatus(datasheetId, field.id, false);
     const { success, message } = res.data;
     if (!success) {
       handleErrMsg(message);
       return;
     }
-    if (spaceId) {
-      dispatch(StoreActions.getSpaceInfo(spaceId, true));
-    }
+    dispatch(StoreActions.getSpaceInfo(spaceId, true));
     fetchRoleList();
   };
 
-  const batchEditRole = async (role: string) => {
+  const batchEditRole = async(role: string) => {
     const openFieldPermissionRes = await openFieldPermission();
     if (!openFieldPermissionRes) {
       return;
     }
-    const unitIds = (roleList || []).filter((v) => !v.isAdmin && !v.isOwner).map((v) => v.unitId);
+    const unitIds = (roleList || []).filter(v => !v.isAdmin && !v.isOwner).map(v => v.unitId);
     if (!unitIds.length) {
       return;
     }
@@ -281,12 +267,12 @@ export const EnableFieldPermissionPlus: React.FC<React.PropsWithChildren<IEnable
     await fetchRoleList();
   };
 
-  const batchDeleteRole = async () => {
+  const batchDeleteRole = async() => {
     const openFieldPermissionRes = await openFieldPermission();
     if (!openFieldPermissionRes) {
       return;
     }
-    const unitIds = (roleList || []).filter((v) => !v.isAdmin && !v.isOwner).map((v) => v.unitId);
+    const unitIds = (roleList || []).filter(v => !v.isAdmin && !v.isOwner).map(v => v.unitId);
 
     if (!unitIds.length) {
       return;
@@ -321,12 +307,12 @@ export const EnableFieldPermissionPlus: React.FC<React.PropsWithChildren<IEnable
           classNames={styles.permissionSelect}
           permissionList={permissionList}
           onSubmit={submitAddRole}
-          adminAndOwnerUnitIds={roleList.filter((v) => v.isAdmin || v.isOwner).map((v) => v.unitId)}
+          adminAndOwnerUnitIds={roleList.filter(v => v.isAdmin || v.isOwner).map(v => v.unitId)}
         />
       )}
       <PermissionInfoSetting
         className={styles.permissionInfoSetting}
-        totalMember={collaboratorInfo?.total}
+        totalMember={memberList.length}
         isExtend={!enabledFieldPermission}
         resetPermission={resetPermission}
         toggleIsMemberDetail={toggleIsMemberDetail}
@@ -342,7 +328,7 @@ export const EnableFieldPermissionPlus: React.FC<React.PropsWithChildren<IEnable
         }}
       />
       <div className={styles.unitPermissionList}>
-        {roleList.map((item) => {
+        {roleList.map(item => {
           return (
             <UnitItem
               key={item.unitId}
@@ -380,7 +366,13 @@ export const EnableFieldPermissionPlus: React.FC<React.PropsWithChildren<IEnable
         </div>
       )}
       {isMemberDetail && (
-        <MembersDetail data={collaboratorInfo} memberList={memberList} setPageNo={setPageNo} pageNo={pageNo} onCancel={toggleIsMemberDetail} />
+        <MembersDetail
+          data={{
+            members: memberList,
+            admins: (memberList.filter(member => member.isAdmin) as any) as IMember[],
+          }}
+          onCancel={toggleIsMemberDetail}
+        />
       )}
     </div>
   );

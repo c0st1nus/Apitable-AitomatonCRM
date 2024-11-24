@@ -18,12 +18,11 @@
 
 import classNames from 'classnames';
 import { stopPropagation, useListenVisualHeight } from 'helper';
-import React, { PropsWithChildren, useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { IListDeprecateProps, IListItemProps } from './interface';
 import { ListSearch } from './list_search.ignore';
 import { FootWrapper, ResultSpan, StyledListItem, StyledListWrapper, WrapperDiv } from './styled';
 import { useListInteractive } from './use_list_interactive';
-import styled from 'styled-components';
 
 export const ListDeprecate: React.FC<React.PropsWithChildren<IListDeprecateProps>> & { Item: React.FC<React.PropsWithChildren<IListItemProps>> } = (props) => {
   const {
@@ -176,39 +175,21 @@ export const ListDeprecate: React.FC<React.PropsWithChildren<IListDeprecateProps
   </WrapperDiv>;
 };
 
-const StyledDiv = styled.div`
-  width: 100%;
-  
-  &:focus-visible {
-    outline: none;    
-  }
-`;
-
 // FIXME: line color
-export const ListDeprecateItem= React.forwardRef<HTMLDivElement, PropsWithChildren<any>> ((props) => {
-  const { currentIndex, selected, children, setRef, className, active, ...rest } = props;
+const Item: React.FC<React.PropsWithChildren<any>> = (props) => {
+  const { currentIndex, children, className, ...rest } = props;
 
   return <StyledListItem
+    role={'option'}
     data-tab-index={currentIndex}
-    active={active}
-    selected={selected}
     className={className}
+    {...rest}
     variant={'body2'}
   >
-    <StyledDiv
-      style={{
-        width: '100%'
-      }}
-      role={'option'}
-      ref={setRef}
-      {...rest}
-    >
-      {
-        children
-      }
-    </StyledDiv>
+    {
+      children
+    }
   </StyledListItem>;
-});
+};
 
-// @ts-ignore
-ListDeprecate.Item = ListDeprecateItem;
+ListDeprecate.Item = Item;

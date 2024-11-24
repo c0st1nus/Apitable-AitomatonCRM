@@ -28,8 +28,8 @@ import com.apitable.shared.component.scanner.annotation.ApiResource;
 import com.apitable.shared.component.scanner.annotation.PostResource;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.annotation.Resource;
 import java.util.List;
+import javax.annotation.Resource;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -47,9 +47,10 @@ public class AssetCallbackController {
     private IAssetCallbackService iAssetCallbackService;
 
     /**
-     * Resource upload completion notification callback.
+     * Resource upload completion notification callbac.
      */
-    @PostResource(path = "/upload/callback", requiredLogin = false)
+    @PostResource(name = "Resource upload completion notification callback",
+        path = "/upload/callback", requiredLogin = false)
     @Operation(summary = "Resource upload completion notification callback",
         description = "After S3 completes the client upload, "
             + "it actively reaches the notification server")
@@ -63,7 +64,8 @@ public class AssetCallbackController {
     /**
      * widget upload callback.
      */
-    @PostResource(path = "/widget/uploadCallback", requiredLogin = false)
+    @PostResource(name = "widget upload callback",
+        path = "/widget/uploadCallback", requiredLogin = false)
     @Operation(summary = "widget upload callback")
     public ResponseData<Void> widgetCallback(
         @RequestBody final WidgetUploadNotifyRO body) {

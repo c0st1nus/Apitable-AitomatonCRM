@@ -18,6 +18,6 @@
 
 import { store } from 'pc/store';
 // @ts-ignore
-import { currentGuideWizardIdInHook } from 'enterprise/guide/utils';
+import { currentGuideWizardIdInHook } from 'enterprise';
 
 store.subscribe(currentGuideWizardIdInHook || (() => {}));

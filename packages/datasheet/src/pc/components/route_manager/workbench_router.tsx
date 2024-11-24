@@ -21,13 +21,8 @@ import { SideWrapper } from 'pc/components/route_manager/side_wrapper';
 import { Workspace } from 'pc/components/workspace';
 
 const WorkbenchRouter = () => {
-  return (
-    <PrivateRoute>
-      <SideWrapper>
-        <Workspace />
-      </SideWrapper>
-    </PrivateRoute>
-  );
+ 
+  return <PrivateRoute><SideWrapper><Workspace /></SideWrapper></PrivateRoute>;
 };
 
 export default WorkbenchRouter;

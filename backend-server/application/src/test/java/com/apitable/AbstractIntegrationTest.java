@@ -20,19 +20,12 @@ package com.apitable;
 
 import cn.hutool.core.collection.CollUtil;
 import com.apitable.asset.service.IAssetCallbackService;
-import com.apitable.asset.service.IAssetService;
 import com.apitable.asset.service.IAssetUploadTokenService;
-import com.apitable.asset.task.AssetTask;
 import com.apitable.auth.service.IAuthService;
-import com.apitable.automation.service.IAutomationActionService;
-import com.apitable.automation.service.IAutomationRobotService;
-import com.apitable.automation.service.IAutomationTriggerService;
-import com.apitable.automation.service.IAutomationTriggerTypeService;
-import com.apitable.client.task.ClientTasks;
 import com.apitable.control.service.IControlRoleService;
 import com.apitable.control.service.IControlService;
+import com.apitable.interfaces.billing.facade.EntitlementServiceFacade;
 import com.apitable.internal.service.IFieldService;
-import com.apitable.internal.service.InternalSpaceService;
 import com.apitable.mock.bean.MockInvitation;
 import com.apitable.mock.bean.MockUserSpace;
 import com.apitable.organization.ro.RoleMemberUnitRo;
@@ -49,88 +42,59 @@ import com.apitable.shared.captcha.sms.SmsValidateCodeProcessor;
 import com.apitable.shared.clock.MockClock;
 import com.apitable.shared.clock.spring.ClockManager;
 import com.apitable.shared.component.notification.INotificationFactory;
-import com.apitable.shared.component.notification.queue.NotificationConsumer;
 import com.apitable.shared.config.properties.SystemProperties;
 import com.apitable.shared.holder.UserHolder;
 import com.apitable.shared.util.IdUtil;
-import com.apitable.shared.util.RandomExtendUtil;
+import com.apitable.space.mapper.InvitationMapper;
+import com.apitable.space.mapper.SpaceMapper;
+import com.apitable.space.mapper.SpaceMemberRoleRelMapper;
+import com.apitable.space.mapper.SpaceRoleResourceRelMapper;
 import com.apitable.space.service.IInvitationService;
-import com.apitable.space.service.ISpaceInvitationService;
 import com.apitable.space.service.ISpaceInviteLinkService;
-import com.apitable.space.service.ISpaceMemberRoleRelService;
-import com.apitable.space.service.ISpaceRoleResourceRelService;
 import com.apitable.space.service.ISpaceRoleService;
 import com.apitable.space.service.ISpaceService;
 import com.apitable.space.service.IStaticsService;
-import com.apitable.starter.amqp.core.RabbitSenderService;
-import com.apitable.starter.mail.autoconfigure.MailTemplate;
-import com.apitable.starter.oss.core.OssClientTemplate;
-import com.apitable.template.service.ITemplateAlbumRelService;
+import com.apitable.sql.script.enhance.TablePrefixUtil;
 import com.apitable.template.service.ITemplateAlbumService;
 import com.apitable.template.service.ITemplateService;
 import com.apitable.user.entity.UserEntity;
+import com.apitable.user.mapper.UserMapper;
 import com.apitable.user.service.IUserService;
-import com.apitable.user.task.UserTasks;
 import com.apitable.widget.service.IWidgetPackageService;
-import com.apitable.widget.service.IWidgetService;
 import com.apitable.widget.service.IWidgetUploadService;
 import com.apitable.workspace.dto.CreateNodeDto;
-import com.apitable.workspace.entity.NodeEntity;
 import com.apitable.workspace.enums.NodeType;
 import com.apitable.workspace.service.IDatasheetMetaService;
 import com.apitable.workspace.service.IFieldRoleService;
 import com.apitable.workspace.service.INodeRoleService;
-import com.apitable.workspace.service.INodeRubbishService;
 import com.apitable.workspace.service.INodeService;
 import com.apitable.workspace.service.IResourceMetaService;
-import com.apitable.workspace.service.NodeBundleService;
 import com.baomidou.mybatisplus.autoconfigure.MybatisPlusProperties;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.FilterType;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.client.RestClient;
 
 @SpringBootTest(classes = Application.class)
 @TestPropertySource(value = {
     "classpath:test.properties", "classpath:spring.properties"
 })
-@ComponentScan(excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE,
-    classes = {
-        UserTasks.class,
-        AssetTask.class,
-        ClientTasks.class,
-        NotificationConsumer.class
-    })
-)
-@AutoConfigureMockMvc
 public abstract class AbstractIntegrationTest extends TestSuiteWithDB {
 
     @Autowired
     protected JdbcTemplate jdbcTemplate;
 
     @Autowired
-    protected MockMvc mockMvc;
-
-    @Autowired
     protected RedisTemplate<String, Object> redisTemplate;
-
-    @MockBean
-    protected RestClient restClient;
 
     @Autowired
     protected MybatisPlusProperties mybatisPlusProperties;
@@ -160,9 +124,6 @@ public abstract class AbstractIntegrationTest extends TestSuiteWithDB {
     protected INodeService iNodeService;
 
     @Autowired
-    protected INodeRubbishService iNodeRubbishService;
-
-    @Autowired
     protected PasswordEncoder passwordEncoder;
 
     @Autowired
@@ -179,6 +140,9 @@ public abstract class AbstractIntegrationTest extends TestSuiteWithDB {
 
     @Autowired
     protected ITemplateService iTemplateService;
+
+    @Autowired
+    protected EntitlementServiceFacade entitlementServiceFacade;
 
     @Autowired
     protected IAssetCallbackService iAssetCallbackService;
@@ -199,9 +163,6 @@ public abstract class AbstractIntegrationTest extends TestSuiteWithDB {
     protected ISpaceInviteLinkService iSpaceInviteLinkService;
 
     @Autowired
-    protected ISpaceInvitationService iSpaceInvitationService;
-
-    @Autowired
     protected IControlRoleService iControlRoleService;
 
     @Autowired
@@ -211,28 +172,16 @@ public abstract class AbstractIntegrationTest extends TestSuiteWithDB {
     protected ISpaceRoleService iSpaceRoleService;
 
     @Autowired
-    protected ISpaceMemberRoleRelService iSpaceMemberRoleRelService;
-
-    @Autowired
-    protected ISpaceRoleResourceRelService iSpaceRoleResourceRelService;
-
-    @Autowired
     protected IStaticsService iStaticsService;
 
     @Autowired
     protected ITemplateAlbumService iTemplateAlbumService;
 
     @Autowired
-    protected ITemplateAlbumRelService iTemplateAlbumRelService;
-
-    @Autowired
     protected IWidgetUploadService iWidgetUploadService;
 
     @Autowired
     protected IWidgetPackageService iWidgetPackageService;
-
-    @Autowired
-    protected IWidgetService iWidgetService;
 
     @Autowired
     protected IFieldRoleService iFieldRoleService;
@@ -249,27 +198,6 @@ public abstract class AbstractIntegrationTest extends TestSuiteWithDB {
     @Autowired
     protected IResourceMetaService iResourceMetaService;
 
-    @Autowired
-    protected InternalSpaceService internalSpaceService;
-
-    @Autowired
-    protected IAssetService iAssetService;
-
-    @Autowired
-    protected IAutomationTriggerService iAutomationTriggerService;
-
-    @Autowired
-    protected IAutomationRobotService iAutomationRobotService;
-
-    @Autowired
-    protected IAutomationTriggerTypeService iAutomationTriggerTypeService;
-
-    @Autowired
-    protected IAutomationActionService iAutomationActionService;
-
-    @Autowired
-    protected NodeBundleService nodeBundleService;
-
     @Value("#{'${exclude}'.split(',')}")
     private List<String> excludeTables;
 
@@ -279,14 +207,20 @@ public abstract class AbstractIntegrationTest extends TestSuiteWithDB {
     @MockBean
     protected SmsValidateCodeProcessor smsValidateCodeProcessor;
 
-    @MockBean
-    protected MailTemplate mailTemplate;
+    @Autowired
+    protected InvitationMapper invitationMapper;
 
-    @MockBean
-    protected OssClientTemplate ossTemplate;
+    @Autowired
+    protected SpaceMapper spaceMapper;
 
-    @MockBean
-    protected RabbitSenderService rabbitSenderService;
+    @Autowired
+    protected UserMapper userMapper;
+
+    @Autowired
+    protected SpaceMemberRoleRelMapper spaceMemberRoleRelMapper;
+
+    @Autowired
+    protected SpaceRoleResourceRelMapper spaceRoleResourceRelMapper;
 
     @BeforeEach
     public void beforeMethod() {
@@ -310,6 +244,11 @@ public abstract class AbstractIntegrationTest extends TestSuiteWithDB {
         return tablePrefix.toString();
     }
 
+    protected void execute(String sql) {
+        String newSql = TablePrefixUtil.changeTablePrefix(sql, tablePrefix());
+        jdbcTemplate.execute(newSql);
+    }
+
     @Override
     protected JdbcTemplate configureJdbcTemplate() {
         return this.jdbcTemplate;
@@ -324,12 +263,20 @@ public abstract class AbstractIntegrationTest extends TestSuiteWithDB {
         return ClockManager.me().getMockClock();
     }
 
+    protected UserEntity createUserRandom() {
+        return createUserWithEmailAndPassword(IdWorker.getIdStr() + "@apitable.com");
+    }
+
     protected UserEntity createUserWithEmail(String email) {
         return iUserService.createUserByEmail(email);
     }
 
+    protected UserEntity createUserWithEmailAndPassword(String email) {
+        return iUserService.createUserByEmail(email, "123456");
+    }
+
     protected String createSpaceWithoutName(UserEntity user) {
-        return iSpaceService.createSpace(user, "test space").getId();
+        return iSpaceService.createSpace(user, "test space");
     }
 
     protected Long createMember(Long userId, String spaceId) {
@@ -342,24 +289,18 @@ public abstract class AbstractIntegrationTest extends TestSuiteWithDB {
     }
 
     protected MockUserSpace createSingleUserAndSpace() {
-        UserEntity user =
-            iUserService.createUserByEmail(
-                "test_user" + RandomExtendUtil.randomString(10) + "@apitable.com",
-                "123456");
+        UserEntity user = createUserRandom();
         String spaceId = createSpaceWithoutName(user);
 
         // init context
         initCallContext(user.getId());
 
-        // get member id in space
-        Long memberId = iMemberService.getMemberIdByUserIdAndSpaceId(user.getId(), spaceId);
-
-        return new MockUserSpace(user.getId(), spaceId, memberId);
+        return new MockUserSpace(user.getId(), spaceId);
     }
 
     protected void initCallContext(Long userId) {
         UserHolder.init();
-        refreshCallContext(userId);
+        UserHolder.set(userId);
     }
 
     protected void refreshCallContext(Long userId) {
@@ -407,35 +348,5 @@ public abstract class AbstractIntegrationTest extends TestSuiteWithDB {
         iRoleMemberService.addRoleMembers(allPart,
             CollUtil.newArrayList(rootTeamUnit, adminUnit, memberUnit));
         return allPart;
-    }
-
-    protected void initNodeTreeMockData(String spaceId, String rootNodeId) {
-        List<NodeEntity> nodeEntities = Lists.list(
-            NodeEntity.builder()
-                .spaceId(spaceId).parentId(rootNodeId).nodeId("L1")
-                .type(NodeType.FOLDER.getNodeType()).nodeName("L1")
-                .build(),
-            NodeEntity.builder()
-                .spaceId(spaceId).parentId("L1").nodeId("L2-1")
-                .type(NodeType.DATASHEET.getNodeType()).nodeName("L2-1")
-                .build(),
-            NodeEntity.builder()
-                .spaceId(spaceId).parentId("L1").nodeId("L2-2")
-                .type(NodeType.DATASHEET.getNodeType()).nodeName("L2-2")
-                .build(),
-            NodeEntity.builder()
-                .spaceId(spaceId).parentId("L1").nodeId("L2-3")
-                .type(NodeType.DATASHEET.getNodeType()).nodeName("L2-3")
-                .build(),
-            NodeEntity.builder()
-                .spaceId(spaceId).parentId("L1").nodeId("L2-4")
-                .type(NodeType.DATASHEET.getNodeType()).nodeName("L2-4")
-                .build(),
-            NodeEntity.builder()
-                .spaceId(spaceId).parentId("L1").nodeId("L2-5")
-                .type(NodeType.DATASHEET.getNodeType()).nodeName("L2-5")
-                .build()
-        );
-        iNodeService.saveBatch(nodeEntities);
     }
 }

@@ -33,21 +33,13 @@ import {
   IMoveView,
   ISetRecordOptions
 } from 'commands';
-import { IRecordMap, IReduxState, IServerDatasheetPack, ISnapshot, IViewProperty } from 'exports/store/interfaces';
-import {
-  getSnapshot,
-  getDatasheet,
-} from 'modules/database/store/selectors/resource/datasheet/base';
-import { getResourceRevision } from 'modules/database/store/selectors/resource';
-import { getStringifyCellValue,getViewById } from 'modules/database/store/selectors/resource/datasheet';
-
+import { IRecordMap, IReduxState, IServerDatasheetPack, ISnapshot, IViewProperty, Selectors } from 'exports/store';
 import { Store } from 'redux';
 import { IField, ResourceType } from 'types';
-import { Field } from './field';
+import { Field } from '.';
 import { IDataSaver, ILoadDatasheetPackOptions, ISaveOpsOptions, IStoreOptions } from '../providers';
 import { IResource } from './resource.interface';
 import { IAddRecordsOptions, IViewOptions, View } from './view';
-import { applyJOTOperations } from 'modules/database/store/actions/resource';
 
 interface IDatasheetCtorOptions {
   store: Store<IReduxState>;
@@ -78,21 +70,21 @@ export class Datasheet implements IResource {
    * The name of this datasheet.
    */
   public get name(): string {
-    return getDatasheet(this.store.getState(), this.id)!.name;
+    return Selectors.getDatasheet(this.store.getState(), this.id)!.name;
   }
 
   /**
    * The snapshot data of this datasheet.
    */
   public get snapshot(): ISnapshot {
-    return getSnapshot(this.store.getState(), this.id)!;
+    return Selectors.getSnapshot(this.store.getState(), this.id)!;
   }
 
   /**
    * The revision number of this datasheet.
    */
   public get revision(): number {
-    return getResourceRevision(this.store.getState(), this.id, ResourceType.Datasheet)!;
+    return Selectors.getResourceRevision(this.store.getState(), this.id, ResourceType.Datasheet)!;
   }
 
   /**
@@ -125,9 +117,6 @@ export class Datasheet implements IResource {
    * @deprecated This method is not intended for public use.
    */
   public async doCommand<R>(command: ICollaCommandOptions, saveOptions: ISaveOptions): Promise<ICommandExecutionResult<R>> {
-    if (saveOptions['prependOps'] && saveOptions['prependOps'].length > 0) {
-      this.store.dispatch(applyJOTOperations(saveOptions['prependOps'], this.type, this.id));
-    }
     const result = this._commandManager.execute<R>(command);
     if (result.result === ExecuteResult.Success) {
       const saveResult = await this.saver.saveOps(result.resourceOpsCollects, {
@@ -138,10 +127,6 @@ export class Datasheet implements IResource {
       result['saveResult'] = saveResult;
     }
     return result as ICommandExecutionResult<R>;
-  }
-
-  public async nestRoomChangeFromRust(roomId: string, data: any) {
-    await this.saver.nestRoomChangeFromRust(roomId, data);
   }
 
   /**
@@ -166,18 +151,6 @@ export class Datasheet implements IResource {
       },
       saveOptions,
     );
-  }
-
-  /**
-   * render the cell value
-   *
-   * @param fieldId datasheet field id
-   * @param recordId datasheet record id
-   *
-   * @return cell stringify value
-   */
-  public cellValue(fieldId: string, recordId: string): string {
-    return getStringifyCellValue(this.store.getState(), this.snapshot, recordId, fieldId);
   }
 
   /**
@@ -375,14 +348,14 @@ export class Datasheet implements IResource {
       return new View(this, this.store, info);
     }
 
-    const snapshot = getSnapshot(state, this.id);
+    const snapshot = Selectors.getSnapshot(state, this.id);
     if (!snapshot) {
       return null;
     }
 
     let view: IViewProperty | undefined;
     if (viewId) {
-      view = getViewById(snapshot, viewId);
+      view = Selectors.getViewById(snapshot, viewId);
       if (!view) {
         return null;
       }

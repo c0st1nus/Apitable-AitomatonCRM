@@ -35,9 +35,9 @@ import com.apitable.shared.context.LoginContext;
 import com.apitable.shared.context.SessionContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.annotation.Resource;
-import jakarta.validation.Valid;
 import java.util.List;
+import javax.annotation.Resource;
+import javax.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -117,8 +117,8 @@ public class NotificationController {
      * Get Notification Detail List.
      */
     @GetResource(path = "/list", requiredPermission = false)
-    @Operation(summary = "Get Notification Detail List",
-        description = "Default: System Notification")
+    @Operation(summary = "Get Notification Detail List", description = "Default: System "
+        + "Notification")
     public ResponseData<List<NotificationDetailVo>> list(
         @Valid NotificationListRo notificationListRo) {
         return ResponseData.success(

@@ -19,7 +19,6 @@
 import { HttpModule } from '@nestjs/axios';
 import { DynamicModule, Module } from '@nestjs/common';
 import { TerminusModule } from '@nestjs/terminus';
-import { GrpcModule } from 'grpc/grpc.module';
 import { DatasheetController } from 'socket/controller/datasheet.controller';
 import { NodeController } from 'socket/controller/node.controller';
 import { SocketController } from 'socket/controller/socket.controller';
@@ -38,7 +37,7 @@ export class SocketModule {
   static register(enabled: boolean): DynamicModule {
     if (!enabled) {
       return {
-        module: SocketModule,
+        module: SocketModule
       };
     }
 
@@ -46,16 +45,15 @@ export class SocketModule {
       module: SocketModule,
       imports: [
         GrpcClientModule,
-        GrpcModule,
         HttpModule,
         RedisModule,
-        TerminusModule,
+        TerminusModule
       ],
       controllers: [
         SocketController,
         NodeController,
         DatasheetController,
-        SocketGrpcController,
+        SocketGrpcController
       ],
       providers: [
         SocketIoService,

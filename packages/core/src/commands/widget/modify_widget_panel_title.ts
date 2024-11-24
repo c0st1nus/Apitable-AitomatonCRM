@@ -16,11 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { getResourceWidgetPanels } from 'modules/database/store/selectors/resource';
+import { getResourceWidgetPanels } from '../../exports/store/selectors';
 import { ResourceType } from 'types';
 import { CollaCommandName } from '..';
 import { ExecuteResult, ICollaCommandDef, ICollaCommandExecuteContext } from '../../command_manager';
-import { DatasheetActions } from '../../commands_actions/datasheet';
+import { DatasheetActions } from '../../model/datasheet';
 
 export interface IModifyWidgetPanelName {
   cmd: CollaCommandName.ModifyWidgetPanelName;
@@ -34,7 +34,7 @@ export const modifyWidgetPanelName: ICollaCommandDef<IModifyWidgetPanelName> = {
   undoable: false,
 
   execute(context: ICollaCommandExecuteContext, options: IModifyWidgetPanelName) {
-    const { state: state } = context;
+    const { model: state } = context;
     const { panelName, panelId, resourceId, resourceType } = options;
 
     if (!panelName) {

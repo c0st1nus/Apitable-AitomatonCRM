@@ -17,19 +17,18 @@
  */
 
 import _pick from 'lodash/pick';
-import { useEffect, useImperativeHandle, useState, useRef, memo } from 'react';
+import { useEffect, useImperativeHandle, useState, useRef } from 'react';
 import * as React from 'react';
-import { isObject, mergeObjects } from '../func';
 import { IFormProps } from '../interface';
 import { getFieldNames, getRegistry, getStateFromProps, retrieveSchema, toPathSchema } from '../utils';
+import { isObject, mergeObjects } from '../func';
 import validateFormData, { toErrorList } from '../validate';
-import { default as DefaultErrorList } from './common/DefaultErrorList';
+import { default as DefaultErrorList } from './common/ErrorList';
 
 const defaultProps = {
   uiSchema: {},
   noValidate: false,
   liveValidate: false,
-  validateOnMount: false,
   disabled: false,
   readonly: false,
   noHtml5Validate: false,
@@ -37,26 +36,26 @@ const defaultProps = {
   omitExtraData: false,
 };
 
-const Form1 = React.forwardRef((_props: IFormProps<any>, ref) => {
+export const Form = React.forwardRef((_props: IFormProps<any>, ref) => {
   const props = { ...defaultProps, ..._props };
   const formElementRef = useRef<HTMLFormElement>(null);
   const [newErrorSchema, setNewErrorSchema] = useState<any>();
+  // schema default + formData passed in => initial value
   const [state, setState] = useState<any>(getStateFromProps(props, props.formData));
 
   useEffect(() => {
     const newProps = { ...defaultProps, ..._props };
-    setState(getStateFromProps(newProps, newProps.formData,));
-    if(props.validateOnMount) {
-      setNewErrorSchema(getStateFromProps(newProps, newProps.formData,).errorSchema);
-    }
-  }, [_props, props.validateOnMount]);
+    setState(getStateFromProps(newProps, newProps.formData));
+  }, [_props]);
 
+  // console.log('renderForm', state, props);
   const validate = (
     formData: any,
     schema = props.schema,
     additionalMetaSchemas = props.additionalMetaSchemas,
     customFormats = props.customFormats,
   ) => {
+    // console.log(formData, schema, additionalMetaSchemas, customFormats);
     const { validate, transformErrors } = props;
     const { rootSchema } = getRegistry(props);
     const resolvedSchema = retrieveSchema(schema, rootSchema, formData);
@@ -67,7 +66,8 @@ const Form1 = React.forwardRef((_props: IFormProps<any>, ref) => {
     const { errors, errorSchema, schema, uiSchema } = state;
     const { ErrorList, showErrorList, formContext } = props;
     if (showErrorList && errors.length) {
-      return <ErrorList errors={errors} errorSchema={errorSchema} schema={schema} uiSchema={uiSchema} formContext={formContext} />;
+      return <ErrorList errors={errors} errorSchema={errorSchema} schema={schema} uiSchema={uiSchema}
+        formContext={formContext} />;
     }
     return null;
   };
@@ -80,14 +80,14 @@ const Form1 = React.forwardRef((_props: IFormProps<any>, ref) => {
 
     const data = _pick(formData, fields);
     if (Array.isArray(formData)) {
-      return Object.keys(data).map((key) => data[key]);
+      return Object.keys(data).map(key => data[key]);
     }
 
     return data;
   };
 
   const onChange = (formData: any, newErrorSchema: any) => {
-
+    // console.log(formData, newErrorSchema, 'core');
     if (isObject(formData) || Array.isArray(formData)) {
       const newState = getStateFromProps(props, formData, state);
       formData = newState.formData;
@@ -111,7 +111,6 @@ const Form1 = React.forwardRef((_props: IFormProps<any>, ref) => {
     if (mustValidate) {
       const schemaValidation = validate(newFormData);
       let errors = schemaValidation.errors;
-      // setHasError(errors.length > 0);
       let errorSchema = schemaValidation.errorSchema;
       const schemaValidationErrors = errors;
       const schemaValidationErrorSchema = errorSchema;
@@ -134,12 +133,10 @@ const Form1 = React.forwardRef((_props: IFormProps<any>, ref) => {
         errors: toErrorList(errorSchema),
       };
     }
-    const newState = {
+    setState({
       ...state,
       ...nextState,
-    };
-    setState(newState);
-    props?.onUpdate?.(newState);
+    });
     setNewErrorSchema(nextState.errorSchema || null);
   };
 
@@ -158,6 +155,7 @@ const Form1 = React.forwardRef((_props: IFormProps<any>, ref) => {
     }
 
     let newFormData = state.formData;
+    console.log('submit', newFormData);
     if (props.omitExtraData === true) {
       const retrievedSchema = retrieveSchema(state.schema, state.schema, newFormData);
       const pathSchema = toPathSchema(retrievedSchema, '', state.schema, newFormData);
@@ -266,6 +264,8 @@ const Form1 = React.forwardRef((_props: IFormProps<any>, ref) => {
   }
   const autoComplete = currentAutoComplete ? currentAutoComplete : deprecatedAutocomplete;
 
+  // console.log('errorSchema', errorSchema);
+  // console.log('Form.state', state);
   return (
     <FormTag
       className={className ? className : 'rjsf'}
@@ -303,7 +303,7 @@ const Form1 = React.forwardRef((_props: IFormProps<any>, ref) => {
         children
       ) : (
         <div>
-          <button type="submit" className="btn btn-info">
+          <button type='submit' className='btn btn-info'>
             Submit
           </button>
         </div>
@@ -311,6 +311,3 @@ const Form1 = React.forwardRef((_props: IFormProps<any>, ref) => {
     </FormTag>
   );
 });
-
-const Form = memo(Form1);
-export { Form };

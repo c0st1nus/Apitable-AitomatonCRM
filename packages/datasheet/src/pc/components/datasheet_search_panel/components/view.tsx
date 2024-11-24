@@ -16,26 +16,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import classNames from 'classnames';
 import * as React from 'react';
+import classNames from 'classnames';
+import styles from './style.module.less';
+import { ViewIcon } from 'pc/components/tool_bar/view_switcher/view_icon';
 import { useThemeColors } from '@apitable/components';
 import { ViewType } from '@apitable/core';
-import { ViewIcon } from 'pc/components/tool_bar/view_switcher/view_icon';
-import styles from './style.module.less';
 
-export const View: React.FC<
-  React.PropsWithChildren<{
-    id: string;
-    active?: boolean;
-    viewType: ViewType;
-    onClick?(id: string): void;
-  }>
-> = (props) => {
-  const { children, id, active, viewType, onClick } = props;
+export const View: React.FC<React.PropsWithChildren<{ 
+  id: string,
+  active?: boolean, 
+  viewType: ViewType,
+  onClick?(id: string): void
+}>> = props => {
+  const { 
+    children, 
+    id, 
+    active,
+    viewType, 
+    onClick,
+  } = props;
   const colors = useThemeColors();
   return (
     <div className={styles.nodeContainerWrapper}>
-      <div
+      <div 
         className={classNames(styles.nodeContainer, styles.viewNodeContainer, {
           [styles.active]: active,
         })}

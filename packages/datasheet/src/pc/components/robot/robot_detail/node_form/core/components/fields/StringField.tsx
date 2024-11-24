@@ -16,12 +16,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { memo } from 'react';
 import { IFieldProps } from '../../interface';
 
-import { getWidget, getUiOptions, isSelect, optionsList, getDefaultRegistry, hasWidget } from '../../utils';
+import {
+  getWidget,
+  getUiOptions,
+  isSelect,
+  optionsList,
+  getDefaultRegistry,
+  hasWidget,
+} from '../../utils';
 
-function StringField1(props: IFieldProps) {
+export function StringField(props: IFieldProps) {
   const {
     schema,
     name,
@@ -70,6 +76,4 @@ function StringField1(props: IFieldProps) {
   );
 }
 
-const StringField = memo(StringField1);
 export default StringField;
-export { StringField };

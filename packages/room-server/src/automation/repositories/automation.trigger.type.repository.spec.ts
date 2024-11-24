@@ -16,24 +16,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { Test, TestingModule } from '@nestjs/testing';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AutomationTriggerTypeRepository } from './automation.trigger.type.repository';
 import { AutomationTriggerTypeEntity } from '../entities/automation.trigger.type.entity';
-import { DeepPartial, getConnection } from 'typeorm';
-import { Test, TestingModule } from '@nestjs/testing';
+import { DeepPartial } from 'typeorm';
 import { ConfigModule } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { DatabaseConfigService } from 'shared/services/config/database.config.service';
-import { clearDatabase } from 'shared/testing/test-util';
 
 describe('AutomationTriggerTypeRepository', () => {
-  let moduleFixture: TestingModule;
+  let module: TestingModule;
   let repository: AutomationTriggerTypeRepository;
   const theServiceId = 'serviceId';
   const theTriggerTypeId = 'triggerTypeId';
   const theEndpoint = 'endpoint';
+  let entity: AutomationTriggerTypeEntity;
 
-  beforeEach(async() => {
-    moduleFixture = await Test.createTestingModule({
+  beforeAll(async() => {
+    module = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({ isGlobal: true }),
         TypeOrmModule.forRootAsync({
@@ -43,9 +43,11 @@ describe('AutomationTriggerTypeRepository', () => {
       ],
       providers: [AutomationTriggerTypeRepository],
     }).compile();
-    // clear database
-    await clearDatabase(getConnection());
-    repository = moduleFixture.get<AutomationTriggerTypeRepository>(AutomationTriggerTypeRepository);
+
+    repository = module.get<AutomationTriggerTypeRepository>(AutomationTriggerTypeRepository);
+  });
+
+  beforeEach(async() => {
     const triggerType: DeepPartial<AutomationTriggerTypeEntity> = {
       serviceId: theServiceId,
       triggerTypeId: theTriggerTypeId,
@@ -53,11 +55,15 @@ describe('AutomationTriggerTypeRepository', () => {
       inputJSONSchema: {},
     };
     const record = repository.create(triggerType);
-    await repository.save(record);
+    entity = await repository.save(record);
+  });
+
+  afterAll(async() => {
+    await repository.manager.connection.close();
   });
 
   afterEach(async() => {
-    await moduleFixture.close();
+    await repository.delete(entity.id);
   });
 
   it('should be defined', () => {

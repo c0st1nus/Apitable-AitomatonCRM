@@ -18,17 +18,18 @@
 
 package com.apitable.asset.service;
 
-import com.apitable.asset.entity.DeveloperAssetEntity;
-import com.apitable.asset.enums.DeveloperAssetType;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+import com.apitable.asset.entity.DeveloperAssetEntity;
+import com.apitable.asset.enums.DeveloperAssetType;
+
 /**
- * Workbench-Developer Attachment Table Service Class.
+ * Workbench-Developer Attachment Table Service Class
  */
 public interface IDeveloperAssetService extends IService<DeveloperAssetEntity> {
 
     /**
-     * Create a developer resource reference.
+     * Create a developer resource reference
      *
      * @param assetId            resource id
      * @param createdBy          creator
@@ -36,9 +37,8 @@ public interface IDeveloperAssetService extends IService<DeveloperAssetEntity> {
      * @param developerAssetType resource type
      * @param originalFileName   resource source file
      * @param fileSize           resource size
+     * @return boolean
      */
-    void saveAssetInDeveloper(Long assetId, Long createdBy, String assetChecksum,
-                              DeveloperAssetType developerAssetType, String originalFileName,
-                              long fileSize);
+    boolean saveAssetInDeveloper(Long assetId, Long createdBy, String assetChecksum, DeveloperAssetType developerAssetType, String originalFileName, long fileSize);
 
 }

@@ -16,18 +16,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import cls from 'classnames';
-import { useState } from 'react';
-import { Box, IconButton, Typography, useTheme } from '@apitable/components';
+import { Box, Typography, useTheme, IconButton } from '@apitable/components';
 import { Strings, t } from '@apitable/core';
-import { CheckCircleFilled, ChevronDownOutlined, PauseFilled, WarnCircleFilled } from '@apitable/icons';
-import styles from 'style.module.less';
+import { WarnCircleFilled, PauseFilled, CheckCircleFilled, ChevronDownOutlined } from '@apitable/icons';
 import { timeFormatter } from 'pc/utils';
-import { IRobotRunHistoryItem, RobotRunStatusEnums } from '../../interface';
+import { useState } from 'react';
+import { IRobotRunHistoryItem } from '../../interface';
 import { RobotRunHistoryItemDetail } from './robot_run_history_item_detail';
+import styles from 'style.module.less';
+import cls from 'classnames';
 
-export interface IRobotRunHistoryItemProps {
+interface IRobotRunHistoryItemProps {
   item: IRobotRunHistoryItem;
+}
+
+enum RobotRunStatusEnums {
+  RUNNING = 0,
+  SUCCESS = 1,
+  ERROR = 2,
 }
 
 export const RobotRunHistoryItem = ({ item }: IRobotRunHistoryItemProps) => {
@@ -60,13 +66,16 @@ export const RobotRunHistoryItem = ({ item }: IRobotRunHistoryItemProps) => {
   };
   const IconComponent = StatusIconMap[item.status];
   return (
-    <Box marginTop="16px" borderRadius="8px" border={`1px solid ${theme.color.fc5}`}>
+    <Box
+      marginTop="16px"
+      borderRadius="8px"
+      border={`1px solid ${theme.color.fc5}`}>
       <Box
         background={theme.color.fc8}
         borderRadius="8px"
         key={item.taskId}
         padding="16px"
-        height="52px"
+        height='52px'
         width="100%"
         display="flex"
         alignItems="center"
@@ -76,21 +85,32 @@ export const RobotRunHistoryItem = ({ item }: IRobotRunHistoryItemProps) => {
       >
         <Box display="flex" alignItems="center">
           <IconComponent color={StatusColorMap[item.status]} />
-          <Typography variant="body3" color={StatusColorMap[item.status]} style={{ marginLeft: '4px' }}>
-            {StatusTextMap[item.status]}
+          <Typography variant="body3" color={StatusColorMap[item.status]} style={{ marginLeft: '4px' }} >
+            {
+              StatusTextMap[item.status]
+            }
           </Typography>
         </Box>
         <Box display="flex" alignItems="center">
-          <Typography variant="body3">{timeFormatter(item.createdAt)}</Typography>
+          <Typography variant="body3">
+            {
+              timeFormatter(item.createdAt)
+            }
+          </Typography>
           <Box width="16px" />
-          {!isRunning && (
-            <span className={cls(styles.arrowIcon, { [styles.rotated]: showDetail })}>
-              <IconButton icon={ChevronDownOutlined} className={styles.dropIcon} onClick={toggleDetail} />
+          {
+            !isRunning && <span className={cls(styles.arrowIcon, { [styles.rotated]: showDetail })}>
+              <IconButton
+                icon={ChevronDownOutlined}
+                className={styles.dropIcon}
+                onClick={toggleDetail} />
             </span>
-          )}
+          }
         </Box>
       </Box>
-      {showDetail && <RobotRunHistoryItemDetail taskId={item.taskId} />}
+      {
+        showDetail && <RobotRunHistoryItemDetail taskId={item.taskId} />
+      }
     </Box>
   );
 };

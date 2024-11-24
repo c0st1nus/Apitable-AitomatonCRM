@@ -21,8 +21,7 @@ import axios from 'axios';
 import { ConfigConstant } from 'config';
 import * as Url from './url';
 import { ILocalChangeset } from 'engine';
-import { IApiWrapper, IRubbishListParams } from '../../../exports/store/interfaces';
-import { BindAccount } from 'modules/shared/store/constants';
+import { BindAccount, IApiWrapper, IRubbishListParams } from '../../../exports/store';
 import { IAxiosResponse, MemberType } from 'types';
 import urlcat from 'urlcat';
 import {
@@ -42,8 +41,6 @@ import {
   ITemplateRecommendResponse,
   IUpdateSecuritySetting,
 } from './api.interface';
-import { WasmApi } from '../../database/api';
-import { getBrowserDatabusApiEnabled } from 'modules/database/api/wasm';
 
 export * from '../../enterprise';
 export * from '../../user/api/api.auth';
@@ -57,7 +54,7 @@ const nestBaseURL = process.env.NEXT_PUBLIC_NEXT_API;
 /**
  * Upload Attachment
  *
- * @param file
+ * @param formData attachment data
  */
 export function uploadAttach(file: any) {
   return axios.post(Url.UPLOAD_ATTACH, file, {
@@ -68,9 +65,7 @@ export function uploadAttach(file: any) {
 /**
  * Get attachment's preview url
  *
- * @param spaceId
  * @param token cloud file token
- * @param attname
  */
 export function getAttachPreviewUrl(spaceId: string, token: string, attname: string) {
   return axios.post(urlcat(Url.OFFICE_PREVIEW, { spaceId }), {
@@ -100,8 +95,8 @@ export function getNotificationStatistics() {
 
 /**
  * notification list with pagination
+ * @param pageObjectParams pagination params
  * @param isRead 1:read 2:unread, if empty, get all
- * @param rowNo
  */
 export function getNotificationPage(isRead?: boolean, rowNo?: number) {
   return axios.get(Url.NOTIFICATION_PAGE, {
@@ -284,15 +279,13 @@ export const templateDirectory = (templateId: string, isPrivate: boolean, catego
  * @param templateId
  * @param parentId
  * @param data
- * @param unitId
  * @returns
  */
-export const useTemplate = (templateId: string, parentId: string, data?: boolean, unitId?: string) => {
+export const useTemplate = (templateId: string, parentId: string, data?: boolean) => {
   return axios.post(Url.USE_TEMPLATE, {
     templateId,
     parentId,
     data,
-    unitId
   });
 };
 
@@ -406,11 +399,6 @@ export function enableRoleExtend(nodeId: string) {
  */
 export function disableRoleExtend(nodeId: string, includeExtend?: boolean) {
   const params = includeExtend ? { includeExtend } : {};
-  if (getBrowserDatabusApiEnabled()){
-    WasmApi.getInstance().delete_cache(nodeId).then((result) => {
-      console.log('delete indexDb cache', result);
-    });
-  }
   return axios.post(Url.DISABLE_ROLE_EXTEND + `?nodeId=${nodeId}`, params);
 }
 
@@ -519,7 +507,7 @@ export function submitQuestionnaire(data: any) {
   return axios({
     method: 'post',
     headers: { 'Content-Type': 'application/json;charset=UTF-8' },
-    url: 'https://workfun.aitable.ai/feedback-form',
+    url: 'https://e6l40faiq2.execute-api.cn-northwest-1.amazonaws.com.cn/funsion-feeback-form',
     data: { data },
   });
 }
@@ -950,7 +938,7 @@ export const addRoleMember = (roleId: string, unitList: { id: string; type: Memb
  * @returns
  */
 export const deleteRoleMember = (roleId: string, unitIds: string[]) => {
-  return axios.delete<IApiWrapper>(urlcat(Url.DELETE_ROLE_MEMBER, { roleId }), { data: { unitIds } });
+  return axios.delete<IApiWrapper>(urlcat(Url.DELETE_ROLE_MEMBER, { roleId }), { data: { unitIds }});
 };
 
 /**

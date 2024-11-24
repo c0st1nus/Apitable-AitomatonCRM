@@ -32,7 +32,6 @@ export class MetaService {
   constructor(
     @Inject(forwardRef(() => NodeService))
     private readonly nodeService: NodeService,
-    @Inject(forwardRef(() => DatasheetService))
     private readonly datasheetService: DatasheetService,
     private readonly widgetService: WidgetService,
     private readonly resourceMetaRepository: ResourceMetaRepository,
@@ -74,7 +73,7 @@ export class MetaService {
   }
 
   public async getRevisionByDstId(dstId: string): Promise<number | undefined> {
-    const rawData = await this.datasheetService.getRevisionByDstId(dstId);
+    const rawData = await this.datasheetService.selectRevisionByDstId(dstId);
     return rawData && Number(rawData.revision);
   }
 }

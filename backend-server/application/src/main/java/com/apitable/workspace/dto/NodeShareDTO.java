@@ -20,9 +20,6 @@ package com.apitable.workspace.dto;
 
 import lombok.Data;
 
-/**
- * node share DTO.
- */
 @Data
 public class NodeShareDTO {
 

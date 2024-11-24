@@ -135,7 +135,7 @@ export class Field {
    * ```
    */
   get type(): FieldType {
-    return getFieldTypeString(this.fieldData.type) as any as FieldType;
+    return getFieldTypeString(this.fieldData.type);
   }
 
   /**
@@ -325,7 +325,7 @@ export class Field {
     }
     const updateProperty = this.fieldEntity.updateOpenFieldPropertyTransformProperty(property);
     let deleteBrotherField: boolean;
-    // Two-way Link special fields, need to determine whether to delete the associated fields of the associated table
+    // Magic link special fields, need to determine whether to delete the associated fields of the associated table
     if (this.type === FieldType.MagicLink) {
       const { conversion } = property as IUpdateOpenMagicLinkFieldProperty;
       deleteBrotherField = conversion === Conversion.Delete;
@@ -455,7 +455,7 @@ export class Field {
     if (this.type === FieldType.MagicLookUp) {
       const lookUpEntityField = (this.fieldEntity as LookUpField).getLookUpEntityField();
       if (!lookUpEntityField) return FieldType.NotSupport;
-      return getFieldTypeString(lookUpEntityField.type) as any as FieldType;
+      return getFieldTypeString(lookUpEntityField.type);
     }
     return this.type;
   }

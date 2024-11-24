@@ -17,7 +17,6 @@
  */
 
 import { produce } from 'immer';
-import { isEmpty } from 'lodash';
 import {
   IAddressList, IMemberInfoInAddressList, IUpdateMemberInfoAction, IUpdateMemberListAction, IUpdateSelectedTeamInfoAction,
   IUpdateSingleMemberInMemberListAction, IUpdateTeamListAction, IUpdateAddressTreeAction, ITeamTreeNode, IUpdateMemberListPageNoAction,
@@ -98,7 +97,6 @@ const updateTeamTree = (originTree: ITeamTreeNode[], parentId: string, childrenT
   if (!parent) {
     return;
   }
-  parent.hasChildren = !isEmpty(childrenTree);
   if(!parent.children || parent.children.length === 0) {
     parent.children = childrenTree;
   } else {

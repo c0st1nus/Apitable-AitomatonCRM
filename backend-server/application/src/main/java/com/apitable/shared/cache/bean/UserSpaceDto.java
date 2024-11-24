@@ -20,11 +20,12 @@ package com.apitable.shared.cache.bean;
 
 import java.io.Serializable;
 import java.util.Set;
+
 import lombok.Data;
 
 /**
  * <p>
- * user in space cache.
+ * user in space cache
  * </p>
  *
  * @author Shawn Deng

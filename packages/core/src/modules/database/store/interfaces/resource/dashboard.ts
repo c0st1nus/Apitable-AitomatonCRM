@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { IWidget } from 'modules/database/store/interfaces/resource/widget';
-import * as ActionConstants from '../../../../shared/store/action_constants';
 import { ICollaborator, INodeMeta } from './datasheet';
+import * as ActionConstants from '../../../../shared/store/action_constants';
+import { IWidgetMap } from './widget';
 
 // support store multi states of dashboard
 export interface IDashboardMap {
@@ -45,11 +45,9 @@ export interface IDashboardPack {
   client: IDashboardClient;
 }
 
-export type IDashboardWidgetMap = { [widgetId: string]: IWidget };
-
 export interface IServerDashboardPack {
   dashboard: IDashboard;
-  widgetMap: IDashboardWidgetMap;
+  widgetMap: IWidgetMap;
 }
 
 // INodeMeta see code below

@@ -19,9 +19,8 @@
 package com.apitable.workspace.ro;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
-import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
+import javax.validation.constraints.NotEmpty;
 import lombok.Data;
 
 /**
@@ -36,8 +35,8 @@ public class RemindUnitRecRo {
     @Schema(description = "Record ID List", example = "[\"rec037CbsaKcN\",\"recFa9VgsXMrS\"]")
     private List<String> recordIds;
 
-    @Schema(description = "Org Unit ID List", requiredMode = RequiredMode.REQUIRED,
-        example = "[1217029304827183105,1217029304827183106]")
+    @Schema(description = "Org Unit ID List", example = "[1217029304827183105,"
+        + "1217029304827183106]", required = true)
     @NotEmpty(message = "The organizational unit list cannot be empty")
     private List<Long> unitIds;
 

@@ -16,20 +16,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Form } from 'antd';
-import * as React from 'react';
 import { FC, useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { StoreActions, Api, ConfigConstant, Strings, t, isPhoneNumber, StatusCode } from '@apitable/core';
-import { IdentifyingCodeInput } from 'pc/components/common/input/identifying_code_input/identifying_code_input';
-import { PhoneInput } from 'pc/components/common/input/phone_input/phone_input';
-import { WithTipWrapper } from 'pc/components/common/input/with_tip_wrapper/with_tip_wrapper';
-import { Message } from 'pc/components/common/message/message';
-import { NormalModal } from 'pc/components/common/modal/normal_modal/normal_modal';
-import { usePlatform } from 'pc/hooks/use_platform';
-import { useSetState } from 'pc/hooks/use_set_state';
-import { Verify } from './verify';
+import * as React from 'react';
+import { Form } from 'antd';
 import styles from './style.module.less';
+import { useDispatch } from 'react-redux';
+import {
+  StoreActions,
+  Api,
+  ConfigConstant,
+  Strings,
+  t,
+  isPhoneNumber,
+  StatusCode,
+} from '@apitable/core';
+import {
+  Message,
+  NormalModal,
+  WithTipWrapper,
+  IdentifyingCodeInput,
+  PhoneInput,
+} from 'pc/components/common';
+import { useSetState } from 'pc/hooks';
+import { Verify } from './verify';
+import { usePlatform } from 'pc/hooks/use_platform';
 
 export interface IModifyMobileModalProps {
   setMobileModal: React.Dispatch<React.SetStateAction<boolean>>;
@@ -80,7 +90,10 @@ export const ModifyMobileModal: FC<React.PropsWithChildren<IModifyMobileModalPro
   const handleBindMobileCheck = () => {
     if (!isPhoneNumber(state.account, state.areaCode)) {
       setErrMsg({
-        accountErrMsg: state.account === '' ? t(Strings.login_mobile_no_empty) : t(Strings.login_mobile_format_err),
+        accountErrMsg:
+          state.account === ''
+            ? t(Strings.login_mobile_no_empty)
+            : t(Strings.login_mobile_format_err),
       });
       return;
     } else if (state.account === data.mobile) {
@@ -98,44 +111,50 @@ export const ModifyMobileModal: FC<React.PropsWithChildren<IModifyMobileModalPro
   };
   const smsCodeVerify = () => {
     setLoading(true);
-    Api.smsVerify(state.areaCode, state.account, state.identifyingCode).then((res) => {
-      const { success, message } = res.data;
-      if (success) {
-        setIsChangeMobile(true);
+    Api.smsVerify(state.areaCode, state.account, state.identifyingCode).then(
+      (res) => {
+        const { success, message } = res.data;
+        if (success) {
+          setIsChangeMobile(true);
+          setLoading(false);
+          dispatch(StoreActions.setHomeErr(null));
+        } else {
+          setErrMsg({ identifyingCodeErrMsg: message });
+        }
         setLoading(false);
-        dispatch(StoreActions.setHomeErr(null));
-      } else {
-        setErrMsg({ identifyingCodeErrMsg: message });
       }
-      setLoading(false);
-    });
+    );
   };
 
   const bindMobile = () => {
     setLoading(true);
-    Api.bindMobile(state.areaCode, state.account, state.identifyingCode).then((res) => {
-      const { success, code, message } = res.data;
-      if (success) {
-        dispatch(StoreActions.updateUserInfo({ mobile: state.account, areaCode: state.areaCode }));
-        Message.success({
-          content: t(Strings.binding_success),
-        });
+    Api.bindMobile(state.areaCode, state.account, state.identifyingCode).then(
+      (res) => {
+        const { success, code, message } = res.data;
+        if (success) {
+          dispatch(
+            StoreActions.updateUserInfo({ mobile: state.account, areaCode: state.areaCode })
+          );
+          Message.success({
+            content: t(Strings.binding_success),
+          });
+          setLoading(false);
+          setMobileModal(false);
+          return;
+        }
         setLoading(false);
-        setMobileModal(false);
-        return;
+        switch (code) {
+          case StatusCode.SMS_CHECK_ERR:
+            setErrMsg({ identifyingCodeErrMsg: message });
+            break;
+          case StatusCode.PHONE_COMMON_ERR:
+            setErrMsg({ accountErrMsg: message });
+            break;
+          default:
+            break;
+        }
       }
-      setLoading(false);
-      switch (code) {
-        case StatusCode.SMS_CHECK_ERR:
-          setErrMsg({ identifyingCodeErrMsg: message });
-          break;
-        case StatusCode.PHONE_COMMON_ERR:
-          setErrMsg({ accountErrMsg: message });
-          break;
-        default:
-          break;
-      }
-    });
+    );
   };
 
   // Cell phone number or area code change
@@ -147,7 +166,9 @@ export const ModifyMobileModal: FC<React.PropsWithChildren<IModifyMobileModalPro
     setState({ areaCode, account: newValue });
   };
 
-  const handleIdentifyingCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleIdentifyingCodeChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     if (errMsg.identifyingCodeErrMsg) {
       setErrMsg({ identifyingCodeErrMsg: '' });
     }
@@ -161,7 +182,13 @@ export const ModifyMobileModal: FC<React.PropsWithChildren<IModifyMobileModalPro
       <div className={styles.modifyNameWrapper}>
         <Form onFinish={handleBindMobileCheck} key={'changeMobilePage'}>
           <WithTipWrapper tip={errMsg.accountErrMsg}>
-            <PhoneInput onChange={handlePhoneChange} error={Boolean(errMsg.accountErrMsg)} autoFocus block value={state.account} />
+            <PhoneInput
+              onChange={handlePhoneChange}
+              error={Boolean(errMsg.accountErrMsg)}
+              autoFocus
+              block
+              value={state.account}
+            />
           </WithTipWrapper>
           <WithTipWrapper tip={errMsg.identifyingCodeErrMsg} captchaVisible>
             <IdentifyingCodeInput
@@ -170,7 +197,11 @@ export const ModifyMobileModal: FC<React.PropsWithChildren<IModifyMobileModalPro
               onChange={handleIdentifyingCodeChange}
               setErrMsg={setErrMsg}
               error={Boolean(errMsg.identifyingCodeErrMsg)}
-              disabled={Boolean(!state.account || errMsg.accountErrMsg || errMsg.identifyingCodeErrMsg)}
+              disabled={Boolean(
+                !state.account ||
+                errMsg.accountErrMsg ||
+                errMsg.identifyingCodeErrMsg
+              )}
               value={state.identifyingCode}
             />
           </WithTipWrapper>

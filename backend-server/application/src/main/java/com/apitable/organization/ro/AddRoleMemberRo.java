@@ -19,9 +19,8 @@
 package com.apitable.organization.ro;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
-import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
+import javax.validation.constraints.NotEmpty;
 import lombok.Data;
 
 /**
@@ -34,7 +33,7 @@ import lombok.Data;
 public class AddRoleMemberRo {
 
     @NotEmpty
-    @Schema(description = "team or member", requiredMode = RequiredMode.REQUIRED)
+    @Schema(description = "team or member", required = true)
     private List<RoleMemberUnitRo> unitList;
 
 }

@@ -18,19 +18,17 @@
 
 package com.apitable.shared.clock;
 
-import static java.time.temporal.ChronoUnit.MILLIS;
-
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.Period;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * mock clock that can be used to simulate time passing.
- */
+import static java.time.temporal.ChronoUnit.MILLIS;
+
 public class MockClock implements Clock {
 
     private static final Logger logger = LoggerFactory.getLogger(MockClock.class);
@@ -50,9 +48,7 @@ public class MockClock implements Clock {
 
     @Override
     public synchronized OffsetDateTime getUTCNow() {
-        return truncate(
-            getReferenceDateTimeUTC().plus(System.currentTimeMillis() - initialDeltaMillis,
-                MILLIS));
+        return truncate(getReferenceDateTimeUTC().plus(System.currentTimeMillis() - initialDeltaMillis, MILLIS));
     }
 
     @Override
@@ -90,20 +86,12 @@ public class MockClock implements Clock {
         setTime(date.atStartOfDay(ZoneOffset.UTC).toOffsetDateTime());
     }
 
-    /**
-     * set the time to the given time. This will be the new reference time for the clock.
-     *
-     * @param time the new time
-     */
     public synchronized void setTime(final OffsetDateTime time) {
         final OffsetDateTime prev = getUTCNow();
         reset(time);
         logChange(prev);
     }
 
-    /**
-     * reset the clock to the current time.
-     */
     public synchronized void resetDeltaFromReality() {
         final OffsetDateTime prev = getUTCNow();
         reset();

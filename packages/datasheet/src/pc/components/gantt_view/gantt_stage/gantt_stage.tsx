@@ -16,23 +16,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { KONVA_DATASHEET_ID } from '@apitable/core';
 import { useMount } from 'ahooks';
 import Konva from 'konva';
 import { KonvaEventObject } from 'konva/lib/Node';
 import dynamic from 'next/dynamic';
-import * as React from 'react';
-import { FC, memo, useContext, useRef } from 'react';
-import { KONVA_DATASHEET_ID } from '@apitable/core';
 import {
-  AreaType,
-  GanttCoordinate,
-  IScrollState,
-  KonvaGanttViewContext,
-  PointPosition,
-  ScrollViewType,
-  useGanttMouseEvent,
+  AreaType, GanttCoordinate, IScrollState, KonvaGanttViewContext, PointPosition, ScrollViewType, useGanttMouseEvent,
 } from 'pc/components/gantt_view';
 import { GridCoordinate, isWithinFrozenColumnBoundary, KonvaGridContext, KonvaGridViewContext, useGridMouseEvent } from 'pc/components/konva_grid';
+import * as React from 'react';
+import { FC, memo, useContext, useRef } from 'react';
 
 import Gantt from '../gantt/gantt';
 import { useViewExport } from '../hooks';
@@ -65,7 +59,11 @@ const GanttStage: FC<React.PropsWithChildren<IGanttStageProps>> = memo((props) =
     listening = true,
   } = props;
 
-  const { isMobile, isTouchDevice, setMouseStyle } = useContext(KonvaGridContext);
+  const {
+    isMobile,
+    isTouchDevice,
+    setMouseStyle,
+  } = useContext(KonvaGridContext);
   const { view, linearRows, datasheetId } = useContext(KonvaGridViewContext);
   const { isLocking } = useContext(KonvaGanttViewContext);
 
@@ -122,7 +120,11 @@ const GanttStage: FC<React.PropsWithChildren<IGanttStageProps>> = memo((props) =
     if (targetName == null || targetName === '') {
       return KONVA_DATASHEET_ID.GANTT_BLANK;
     }
-    if (targetName.includes('middle-left') || targetName.includes('middle-right') || targetName.includes(KONVA_DATASHEET_ID.GANTT_TASK)) {
+    if (
+      targetName.includes('middle-left') ||
+      targetName.includes('middle-right') ||
+      targetName.includes(KONVA_DATASHEET_ID.GANTT_TASK)
+    ) {
       return KONVA_DATASHEET_ID.GANTT_TASK;
     }
     return targetName.split('-')[0];
@@ -186,7 +188,7 @@ const GanttStage: FC<React.PropsWithChildren<IGanttStageProps>> = memo((props) =
     return {
       areaType,
       realAreaType,
-      targetName,
+      targetName, 
       realTargetName: _targetName || KONVA_DATASHEET_ID.GANTT_BLANK,
       rowIndex,
       columnIndex,
@@ -250,7 +252,7 @@ const GanttStage: FC<React.PropsWithChildren<IGanttStageProps>> = memo((props) =
       const { x, y } = pos;
       const curMousePosition = getMousePosition(x, y, eventTargetName);
       const { realAreaType, areaType, targetName } = curMousePosition;
-
+     
       // Handling mouse styles
       if (realAreaType === AreaType.Grid) {
         handleGridMouseStyle(targetName);
@@ -317,16 +319,16 @@ const GanttStage: FC<React.PropsWithChildren<IGanttStageProps>> = memo((props) =
     containerWidth,
     containerHeight,
     viewName,
-    datasheetId,
+    datasheetId
   });
 
   return (
     <KonvaGridViewContext.Consumer>
-      {(gridViewValue) => (
+      {gridViewValue => (
         <KonvaGanttViewContext.Consumer>
-          {(ganttViewValue) => (
+          {ganttViewValue => (
             <KonvaGridContext.Consumer>
-              {(innerValue) => (
+              {innerValue => (
                 <Stage
                   _ref={stageRef}
                   width={containerWidth}

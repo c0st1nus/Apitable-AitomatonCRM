@@ -18,16 +18,13 @@
 
 package com.apitable.workspace.service;
 
-import com.apitable.workspace.entity.DatasheetWidgetEntity;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.apitable.workspace.entity.DatasheetWidgetEntity;
 
-/**
- * datasheet widget service.
- */
 public interface IDatasheetWidgetService extends IService<DatasheetWidgetEntity> {
 
     /**
-     * get the datasheet association component entity.
+     * get the datasheet association component entity
      *
      * @param widgetId widget id
      * @return DatasheetWidgetEntity
@@ -35,10 +32,10 @@ public interface IDatasheetWidgetService extends IService<DatasheetWidgetEntity>
     DatasheetWidgetEntity getByWidgetId(String widgetId);
 
     /**
-     * Create data source table information for widget.
+     * Create data source table information for widget
      *
-     * @param spaceId  space id
-     * @param dstId    datasheet id
+     * @param spaceId space id
+     * @param dstId datasheet id
      * @param widgetId widget id
      * @param sourceId source id
      */

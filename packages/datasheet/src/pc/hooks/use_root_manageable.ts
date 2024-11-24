@@ -16,19 +16,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useAppSelector } from 'pc/store/react-redux';
+import { useSelector } from 'react-redux';
 
 export function useRootManageable(): {
   rootManageable: boolean;
   isRootNodeId: (nodeId: string) => boolean;
   } {
-  const spacePermissions = useAppSelector((state) => state.spacePermissionManage.spaceResource?.permissions);
-  const isSpaceAdmin = spacePermissions && spacePermissions.includes('MANAGE_WORKBENCH');
-  const spaceFeatures = useAppSelector((state) => state.space.spaceFeatures);
+  const spacePermissions = useSelector(
+    (state) => state.spacePermissionManage.spaceResource?.permissions
+  );
+  const isSpaceAdmin =
+    spacePermissions && spacePermissions.includes('MANAGE_WORKBENCH');
+  const spaceFeatures = useSelector((state) => state.space.spaceFeatures);
   const rootManageable = Boolean(isSpaceAdmin || spaceFeatures?.rootManageable);
 
-  const rootId = useAppSelector((state) => state.catalogTree.rootId);
-  const topLevelIds = useAppSelector((state) => state.catalogTree.treeNodesMap[rootId]?.children || []);
+  const rootId = useSelector((state) => state.catalogTree.rootId);
+  const topLevelIds = useSelector(
+    (state) => state.catalogTree.treeNodesMap[rootId]?.children || []
+  );
 
   const isRootNodeId = (nodeId: string) => topLevelIds.includes(nodeId);
 

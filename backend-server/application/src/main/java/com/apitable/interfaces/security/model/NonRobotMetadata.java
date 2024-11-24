@@ -18,12 +18,9 @@
 
 package com.apitable.interfaces.security.model;
 
-/**
- * node robot metadata.
- */
 public class NonRobotMetadata {
 
-    private final String data;
+    private String data;
 
     public NonRobotMetadata(String data) {
         this.data = data;

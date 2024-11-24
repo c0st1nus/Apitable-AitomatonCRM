@@ -16,11 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { IReduxState } from '../../exports/store/interfaces';
-import { FieldType, IField, IPhoneField,IPhoneProperty } from 'types/field_types';
-import { DatasheetActions } from '../../commands_actions/datasheet';
+import { IReduxState } from '../../exports/store';
+import { FieldType, IField, IPhoneField } from 'types/field_types';
+import { DatasheetActions } from '../datasheet';
 import { TextBaseField } from './text_base_field';
-import { getFieldDefaultProperty } from './const';
 
 export class PhoneField extends TextBaseField {
   constructor(public override field: IPhoneField, state: IReduxState) {
@@ -28,7 +27,7 @@ export class PhoneField extends TextBaseField {
   }
 
   static defaultProperty() {
-    return getFieldDefaultProperty(FieldType.Phone) as IPhoneProperty;
+    return null;
   }
 
   override get apiMetaProperty() {

@@ -32,9 +32,7 @@ const RenameInputBase: ForwardRefRenderFunction<any, IRenameInputProps> = (props
   const inputRef = useRef<InputRef>(null);
 
   useImperativeHandle(ref, () => ({
-    focus: () => {
-      inputRef.current && inputRef.current.focus();
-    },
+    focus: () => { inputRef.current && inputRef.current.focus(); },
   }));
 
   const { errorMsg, customStyle, ...rest } = props;
@@ -47,11 +45,16 @@ const RenameInputBase: ForwardRefRenderFunction<any, IRenameInputProps> = (props
       });
     }
     return classNames(customStyle);
+
   };
   return (
     <div className={styles.viewItemInput}>
-      <Tooltip title={errorMsg} placement="top" visible={Boolean(errorMsg)}>
-        <Input ref={inputRef} className={returnInputClass(errorMsg, customStyle)} {...rest} />
+      <Tooltip title={errorMsg} placement="top" visible={Boolean(errorMsg)} >
+        <Input
+          ref={inputRef}
+          className={returnInputClass(errorMsg, customStyle)}
+          {...rest}
+        />
       </Tooltip>
     </div>
   );

@@ -16,13 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useDebounceFn } from 'ahooks';
-import cls from 'classnames';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import * as React from 'react';
-import ReactDOM from 'react-dom';
-import { shallowEqual } from 'react-redux';
-import { VariableSizeGrid as Grid } from 'react-window';
 import {
   CollaCommandName,
   DATASHEET_ID,
@@ -37,12 +30,18 @@ import {
   IGridViewProperty,
   ViewType,
 } from '@apitable/core';
+import { VariableSizeGrid as Grid } from 'react-window';
+import { useDebounceFn } from 'ahooks';
+import cls from 'classnames';
 import { ShortcutActionManager, ShortcutActionName } from 'modules/shared/shortcut_key';
 import { useResponsive } from 'pc/hooks';
 import { resourceService } from 'pc/resource_service';
-import { useAppSelector } from 'pc/store/react-redux';
 import { stopPropagation } from 'pc/utils';
 import { getIsColNameVisible } from 'pc/utils/datasheet';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import * as React from 'react';
+import ReactDOM from 'react-dom';
+import { shallowEqual, useSelector } from 'react-redux';
 import { ScreenSize } from '../common/component_display';
 import { useCardHeight } from '../common/hooks/use_card_height';
 import { expandRecordIdNavigate } from '../expand_record';
@@ -60,8 +59,8 @@ import {
   PADDING_BOTTOM,
 } from './constant';
 import { ICommitDragDropState } from './interface';
-import { getColumnWidthAndCount, getGalleryLinearRows, getGroupLinearRows, getGroupTitlePaddingTip, getSearchItemIndex } from './utils';
 import styles from './style.module.less';
+import { getColumnWidthAndCount, getGalleryLinearRows, getGroupLinearRows, getGroupTitlePaddingTip, getSearchItemIndex } from './utils';
 
 interface IGalleryViewProps {
   height?: number;
@@ -90,7 +89,7 @@ export const GalleryViewBase: React.FC<React.PropsWithChildren<IGalleryViewProps
     getSnapshot,
     getFieldPermissionMap,
   } = Selectors;
-  const datasheetId = useAppSelector(getActiveDatasheetId)!;
+  const datasheetId = useSelector(getActiveDatasheetId)!;
   const {
     groupInfo,
     _visibleRecords,
@@ -111,7 +110,7 @@ export const GalleryViewBase: React.FC<React.PropsWithChildren<IGalleryViewProps
     fieldPermissionMap,
     templateId,
     editable,
-  } = useAppSelector((state) => {
+  } = useSelector(state => {
     const groupInfo = getActiveViewGroupInfo(state);
     const isGrouped = groupInfo && groupInfo.length;
     const snapshot = getSnapshot(state)!;
@@ -154,7 +153,7 @@ export const GalleryViewBase: React.FC<React.PropsWithChildren<IGalleryViewProps
   const setVisibleTransition = () => {
     if (isGrouped && groupingCollapseIds != null && groupingCollapseIds.length !== lastTransitionIds.length) {
       const arr: string[] = [];
-      groupRows.forEach((eachGroupRows) => {
+      groupRows.forEach(eachGroupRows => {
         const groupHeadRecordId = eachGroupRows[0];
         if (groupingCollapseIds.includes(groupHeadRecordId)) {
           arr.push(groupHeadRecordId);
@@ -339,7 +338,7 @@ export const GalleryViewBase: React.FC<React.PropsWithChildren<IGalleryViewProps
     (recordId: any) => {
       if (groupingCollapseIds == null) return;
       if (recordId) {
-        setTransitionRecordIds((recordIds) => [...recordIds, recordId]);
+        setTransitionRecordIds(recordIds => [...recordIds, recordId]);
       }
     },
     [groupingCollapseIds, setTransitionRecordIds],
@@ -457,7 +456,7 @@ export const GalleryViewBase: React.FC<React.PropsWithChildren<IGalleryViewProps
           columnWidth={() => cardWidth}
           rowCount={linearRows.length}
           key={cardHeight}
-          rowHeight={(index) => getRowHeight(index)}
+          rowHeight={index => getRowHeight(index)}
           itemKey={itemKey}
           itemData={itemContextData}
         >

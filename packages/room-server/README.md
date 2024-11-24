@@ -82,7 +82,7 @@ $ yarn start:prod
 ## Test
 
 ```bash
-# you can use `pnpm` or `npx`, the examples below use `pnpm`.
+# you can use `yarn` or `npx`, the examples below use `yarn`.
 # unit tests
 $ yarn run test
 

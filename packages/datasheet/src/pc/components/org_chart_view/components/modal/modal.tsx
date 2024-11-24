@@ -16,48 +16,63 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useClickAway, useMount } from 'ahooks';
 import { useContext, useRef, useState } from 'react';
 import * as React from 'react';
-import { Typography, IconButton } from '@apitable/components';
 import { t, Strings } from '@apitable/core';
 import { ExpandOutlined } from '@apitable/icons';
-import { useStoreState, useZoomPanHelper } from '@apitable/react-flow';
-import { expandRecordIdNavigate } from 'pc/components/expand_record';
+import { Typography, IconButton } from '@apitable/components';
 import { FieldEditor } from 'pc/components/expand_record/field_editor';
-import { KeyCode } from 'pc/utils';
-import { QUICK_ADD_MODAL_WIDTH, QUICK_ADD_MODAL_HEIGHT } from '../../constants';
-import { FlowContext } from '../../context/flow_context';
+import { expandRecordIdNavigate } from 'pc/components/expand_record';
+import { useClickAway, useMount } from 'ahooks';
 import styles from './styles.module.less';
+import { FlowContext } from '../../context/flow_context';
+import { useStoreState, useZoomPanHelper } from '@apitable/react-flow';
+import { QUICK_ADD_MODAL_WIDTH, QUICK_ADD_MODAL_HEIGHT } from '../../constants';
+import { KeyCode } from 'pc/utils';
 
 interface IModalProps {
   recordId?: string;
   setQuickAddRecId: React.Dispatch<React.SetStateAction<string | undefined>>;
 }
 
-export const Modal: React.FC<React.PropsWithChildren<IModalProps>> = ({ recordId, setQuickAddRecId }) => {
-  const { primaryFieldId, datasheetId, offsetLeft, offsetTop, orgChartViewStatus, bodySize, nodesMap } = useContext(FlowContext);
+export const Modal: React.FC<React.PropsWithChildren<IModalProps>> = ({
+  recordId,
+  setQuickAddRecId,
+}) => {
 
-  const { settingPanelVisible, settingPanelWidth, rightPanelWidth, rightPanelVisible } = orgChartViewStatus;
+  const {
+    primaryFieldId,
+    datasheetId,
+    offsetLeft,
+    offsetTop,
+    orgChartViewStatus,
+    bodySize,
+    nodesMap,
+  } = useContext(FlowContext);
 
-  const [translateX, translateY, scale] = useStoreState((state) => state.transform);
+  const {
+    settingPanelVisible,
+    settingPanelWidth,
+    rightPanelWidth,
+    rightPanelVisible,
+  } = orgChartViewStatus;
 
-  const { transform } = useZoomPanHelper();
+  const [translateX, translateY, scale] = useStoreState(state => state.transform);
+
+  const {
+    transform
+  } = useZoomPanHelper();
 
   const [focusFieldId, setFocusFieldId] = useState<string | null>(primaryFieldId);
 
   const titleFieldRef = useRef(null);
   const mountRef = useRef(false);
 
-  useClickAway(
-    () => {
-      if (mountRef.current) {
-        setFocusFieldId(null);
-      }
-    },
-    [titleFieldRef],
-    'click',
-  );
+  useClickAway(() => {
+    if (mountRef.current) {
+      setFocusFieldId(null);
+    }
+  }, [titleFieldRef], 'click');
 
   const keyDownHandler = (e: React.KeyboardEvent) => {
     if (e.keyCode === KeyCode.Enter && !e.shiftKey) {
@@ -111,7 +126,7 @@ export const Modal: React.FC<React.PropsWithChildren<IModalProps>> = ({ recordId
   });
 
   if (!recordId || !node) return null;
-
+  
   return (
     <div
       className={styles.modal}
@@ -122,7 +137,9 @@ export const Modal: React.FC<React.PropsWithChildren<IModalProps>> = ({ recordId
       }}
     >
       <header>
-        <Typography variant="h7">{t(Strings.set_record)}</Typography>
+        <Typography variant="h7">
+          {t(Strings.set_record)}
+        </Typography>
         <IconButton icon={ExpandOutlined} onClick={() => expandRecordIdNavigate(recordId)} />
       </header>
       <div className={styles.content}>

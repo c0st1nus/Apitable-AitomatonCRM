@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ReactNode, useContext, useMemo } from 'react';
 import { AlarmUsersType, CellType, CollaCommandName, FieldType, KONVA_DATASHEET_ID, Selectors, Strings, t } from '@apitable/core';
 import { NotificationOutlined } from '@apitable/icons';
 import { generateTargetName, IScrollState, PointPosition } from 'pc/components/gantt_view';
@@ -25,8 +24,9 @@ import { GridCoordinate, KonvaGridContext, KonvaGridViewContext } from 'pc/compo
 import { resourceService } from 'pc/resource_service';
 import { store } from 'pc/store';
 import { getEnvVariables } from 'pc/utils/env';
+import { ReactNode, useContext, useMemo } from 'react';
 // @ts-ignore
-import { AlarmIcon } from 'enterprise/alarm/alarm_icon/alarm_icon';
+import { AlarmIcon } from 'enterprise';
 
 interface IUseCellAlarmProps {
   instance: GridCoordinate;
@@ -41,10 +41,22 @@ interface IUseCellAlarmProps {
 const NotificationSmallOutlinedPath = NotificationOutlined.toString();
 
 export const useCellAlarm = (props: IUseCellAlarmProps) => {
-  const { pointPosition, rowStopIndex, rowStartIndex, columnStopIndex, instance, toggleEditing, scrollState } = props;
-  const { linearRows, visibleColumns, fieldMap, snapshot, permissions } = useContext(KonvaGridViewContext);
+  const {
+    pointPosition, rowStopIndex, rowStartIndex, columnStopIndex, instance,
+    toggleEditing, scrollState
+  } = props;
+  const {
+    linearRows,
+    visibleColumns,
+    fieldMap,
+    snapshot,
+    permissions,
+  } = useContext(KonvaGridViewContext);
   const { setTooltipInfo, clearTooltipInfo, theme } = useContext(KonvaGridContext);
-  const { rowIndex: pointRowIndex, columnIndex: pointColumnIndex } = pointPosition;
+  const {
+    rowIndex: pointRowIndex,
+    columnIndex: pointColumnIndex,
+  } = pointPosition;
   const state = store.getState();
   const dstId = Selectors.getActiveDatasheetId(state);
   const { isScrolling } = scrollState;
@@ -67,7 +79,7 @@ export const useCellAlarm = (props: IUseCellAlarmProps) => {
         if (columnIndex > columnCount - 1) break;
         const { fieldId } = visibleColumns[columnIndex];
         if (columnIndex <= frozenColumnCount - 1) {
-          if (fieldMap[fieldId]?.type === FieldType.DateTime) {
+          if (fieldMap[fieldId]?.type === FieldType.DateTime ) {
             frozenDateAlarms.push(
               <AlarmIcon
                 key={`${rowIndex}-${columnIndex}`}
@@ -78,7 +90,7 @@ export const useCellAlarm = (props: IUseCellAlarmProps) => {
                 columnIndex={columnIndex}
                 rowIndex={rowIndex}
                 toggleEditing={toggleEditing}
-              />,
+              />
             );
           }
           continue;
@@ -94,26 +106,15 @@ export const useCellAlarm = (props: IUseCellAlarmProps) => {
               columnIndex={columnIndex}
               rowIndex={rowIndex}
               toggleEditing={toggleEditing}
-            />,
+            />
           );
         }
       }
     }
     return { dateAlarms, frozenDateAlarms };
   }, [
-    columnCount,
-    columnStopIndex,
-    fieldMap,
-    frozenColumnCount,
-    instance,
-    isScrolling,
-    linearRows,
-    rowCount,
-    rowStartIndex,
-    rowStopIndex,
-    visibleColumns,
-    toggleEditing,
-    dstId,
+    columnCount, columnStopIndex, fieldMap, frozenColumnCount, instance, isScrolling,
+    linearRows, rowCount, rowStartIndex, rowStopIndex, visibleColumns, toggleEditing, dstId,
   ]);
 
   /**
@@ -124,7 +125,13 @@ export const useCellAlarm = (props: IUseCellAlarmProps) => {
   const row = linearRows[pointRowIndex];
   const pointFieldId = visibleColumns[pointColumnIndex]?.fieldId;
   const pointField = fieldMap[pointFieldId];
-  if (permissions.editable && Boolean(AlarmIcon) && !isScrolling && row?.type === CellType.Record && pointField?.type === FieldType.DateTime) {
+  if (
+    permissions.editable &&
+    AlarmIcon &&
+    !isScrolling &&
+    row?.type === CellType.Record &&
+    pointField?.type === FieldType.DateTime
+  ) {
     const pointCellValue = Selectors.getCellValue(state, snapshot, pointRecordId, pointFieldId);
     const alarm = Selectors.getDateTimeCellAlarm(snapshot, pointRecordId, pointFieldId);
     if (pointCellValue && !alarm) {
@@ -138,11 +145,11 @@ export const useCellAlarm = (props: IUseCellAlarmProps) => {
           name={generateTargetName({
             targetName: KONVA_DATASHEET_ID.GRID_DATE_CELL_CREATE_ALARM,
             fieldId: pointFieldId,
-            recordId: pointRecordId,
+            recordId: pointRecordId
           })}
           data={NotificationSmallOutlinedPath}
           fill={theme.color.thirdLevelText}
-          onClick={async () => {
+          onClick={async() => {
             clearTooltipInfo();
             await toggleEditing();
             const user = state.user.info;
@@ -153,12 +160,10 @@ export const useCellAlarm = (props: IUseCellAlarmProps) => {
               alarm: {
                 subtract: '',
                 alarmAt: pointCellValue,
-                alarmUsers: [
-                  {
-                    type: AlarmUsersType.Member,
-                    data: user?.unitId!,
-                  },
-                ],
+                alarmUsers: [{
+                  type: AlarmUsersType.Member,
+                  data: user?.unitId!
+                }]
               },
             });
           }}
@@ -171,7 +176,7 @@ export const useCellAlarm = (props: IUseCellAlarmProps) => {
               height: 16,
               x: x,
               y: y,
-              coordXEnable: !isFrozenArea,
+              coordXEnable: !isFrozenArea
             });
           }}
           onMouseOut={clearTooltipInfo}
@@ -188,6 +193,6 @@ export const useCellAlarm = (props: IUseCellAlarmProps) => {
   return {
     ...dateAlarmMap,
     frozenDateAddAlarm,
-    dateAddAlarm,
+    dateAddAlarm
   };
 };

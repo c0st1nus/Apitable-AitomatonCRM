@@ -18,9 +18,6 @@
 
 package com.apitable.workspace.observer.remind;
 
-/**
- * mail remind channel.
- */
 public enum MailRemindChannel implements RemindChannel {
 
     MAIL(0);

@@ -23,8 +23,7 @@ import com.apitable.control.infrastructure.permission.NodePermission;
 import com.apitable.control.infrastructure.role.RoleConstants.Node;
 
 /**
- * Editor role of node.
- *
+ * Editor role of node
  * @author Shawn Deng
  */
 public class NodeEditorRole extends NodeReaderRole {
@@ -33,11 +32,6 @@ public class NodeEditorRole extends NodeReaderRole {
         this(false);
     }
 
-    /**
-     * constructor.
-     *
-     * @param inherit inherit from parent
-     */
     public NodeEditorRole(boolean inherit) {
         super(inherit);
         permissions.add(NodePermission.EDIT_NODE);

@@ -17,5 +17,9 @@
  */
 
 export const SetCalendarLayout = () => {
-  return <div>SetCalendarLayout</div>;
+  return (
+    <div>
+      SetCalendarLayout
+    </div>
+  );
 };

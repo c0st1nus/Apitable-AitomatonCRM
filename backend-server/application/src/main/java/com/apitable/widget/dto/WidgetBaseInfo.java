@@ -20,9 +20,6 @@ package com.apitable.widget.dto;
 
 import lombok.Data;
 
-/**
- * widget base info.
- */
 @Data
 public class WidgetBaseInfo {
 

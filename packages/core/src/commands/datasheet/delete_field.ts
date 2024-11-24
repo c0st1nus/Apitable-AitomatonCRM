@@ -17,15 +17,12 @@
  */
 
 import { ExecuteResult, ICollaCommandDef, ILinkedActions } from 'command_manager';
-import { CollaCommandName } from 'commands/enum';
+import { CollaCommandName } from 'commands';
 import { clearOldBrotherField, setAffectFieldAttr2Action } from 'commands/common/field';
 import { IJOTAction, jot } from 'engine';
 import { Strings, t } from '../../exports/i18n';
-import { DatasheetActions } from 'commands_actions/datasheet';
-import {
-  getActiveDatasheetId,
-  getSnapshot,
-} from 'modules/database/store/selectors/resource/datasheet/base';
+import { DatasheetActions } from 'model';
+import { Selectors } from '../../exports/store';
 import { FieldType, ResourceType } from 'types';
 
 export interface IDeleteFieldOptions {
@@ -43,10 +40,10 @@ export const deleteField: ICollaCommandDef<IDeleteFieldOptions> = {
   undoable: true,
 
   execute: (context, options) => {
-    const { state: state } = context;
+    const { model: state } = context;
     const { data, datasheetId: _datasheetId } = options;
-    const datasheetId = options.datasheetId ?? getActiveDatasheetId(state)!;
-    const snapshot = getSnapshot(state, _datasheetId || datasheetId);
+    const datasheetId = Selectors.getActiveDatasheetId(state)!;
+    const snapshot = Selectors.getSnapshot(state, _datasheetId || datasheetId);
     if (!snapshot) {
       return null;
     }
@@ -77,9 +74,7 @@ export const deleteField: ICollaCommandDef<IDeleteFieldOptions> = {
       }
 
       let action = DatasheetActions.deleteField2Action(snapshot, {
-        fieldId,
-        datasheetId,
-        viewId,
+        fieldId, datasheetId, viewId
       });
 
       if (!action) {

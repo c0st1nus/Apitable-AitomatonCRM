@@ -16,13 +16,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { lightColors } from '@apitable/components';
 import { ArrowHeadType, Elements } from '@apitable/react-flow';
+import { lightColors } from '@apitable/components';
 import { CYCLE_NODE_WIDTH, CYCLE_NODE_HEIGHT, NodeType } from '../constants';
 import { IAdj, INodesMap, INode } from '../interfaces';
 
-export function getCycleElements(params: { adj: IAdj; nodesMap: INodesMap; cycle: Array<string> }) {
-  const { adj, nodesMap, cycle } = params;
+export function getCycleElements(params: {
+  adj: IAdj;
+  nodesMap: INodesMap;
+  cycle: Array<string>;
+}) {
+  const {
+    adj,
+    nodesMap,
+    cycle,
+  } = params;
 
   const els = cycle.slice(0, -1);
   const cycleElements: Elements = els.map((id, index) => ({
@@ -72,6 +80,7 @@ export function getCycleElements(params: { adj: IAdj; nodesMap: INodesMap; cycle
       top: 0,
       right: 0,
       bottom: 0,
-    },
+    }
   };
+
 }

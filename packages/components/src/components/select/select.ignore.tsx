@@ -45,6 +45,7 @@ export const TriggerDivCls = styled.div.attrs(applyDefaultTheme) <{ focus: boole
   ${props => {
     return props.focus && css`
       background-color: ${blackBlue[50]};
+      border-color: ${props.theme.palette.primary.main};
     `;
   }}
 `;
@@ -95,6 +96,7 @@ export const GlobalStyle = createGlobalStyle`
 
 export const hightLightCls = styled.div.attrs(applyDefaultTheme)`
   background: none;
+  color: ${(props) => props.theme.palette.primary.main};
   padding: 0;
 `;
 

@@ -1,11 +1,4 @@
-import {
-  filterDatasheetOp,
-  IDeleteViewDerivation,
-  IPatchViewDerivation,
-  ISetViewDerivation,
-  JOTApply,
-  selection
-} from '@apitable/core';
+import { filterDatasheetOp, IDeleteViewDerivation, IPatchViewDerivation, ISetViewDerivation, JOTApply, selection } from '@apitable/core';
 import { ActionConstants } from 'core';
 import { IDatasheetClient, IDatasheetMain, IDatasheetMap, IWidgetDatasheetState } from 'interface';
 import { AnyAction, combineReducers } from 'redux';
@@ -45,10 +38,6 @@ export const datasheetPack = combineReducers<IWidgetDatasheetState>({
       return null;
     }
     switch(action.type) {
-      case ActionConstants.DATAPACK_LOADED: {
-        state = { ...state, ...action.payload };
-        return state;
-      }
       case ActionConstants.UPDATE_DATASHEET: {
         state = { ...state, ...action.payload };
         return state;

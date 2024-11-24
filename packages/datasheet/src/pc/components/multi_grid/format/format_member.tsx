@@ -16,17 +16,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { IField, IMemberField, Strings, t } from '@apitable/core';
+import { Switch } from 'antd';
 import classNames from 'classnames';
 import { Dispatch, SetStateAction } from 'react';
 import * as React from 'react';
-import { Switch } from '@apitable/components';
-import { IField, IMemberField, Strings, t } from '@apitable/core';
-import { QuestionCircleOutlined } from '@apitable/icons';
-import { Message } from 'pc/components/common';
-import { useAppSelector } from 'pc/store/react-redux';
-import { getEnvVariables } from 'pc/utils/env';
 import settingStyles from '../field_setting/styles.module.less';
 import styles from './styles.module.less';
+import { useSelector } from 'react-redux';
+import { Message, Modal, Tooltip } from 'pc/components/common';
+import { QuestionCircleOutlined } from '@apitable/icons';
 
 interface IFormatmember {
   currentField: IMemberField;
@@ -45,13 +44,30 @@ export const FormatMember: React.FC<React.PropsWithChildren<IFormatmember>> = (p
   };
 
   const handleShouldSendMsgChange = (checked: boolean) => {
-    props.setCurrentField({
-      ...props.currentField,
-      property: {
-        ...props.currentField.property,
-        shouldSendMsg: checked,
-      },
-    });
+    const updateSendMsg = () => {
+      props.setCurrentField({
+        ...props.currentField,
+        property: {
+          ...props.currentField.property,
+          shouldSendMsg: checked,
+        },
+      });
+    };
+
+    if (!checked) {
+      Modal.warning({
+        title: t(Strings.kindly_reminder),
+        content: t(Strings.field_member_property_notify_tip),
+        hiddenCancelBtn: false,
+        cancelText: t(Strings.cancel),
+        zIndex: 1100,
+        onOk: () => {
+          updateSendMsg();
+        },
+      });
+    } else {
+      updateSendMsg();
+    }
   };
 
   const handleSubscription = (checked: boolean) => {
@@ -66,7 +82,7 @@ export const FormatMember: React.FC<React.PropsWithChildren<IFormatmember>> = (p
     };
     if (checked) {
       Message.info({
-        content: t(Strings.field_member_property_subscription_open_tip),
+        content: t(Strings.field_created_by_property_subscription_open_tip)
       });
       updateSubscription();
     } else {
@@ -76,48 +92,47 @@ export const FormatMember: React.FC<React.PropsWithChildren<IFormatmember>> = (p
 
   const { isMulti, shouldSendMsg, subscription } = props.currentField.property;
 
-  const embedId = useAppSelector((state) => state.pageParams.embedId);
-
-  const { RECORD_WATCHING_VISIBLE } = getEnvVariables();
+  const embedId = useSelector(state => state.pageParams.embedId);
 
   return (
     <div className={styles.section}>
       <section className={settingStyles.section}>
         <div className={classNames(settingStyles.sectionTitle, settingStyles.sub)}>
           {t(Strings.field_member_property_multi)}
-          <Switch size="small" checked={isMulti} onChange={handleIsMultiChange} />
+          <Switch
+            size="small"
+            checked={isMulti}
+            onChange={handleIsMultiChange}
+          />
         </div>
       </section>
       <section className={settingStyles.section}>
-        {!embedId && (
-          <div className={classNames(settingStyles.sectionTitle, settingStyles.sub)}>
-            {t(Strings.field_member_property_notify)}
-            <Switch size="small" checked={shouldSendMsg} onChange={handleShouldSendMsgChange} />
-          </div>
-        )}
+        {!embedId && <div className={classNames(settingStyles.sectionTitle, settingStyles.sub)}>
+          {t(Strings.field_member_property_notify)}
+          <Switch
+            size="small"
+            checked={shouldSendMsg}
+            onChange={handleShouldSendMsgChange}
+          />
+        </div>}
       </section>
-      {RECORD_WATCHING_VISIBLE && (
-        <section className={settingStyles.section}>
-          {!embedId && (
-            <div className={classNames(settingStyles.sectionTitle, settingStyles.sub)}>
-              <div className={styles.subscription}>
-                {t(Strings.field_member_property_subscription)}
-                <a
-                  href={t(Strings.field_help_member_property_subscription)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ display: 'inline-block', cursor: 'pointer' }}
-                >
-                  <span className={styles.requiredTip}>
-                    <QuestionCircleOutlined color="currentColor" />
-                  </span>
-                </a>
-              </div>
-              <Switch size="small" checked={subscription} onChange={handleSubscription} />
-            </div>
-          )}
-        </section>
-      )}
+      <section className={settingStyles.section}>
+        {!embedId && <div className={classNames(settingStyles.sectionTitle, settingStyles.sub)}>
+          <div className={styles.subscription}>
+            {t(Strings.field_member_property_subscription)}
+            <Tooltip title={t(Strings.field_member_property_subscription_tip)} trigger={'hover'}>
+              <span className={styles.requiredTip}>
+                <QuestionCircleOutlined color='currentColor' />
+              </span>
+            </Tooltip>
+          </div>
+          <Switch
+            size="small"
+            checked={subscription}
+            onChange={handleSubscription}
+          />
+        </div>}
+      </section>
     </div>
   );
 };

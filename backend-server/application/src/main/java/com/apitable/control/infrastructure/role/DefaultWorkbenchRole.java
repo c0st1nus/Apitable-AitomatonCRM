@@ -19,8 +19,7 @@
 package com.apitable.control.infrastructure.role;
 
 /**
- * Default Workbench Role.
- *
+ * Default Workbench Role
  * @author Shawn Deng
  */
 public class DefaultWorkbenchRole extends NodeManagerRole {

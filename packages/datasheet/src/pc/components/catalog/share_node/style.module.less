@@ -6,11 +6,7 @@
   width: 100%;
   height: auto;
 }
-.invite {
-  height: 208px;
-  display: flex;
-  flex-direction: column;
-}
+
 .container {
   display: flex;
 
@@ -115,12 +111,7 @@
     }
   }
 }
-.shareTabContent {
-  display: flex;
-  height: 100%;
-  flex-direction: column;
-  height: 208px;
-}
+
 /** Mobile */
 .shareNodeDrawer {
   .nodeTitle {
@@ -171,12 +162,13 @@
 
 .shareContent {
   border-radius: 8px;
-  padding: 0 24px 0 24px;
+  padding: 24px 24px 0px;
   box-shadow: var(--shadowCommonHighest);
-  background-color: var(--bgCommonHigh);
-  min-height: 270px;
-  display: flex;
-  flex-direction: column;
+  background-color: var(--bgCommonHighest);
+
+  &.loading {
+    padding-bottom: 36px;
+  }
 
   .shareFloor {
     .displayAlignCenter();
@@ -243,7 +235,7 @@
 
   .collaborator {
     justify-content: space-between;
-    padding-bottom: 16px;
+    padding-bottom: 40px;
 
     .collaboratorStatus {
       padding: 4px;
@@ -349,30 +341,5 @@
         background-color: var(--bgCommonLower);
       }
     }
-  }
-}
-
-
-// More ways to invite
-.inviteMore {
-  padding: 14px 0;
-  border-top: 1px solid var(--borderCommonDefault);
-  margin-top: auto;
-  display: flex;
-  justify-content: space-between;
-  .displayAlignCenter();
-
-  .inviteMoreMethod {
-    color: var(--textCommonSecondary);
-    cursor: pointer;
-    .displayAlignCenter();
-    svg {
-      margin-right: 4px;
-    }
-  }
-}
-.shareNodeModal {
-  :global(.ant-modal-close) {
-    margin: 16px 16px 0 0;
   }
 }

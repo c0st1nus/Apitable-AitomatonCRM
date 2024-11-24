@@ -18,11 +18,12 @@
 
 package com.apitable.template.entity;
 
+import java.io.Serializable;
+import java.time.LocalDateTime;
+
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
-import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -32,7 +33,7 @@ import lombok.experimental.Accessors;
 
 /**
  * <p>
- * Template Center - Template Album Relation Table.
+ * Template Center - Template Album Relation Table
  * </p>
  *
  * @author Mybatis Generator Tool
@@ -49,28 +50,28 @@ public class TemplateAlbumRelEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Primary Key.
+     * Primary Key
      */
     @TableId(value = "id", type = IdType.ASSIGN_ID)
     private Long id;
 
     /**
-     * Template Album Custom ID.
+     * Template Album Custom ID
      */
     private String albumId;
 
     /**
-     * Relate Type(0: template category, 1: template, 2: template tag).
+     * Relate Type(0: template category, 1: template, 2: template tag)
      */
     private Integer type;
 
     /**
-     * Relate Object Custom ID(0: category_code, 1: template_id, 2: tag_code).
+     * Relate Object Custom ID(0: category_code, 1: template_id, 2: tag_code)
      */
     private String relateId;
 
     /**
-     * Creation Time.
+     * Creation Time
      */
     private LocalDateTime createdAt;
 

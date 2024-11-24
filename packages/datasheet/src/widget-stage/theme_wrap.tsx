@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useEffect, useState } from 'react';
 import { ThemeName, ThemeProvider } from '@apitable/components';
+import { useEffect, useState } from 'react';
 import { getTheme, switchTheme } from './theme';
 
 export const ThemeWrap = ({ children }: { children: JSX.Element }) => {
@@ -33,5 +33,9 @@ export const ThemeWrap = ({ children }: { children: JSX.Element }) => {
     window.addEventListener('message', messageListener);
     return () => window.removeEventListener('message', messageListener);
   });
-  return <ThemeProvider theme={theme}>{children}</ThemeProvider>;
+  return (
+    <ThemeProvider theme={theme}>
+      {children}
+    </ThemeProvider>
+  );
 };

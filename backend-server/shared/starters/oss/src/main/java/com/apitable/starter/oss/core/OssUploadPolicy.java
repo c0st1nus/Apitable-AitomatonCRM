@@ -22,14 +22,15 @@ import java.util.Map;
 
 /**
  * <p>
- * Front end direct transmission credentials.
+ * Front end direct transmission credentials
  * </p>
+ *
  */
 public class OssUploadPolicy {
 
     /**
      * If it is 1, it means that users are allowed to upload files prefixed with keyPrefix of scope.
-     * </p>
+     *
      * support：
      * 1.qiniu cloud
      */
@@ -43,7 +44,7 @@ public class OssUploadPolicy {
     /**
      * The minimum size of the uploaded file is limited in Byte. If it is smaller than the minimum upload file size,
      * it will be judged as upload failure, and a 403 status code will be returned
-     * </p>
+     *
      * support：
      * 1.qiniu cloud
      */
@@ -52,7 +53,7 @@ public class OssUploadPolicy {
     /**
      * The maximum size of the uploaded file is limited in Byte. If the maximum upload file size exceeds the limit,
      * the upload will be judged as failed, and a 413 status code will be returned.
-     * </p>
+     *
      * support：
      * 1.qiniu
      */
@@ -64,20 +65,21 @@ public class OssUploadPolicy {
      * image/* Indicates that only image types can be uploaded
      * image/jpeg;image/png Indicates that only jpg and png images can be uploaded
      * !application/json;text/plain Indicates that the upload of json text and plain text is prohibited. Pay attention to the front exclamation point!
-     * </p>
+     *
      * support：qiniu cloud
-     */
+     * */
     private String mimeLimit;
 
     /**
-     * File storage type. 0 is standard storage (default), 1 is low-frequency storage, 2 is archive storage, and 3 is deep archive storage. <br>
+     * File storage type. 0 is standard storage (default), 1 is low-frequency storage, 2 is archive storage, and 3 is deep archive storage. </br>3
+     *
      * support：
      * 1.qiniu cloud
      */
     private Integer fileType;
 
     /**
-     * CallBack Body extended parameters.
+     * CallBack Body extended parameters
      */
     private Map<String, Object> putExtra;
 

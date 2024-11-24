@@ -20,9 +20,6 @@ package com.apitable.organization.dto;
 
 import lombok.Data;
 
-/**
- * role member info dto.
- */
 @Data
 public class RoleMemberInfoDTO {
 

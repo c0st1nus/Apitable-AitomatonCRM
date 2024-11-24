@@ -50,7 +50,6 @@ Sentry.init({
   autoSessionTracking: false,
   ignoreErrors: [
     // It was found that all hovers where tooltip appears send a request to sentry and the exception status is this
-    'ResizeObserver loop limit exceeded',
-    'JSON Parse error: Unexpected EOF',
+    'ResizeObserver loop limit exceeded'
   ],
 });

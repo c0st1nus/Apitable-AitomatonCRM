@@ -36,4 +36,3 @@ export * from './use_selection';
 export * from './use_active_cell';
 export * from './use_collaborators';
 export * from './use_session';
-export * from './use_unit_info';

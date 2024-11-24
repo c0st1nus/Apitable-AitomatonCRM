@@ -15,19 +15,18 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+import { Test, TestingModule } from '@nestjs/testing';
 import { DatasheetService } from 'database/datasheet/services/datasheet.service';
 import { RestService } from 'shared/services/rest/rest.service';
 import { CascaderChildren } from '../models/cascader.children';
+import { CascaderDatabusService } from './cascader.databus.service';
 import { DatasheetFieldCascaderSnapshotService } from './datasheet.field.cascader.snapshot.service';
-import { DatasheetCascaderFieldRepository } from '../repositories/datasheet.cascader.field.repository';
-import { IFieldMap, IMeta, IRecordMap, IViewProperty, Role } from '@apitable/core';
-import { Test, TestingModule } from '@nestjs/testing';
-import { WinstonModule } from 'nest-winston';
 import { LoggerConfigService } from 'shared/services/config/logger.config.service';
 import { CommandService } from 'database/command/services/command.service';
+import { WinstonModule } from 'nest-winston';
+import { DatasheetCascaderFieldRepository } from '../repositories/datasheet.cascader.field.repository';
+import { IFieldMap, IMeta, IRecordMap, IViewProperty, Role } from '@apitable/core';
 import { NodeService } from 'node/services/node.service';
-import { UnitService } from 'unit/services/unit.service';
-import { CascaderDatabusService } from './cascader.databus.service';
 
 function getDepthOfNode(root: CascaderChildren): number {
   let depth = 0;
@@ -50,14 +49,15 @@ function getDepthOfNode(root: CascaderChildren): number {
 }
 
 describe('DatasheetFieldTreeSelectService', () => {
-  let moduleFixture: TestingModule;
+  let module: TestingModule;
   let datasheetFieldCascaderSnapshotService: DatasheetFieldCascaderSnapshotService;
   let restService: RestService;
   let datasheetService: DatasheetService;
   let datasheetCascaderFieldRepository: DatasheetCascaderFieldRepository;
+  // let nodeService: NodeService;
 
-  beforeEach(async() => {
-    moduleFixture = await Test.createTestingModule({
+  beforeAll(async() => {
+    module = await Test.createTestingModule({
       imports: [
         WinstonModule.forRootAsync({
           useClass: LoggerConfigService,
@@ -81,14 +81,7 @@ describe('DatasheetFieldTreeSelectService', () => {
           provide: DatasheetService,
           useValue: {
             getBasePacks: jest.fn(),
-            getDatasheet: jest.fn(),
           },
-        },
-        {
-          provide: UnitService,
-          useValue: {
-            getUnitInfo: jest.fn(),
-          }
         },
         CascaderDatabusService,
         DatasheetFieldCascaderSnapshotService,
@@ -106,15 +99,11 @@ describe('DatasheetFieldTreeSelectService', () => {
         },
       ],
     }).compile();
-    restService = moduleFixture.get<RestService>(RestService);
-    datasheetService = moduleFixture.get<DatasheetService>(DatasheetService);
-    datasheetFieldCascaderSnapshotService = moduleFixture.get<DatasheetFieldCascaderSnapshotService>(DatasheetFieldCascaderSnapshotService);
+    restService = module.get<RestService>(RestService);
+    datasheetService = module.get<DatasheetService>(DatasheetService);
+    datasheetFieldCascaderSnapshotService = module.get<DatasheetFieldCascaderSnapshotService>(DatasheetFieldCascaderSnapshotService);
     // nodeService = module.get<NodeService>(NodeService);
-    datasheetCascaderFieldRepository = moduleFixture.get<DatasheetCascaderFieldRepository>(DatasheetCascaderFieldRepository);
-  });
-
-  afterEach(async() => {
-    await moduleFixture.close();
+    datasheetCascaderFieldRepository = module.get<DatasheetCascaderFieldRepository>(DatasheetCascaderFieldRepository);
   });
 
   it('should returns tree select nodes snapshot when given snapshot records', async() => {

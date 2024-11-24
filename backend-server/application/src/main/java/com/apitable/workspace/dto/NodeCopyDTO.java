@@ -18,15 +18,14 @@
 
 package com.apitable.workspace.dto;
 
-import com.apitable.workspace.ro.MetaMapRo;
 import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * node copy dto.
- */
+import com.apitable.workspace.ro.MetaMapRo;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

@@ -17,35 +17,36 @@
  */
 
 import { DynamicModule, Module } from '@nestjs/common';
-import { enableAmqp } from 'app.environment';
-import { QueueModule } from './queue.module';
+import path from 'path';
+import * as fs from 'fs';
 import { QueueSenderBaseService } from './queue.sender.base.service';
 
 @Module({
   providers: [
     {
       provide: QueueSenderBaseService,
-      useClass: class QueueService extends QueueSenderBaseService {
-      },
+      useClass: class QueueService extends QueueSenderBaseService {}
     },
   ],
   exports: [
     {
       provide: QueueSenderBaseService,
-      useClass: class QueueService extends QueueSenderBaseService {
-      }
+      useClass: class QueueService extends QueueSenderBaseService {}
     },
   ]
 })
-export class QueueDynamicModule {
+export class QueueDynamicModule { 
   static forRoot(): DynamicModule {
-    if (enableAmqp) {
+    const queueEnterpriseModulePath = path.join(__dirname, '../../../enterprise/queue');
+    const isEnterpriseLevel: boolean = fs.existsSync(queueEnterpriseModulePath);
+    if (isEnterpriseLevel) {
+      const { QueueEnterpriseModule } = require(`${queueEnterpriseModulePath}/queue.enterprise.module`);
       return {
-        module: QueueModule,
+        module: QueueEnterpriseModule,
       };
     }
-    return {
+    return { 
       module: QueueDynamicModule,
-    };
+    }; 
   }
 }

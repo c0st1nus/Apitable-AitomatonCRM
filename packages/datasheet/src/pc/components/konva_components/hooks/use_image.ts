@@ -43,7 +43,7 @@ export const useImage = ({ url, crossOrigin }: IUseImageProps) => {
     if (!url) return;
 
     // If it is loaded in the cache, it is read directly from the cache
-    const img = imageCache.getImage(url);
+    let img = imageCache.getImage(url);
     if (img) {
       return setState({
         image: img,
@@ -53,13 +53,13 @@ export const useImage = ({ url, crossOrigin }: IUseImageProps) => {
       });
     }
 
-    const newImg = new Image();
+    img = new Image();
 
     function onload() {
       setState({
-        image: newImg,
-        height: newImg.height,
-        width: newImg.width,
+        image: img,
+        height: img.height,
+        width: img.width,
         status: 'loaded',
       });
     }
@@ -70,15 +70,15 @@ export const useImage = ({ url, crossOrigin }: IUseImageProps) => {
         status: 'failed',
       }));
     }
-    newImg.addEventListener('load', onload);
-    newImg.addEventListener('error', onerror);
+    img.addEventListener('load', onload);
+    img.addEventListener('error', onerror);
 
-    crossOrigin && (newImg.crossOrigin = crossOrigin);
-    newImg.src = url;
+    crossOrigin && (img.crossOrigin = crossOrigin);
+    img.src = url;
 
     return () => {
-      newImg.removeEventListener('load', onload);
-      newImg.removeEventListener('error', onerror);
+      img.removeEventListener('load', onload);
+      img.removeEventListener('error', onerror);
     };
   }, [url, crossOrigin]);
 

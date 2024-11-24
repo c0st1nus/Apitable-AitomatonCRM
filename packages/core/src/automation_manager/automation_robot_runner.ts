@@ -16,29 +16,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {
-  IActionOutput,
-  IActionType,
-  IAutomationRobotRunner,
-  IReqMethod,
-  IRobot,
-  IRobotTask,
-  IRobotTaskRuntimeContext,
-} from 'automation_manager/interface';
-import { omit } from 'lodash';
+import { IActionOutput, IAutomationRobotRunner, IReqMethod } from './interface/automation_robot_runner.interface';
+import { IRobot, IActionType, IRobotTask, IRobotTaskRuntimeContext } from './interface/automation.interface';
 import { InputParser } from './input_parser';
 import { MagicVariableParser } from './magic_variable/magic_variable_parser';
 import {
-  concatParagraph,
-  concatString,
-  flatten,
   getNodeOutput,
   getObjectProperty,
-  JSONStringify,
-  length,
+  concatString,
+  concatParagraph,
   newArray,
   newObject,
+  JSONStringify,
+  length,
+  flatten,
 } from './magic_variable/sys_functions';
+import { omit } from 'lodash';
 
 /**
  * handle workflow execution
@@ -58,7 +51,7 @@ export class AutomationRobotRunner extends IAutomationRobotRunner {
     return new InputParser(parser);
   }
   async run(robotTask: IRobotTask): Promise<void> {
-    const robot = await this.reqMethods.getRobotByRobotIdAndTriggerId(robotTask.robotId, robotTask.triggerId);
+    const robot = await this.reqMethods.getRobotById(robotTask.robotId);
     const globalContext: IRobotTaskRuntimeContext = this.initRuntimeContext(robotTask, robot);
     const entryActionId = globalContext.robot.entryActionId;
     await this.executeAction(entryActionId, globalContext);
@@ -72,30 +65,18 @@ export class AutomationRobotRunner extends IAutomationRobotRunner {
     return true;
   }
   initRuntimeContext(robotTask: IRobotTask, robot: IRobot): IRobotTaskRuntimeContext {
-    const context = {
-      [robot.triggerId]: {
-        typeId: robot.triggerTypeId,
-        input: robotTask.triggerInput,
-        output: robotTask.triggerOutput,
-      },
-    };
-    const executedNodeIds = [robot.triggerId];
-    if (robotTask.extraTrigger) {
-      for (const trigger of robotTask.extraTrigger) {
-        context[trigger.triggerId] = {
-          typeId: trigger.triggerTypeId,
-          input: trigger.triggerInput,
-          output: trigger.triggerOutput,
-        };
-        executedNodeIds.push(trigger.triggerId);
-      }
-    }
     return {
       robot: robot,
       taskId: robotTask.taskId,
-      executedNodeIds: executedNodeIds,
+      executedNodeIds: [robot.triggerId],
       currentNodeId: robot.triggerId,
-      context: context,
+      context: {
+        [robot.triggerId]: {
+          typeId: robot.triggerTypeId,
+          input: robotTask.triggerInput,
+          output: robotTask.triggerOutput,
+        },
+      },
       isDone: false,
       success: true,
     };
@@ -146,7 +127,7 @@ export class AutomationRobotRunner extends IAutomationRobotRunner {
           )} AutomationRobotRunner:executeAction:requestActionOutput error`,
           error,
         );
-        throw new Error(error.message);
+        throw new Error(`action execute failed. error message: ${error.message}`);
       }
       nextActionId = actionInstance.nextActionId;
       if (output && !output.success) {

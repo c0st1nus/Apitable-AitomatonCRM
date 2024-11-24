@@ -22,18 +22,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Fetch Sources
-        uses: actions/checkout@v4
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: '16.15.0'
-      - uses: pnpm/action-setup@v2
+      - name: Set up JDK 8
+        uses: actions/setup-java@v3
         with:
-          version: 8.7.5
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
+          java-version: '8'
           distribution: 'corretto'
           cache: 'gradle'
       - name: Install build-essential
@@ -57,20 +53,7 @@ jobs:
       matrix:
         command: [ test-init-db-docker, test-ut-backend-docker, test-ut-room-docker, _test-ut-core ]
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16.15.0'
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 8.7.5
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'corretto'
-          cache: 'gradle'
+      - uses: actions/checkout@v3
       - name: Running Test
         shell: bash
         run: |
@@ -79,8 +62,7 @@ jobs:
   build-push: ## build and push to docker registry
     needs: unit-test
     runs-on: ubuntu-latest
-    #if: ${{ github.event_name != 'pull_request' }}
-    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+    if: ${{ github.event_name != 'pull_request' }}
     strategy:
       matrix:
         target: [ backend-server, room-server, web-server, init-db, openresty ]
@@ -88,11 +70,7 @@ jobs:
       APITABLE_DOCKER_HUB_TOKEN: ${{ secrets.APITABLE_DOCKER_HUB_TOKEN }}
     steps:
       - name: Fetch Sources
-        uses: actions/checkout@v4
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: actions/checkout@v3
       - name: Build APITable and Push
         run: |
           eval "$(./scripts/semver-ci.sh)"
@@ -101,38 +79,14 @@ jobs:
   build-push-all-in-one: ## build and push to docker registry
     needs: build-push
     runs-on: ubuntu-latest
-    #if: ${{ github.event_name != 'pull_request' }}
-    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+    if: ${{ github.event_name != 'pull_request' }}
     env:
       APITABLE_DOCKER_HUB_TOKEN: ${{ secrets.APITABLE_DOCKER_HUB_TOKEN }}
     steps:
       - name: Fetch Sources
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
       - name: Build APITable and Push
         run: |
           cp -pr gateway/ packaging/all-in-one/all-in-one/
           eval "$(./scripts/semver-ci.sh)"
           make buildpush-docker target=all-in-one
-
-  # https://github.com/apitable/apitable/issues/1379
-  build-push-experimental: ## build and push to docker registry
-    needs: build-push
-    runs-on: ubuntu-latest
-    #if: ${{ github.event_name != 'pull_request' }}
-    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
-    strategy:
-      matrix:
-        target: [ web-server-experimental ]
-    env:
-      APITABLE_DOCKER_HUB_TOKEN: ${{ secrets.APITABLE_DOCKER_HUB_TOKEN }}
-    steps:
-      - name: Fetch Sources
-        uses: actions/checkout@v4
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-      - name: Build APITable and Push
-        run: |
-          eval "$(./scripts/semver-ci.sh)"
-          make buildpush-docker target=${{ matrix.target }}

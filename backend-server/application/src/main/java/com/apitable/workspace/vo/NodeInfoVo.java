@@ -60,10 +60,6 @@ public class NodeInfoVo extends BaseNodeInfo {
     @JsonIgnore
     private Boolean isTemplate;
 
-    @Schema(description = "Whether it belongs to the private area")
-    @JsonSerialize(nullsUsing = NullBooleanSerializer.class)
-    private Boolean nodePrivate;
-
     @Schema(description = "Whether the node is shared")
     private Boolean nodeShared;
 
@@ -79,8 +75,8 @@ public class NodeInfoVo extends BaseNodeInfo {
     @JsonSerialize(nullsUsing = NullBooleanSerializer.class)
     private Boolean columnLimit;
 
-    @Schema(description = "Metadata of data table node - data table field set length",
-        hidden = true)
+    @Schema(description = "Metadata of data table node - data table field set length", hidden =
+        true)
     @JsonIgnore
     private Integer mdFieldMapSize;
 
@@ -97,10 +93,6 @@ public class NodeInfoVo extends BaseNodeInfo {
 
     @Schema(description = "Node Permissions")
     private NodePermissionView permissions;
-
-
-    @Schema(description = "Node extra")
-    private String extra;
 
     /**
      * Get Column Limit.

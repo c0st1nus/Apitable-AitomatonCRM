@@ -21,7 +21,7 @@ package com.apitable.starter.oss.autoconfigure;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * OSS Object Storage Properties.
+ * OSS Object Storage Properties
  *
  * @author Benson Cheung
  */
@@ -31,8 +31,6 @@ public class OssProperties {
     private boolean enabled = false;
 
     private OssType type;
-
-    private Signature signature;
 
     private Aws aws;
 
@@ -60,28 +58,24 @@ public class OssProperties {
         this.type = type;
     }
 
-    /**
-     * oss type.
-     */
-    public static enum OssType {
+    public enum OssType {
 
         /**
-         * AWS S3.
+         * AWS S3
          */
         AWS,
 
         /**
-         * Qiniu Cloud.
+         * Qiniu Cloud
          */
         QINIU,
 
         /**
-         * Aliyun Oss.
+         * Aliyun Oss
          */
         ALIYUN,
-
         /**
-         * Huawei Cloud.
+         * Huawei Cloud
          */
         HUAWEICLOUD,
 
@@ -128,17 +122,6 @@ public class OssProperties {
         this.minio = minio;
     }
 
-    public Signature getSignature() {
-        return signature;
-    }
-
-    public void setSignature(Signature signature) {
-        this.signature = signature;
-    }
-
-    /**
-     * aws properties.
-     */
     public static class Aws {
 
         private String accessKeyId;
@@ -182,9 +165,6 @@ public class OssProperties {
         }
     }
 
-    /**
-     * qiuniu properties.
-     */
     public static class Qiniu {
 
         private String accessKey;
@@ -248,9 +228,6 @@ public class OssProperties {
         }
     }
 
-    /**
-     * aliyun properties.
-     */
     public static class Aliyun {
 
         private String endpoint;
@@ -294,9 +271,6 @@ public class OssProperties {
         }
     }
 
-    /**
-     * huaweicloud properties.
-     */
     public static class HuaweiCloud {
         private String endpoint;
         private String accessKey;
@@ -306,7 +280,6 @@ public class OssProperties {
         public String getEndpoint() {
             return endpoint;
         }
-
         public void setEndpoint(String endpoint) {
             this.endpoint = endpoint;
         }
@@ -314,7 +287,6 @@ public class OssProperties {
         public String getAccessKey() {
             return accessKey;
         }
-
         public void setAccessKey(String accessKey) {
             this.accessKey = accessKey;
         }
@@ -322,7 +294,6 @@ public class OssProperties {
         public String getSecretKey() {
             return secretKey;
         }
-
         public void setSecretKey(String secretKey) {
             this.secretKey = secretKey;
         }
@@ -330,15 +301,11 @@ public class OssProperties {
         public String getBucketName() {
             return bucketName;
         }
-
         public void setBucketName(String bucketName) {
             this.bucketName = bucketName;
         }
     }
 
-    /**
-     * minio properties.
-     */
     public static class Minio {
 
         private String endpoint;
@@ -392,84 +359,11 @@ public class OssProperties {
         }
     }
 
-    /**
-     * signature properties.
-     */
-    public static class Signature {
-
-        private boolean enabled = false;
-
-        private SignatureModel model;
-
-        /**
-         * timestamp anti leech encrypt key.
-         */
-        private String encryptKey;
-
-        private Integer expireSecond;
-
-        public boolean isEnabled() {
-            return enabled;
-        }
-
-        public void setEnabled(boolean enabled) {
-            this.enabled = enabled;
-        }
-
-        public SignatureModel getModel() {
-            return model;
-        }
-
-        public void setModel(SignatureModel model) {
-            this.model = model;
-        }
-
-        public String getEncryptKey() {
-            return encryptKey;
-        }
-
-        public void setEncryptKey(String encryptKey) {
-            this.encryptKey = encryptKey;
-        }
-
-        public Integer getExpireSecond() {
-            return expireSecond;
-        }
-
-        public void setExpireSecond(Integer expireSecond) {
-            this.expireSecond = expireSecond;
-        }
-    }
-
-    /**
-     * signature model.
-     */
-    public enum SignatureModel {
-
-        // PRIVATE_BUCKET_CDN_TOKEN,
-
-        CDN_TIMESTAMP_ANTI_LEECH,
-
-    }
-
-    /**
-     * callback properties.
-     */
     public static class Callback {
-
-        private boolean enabled = false;
 
         private String url;
 
         private String bodyType;
-
-        public boolean isEnabled() {
-            return enabled;
-        }
-
-        public void setEnabled(boolean enabled) {
-            this.enabled = enabled;
-        }
 
         public String getUrl() {
             return url;

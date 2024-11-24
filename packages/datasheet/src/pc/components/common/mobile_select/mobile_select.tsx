@@ -17,18 +17,29 @@
  */
 
 import { SelectValue } from 'antd/lib/select';
-import classNames from 'classnames';
+import { useThemeColors } from '@apitable/components';
 import { useCallback, useState } from 'react';
 import * as React from 'react';
-import { useThemeColors } from '@apitable/components';
+import styles from './style.module.less';
 import { Strings, t } from '@apitable/core';
-import { CheckOutlined, ChevronDownOutlined } from '@apitable/icons';
+import classNames from 'classnames';
 import { Popup } from '../mobile/popup';
 import { IMobileSelectProps } from './interface';
-import styles from './style.module.less';
+import { CheckOutlined, ChevronDownOutlined } from '@apitable/icons';
 
-const MobileSelectBase: React.FC<React.PropsWithChildren<IMobileSelectProps>> = (props) => {
-  const { optionData, triggerComponent, onClose, title, renderList, defaultValue, onChange: _onChange, className, style, disabled } = props;
+const MobileSelectBase: React.FC<React.PropsWithChildren<IMobileSelectProps>> = props => {
+  const {
+    optionData,
+    triggerComponent,
+    onClose,
+    title,
+    renderList,
+    defaultValue,
+    onChange: _onChange,
+    className,
+    style,
+    disabled
+  } = props;
   const colors = useThemeColors();
   const onChange = useCallback(
     (value: SelectValue, options?: any) => {
@@ -51,8 +62,12 @@ const MobileSelectBase: React.FC<React.PropsWithChildren<IMobileSelectProps>> = 
           onClick={() => !disabled && setVisible(true)}
           style={style}
         >
-          <span>{optionData?.find((item) => item.value === defaultValue)?.label}</span>
-          <ChevronDownOutlined className={styles.arrow} size={16} color={colors.fourthLevelText} />
+          <span>{optionData?.find(item => item.value === defaultValue)?.label}</span>
+          <ChevronDownOutlined
+            className={styles.arrow}
+            size={16}
+            color={colors.fourthLevelText}
+          />
         </div>
       )}
       {hasOuterTrigger && (
@@ -63,7 +78,8 @@ const MobileSelectBase: React.FC<React.PropsWithChildren<IMobileSelectProps>> = 
           {triggerComponent}
         </div>
       )}
-      {visible && (
+      {
+        visible &&
         <Popup
           open={visible}
           title={title || t(Strings.please_choose)}
@@ -72,13 +88,13 @@ const MobileSelectBase: React.FC<React.PropsWithChildren<IMobileSelectProps>> = 
             setVisible(false);
             onClose?.();
           }}
-          className={classNames(styles.optionsListMenu, styles.mobileSelect)}
+          className={styles.optionsListMenu}
         >
           <div className={styles.optionsListWrapper}>
-            {renderList
-              ? renderList({ setVisible })
-              : optionData?.length
-                ? optionData.map((item) => {
+            {
+              renderList ? renderList({ setVisible }) : (
+                optionData?.length ? optionData.map(item => {
+
                   const selectedVal = selectedValue || defaultValue;
                   const isChecked = item.value === selectedVal;
 
@@ -100,21 +116,21 @@ const MobileSelectBase: React.FC<React.PropsWithChildren<IMobileSelectProps>> = 
                     >
                       <div className={styles.fieldItem}>
                         {item.prefixIcon}
-                        <span className={styles.fieldName}>{item.label}</span>
+                        <span className={styles.fieldName}>
+                          {item.label}
+                        </span>
                         {item.suffixIcon}
                       </div>
-                      {isChecked && (
-                        <span style={{ marginRight: 8 }}>
-                          <CheckOutlined color={colors.primaryColor} />
-                        </span>
-                      )}
+                      {isChecked && <span style={{ marginRight: 8 }}><CheckOutlined color={colors.primaryColor} /></span>}
                     </div>
                   );
-                })
-                : t(Strings.no_option)}
+                }
+                ) : t(Strings.no_option)
+              )
+            }
           </div>
         </Popup>
-      )}
+      }
     </>
   );
 };

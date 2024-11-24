@@ -16,47 +16,67 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useAtomValue } from 'jotai';
-import * as React from 'react';
-import { memo, useEffect } from 'react';
-import { Skeleton } from '@apitable/components';
-import { ConfigConstant, Selectors, Strings, t } from '@apitable/core';
-import { useAppSelector } from 'pc/store/react-redux';
-import { automationDrawerVisibleAtom } from '../../automation/controller';
-import { useAutomationNavigateController } from '../../automation/controller/controller';
-import { useAutomationList } from '../../automation/controller/use_robot_list';
-import { OrTooltip } from '../../common/or_tooltip';
-import { useActionTypes, useAddNewRobot, useTriggerTypes } from '../hooks';
+import { Box, Skeleton, useTheme } from '@apitable/components';
+import { Api, ConfigConstant, Selectors } from '@apitable/core';
+import { IFormNodeItem } from 'pc/components/tool_bar/foreign_form/form_list_panel';
+import { stopPropagation } from 'pc/utils';
+import { useEffect, useMemo, useState } from 'react';
+import { useSelector } from 'react-redux';
+import useSWR from 'swr';
+import { getResourceRobots } from '../api';
+import { makeRobotCardInfo } from '../helper';
+import { useActionTypes, useAddNewRobot, useRobot, useRobotContext, useTriggerTypes } from '../hooks';
+import { RobotDetailForm } from '../robot_detail';
+import { RobotRunHistory } from '../robot_detail/robot_run_history';
 import { RobotListItemCard } from '../robot_list_item';
-import { NewItem } from './new_item';
+import { AddRobotButton } from '../robot_panel/robot_list_head';
 import { RobotEmptyList } from './robot_empty_list';
 
-export const RobotList = memo(() => {
-  const permissions = useAppSelector(Selectors.getPermissions);
+export const RobotList = () => {
+  const permissions = useSelector(Selectors.getPermissions);
+  const datasheetId = useSelector(Selectors.getActiveDatasheetId);
   const canManageRobot = permissions.manageable;
-
-  const datasheetId = useAppSelector(Selectors.getActiveDatasheetId);
-  const { state: { error, data: robotList }, api: { refresh } } = useAutomationList();
-
+  const { currentRobotId, isHistory, setCurrentRobotId, updateRobotList } = useRobot();
+  const thisResourceRobotUrl = `/robots?resourceId=${datasheetId}`;
+  const { data: robots, error } = useSWR(thisResourceRobotUrl, getResourceRobots);
   const { data: triggerTypes, loading: triggerTypesLoading } = useTriggerTypes();
   const { data: actionTypes, loading: actionTypesLoading } = useActionTypes();
 
-  const { createNewRobot, navigateAutomation } = useAutomationNavigateController();
+  const [formList, setFormList] = useState<IFormNodeItem[]>([]);
+  const theme = useTheme();
+  const { state } = useRobotContext();
 
-  const showModal = useAtomValue(automationDrawerVisibleAtom);
+  const { toggleNewRobotModal, canAddNewRobot } = useAddNewRobot();
+  const fetchForeignFormList = useMemo(() => {
+    return async() => {
+      const res = await Api.getRelateNodeByDstId(datasheetId!, undefined, ConfigConstant.NodeType.FORM);
+      const formList = res.data.data;
+      setFormList(formList || []);
+    };
+  }, [datasheetId]);
 
   useEffect(() => {
-    if (!showModal) {
-      refresh();
-    }
-  }, [refresh, showModal]);
+    updateRobotList(robots);
+  }, [robots, updateRobotList]);
 
-  const {
-    canAddNewRobot,
-    disableTip,
-  } = useAddNewRobot();
+  useEffect(() => {
+    fetchForeignFormList();
+  }, [fetchForeignFormList]);
 
   if (error) return null;
+
+  if (currentRobotId) {
+    if (isHistory) {
+      return <RobotRunHistory />;
+    }
+    return (
+      <RobotDetailForm
+        index={(robots?.length || 0) + 1}
+        datasheetId={datasheetId!}
+        formList={formList}
+      />
+    );
+  }
   if (triggerTypesLoading || actionTypesLoading || triggerTypes.length === 0 || actionTypes.length === 0) {
     return <Skeleton
       count={3}
@@ -69,46 +89,53 @@ export const RobotList = memo(() => {
     />;
   }
 
-  if (robotList?.length === 0) {
+  if (state.robotList?.length === 0) {
     return <RobotEmptyList />;
   }
 
-  const robotLength = robotList?.length ??0;
   return (
     <div style={{ width: '100%' }} >
       {
-        robotList?.map((robot, index) => {
+        state.robotList?.map((robot, index) => {
+          // console.log(triggerTypes, actionTypes,robot);
+          const robotCardInfo = makeRobotCardInfo(robot, triggerTypes, actionTypes);
           return (
             <RobotListItemCard
               index={index}
               key={robot.robotId}
-              robotCardInfo={robot}
-              onNavigate={async () => {
-                await navigateAutomation(robot.resourceId, robot.robotId);
-              }}
+              robotCardInfo={robotCardInfo}
+              onClick={() => { setCurrentRobotId(robot.robotId); }}
               readonly={!canManageRobot}
             />
           );
         })
       }
-      <OrTooltip tooltip={disableTip} tooltipEnable={robotLength >= ConfigConstant.MAX_ROBOT_COUNT_PER_DST} >
-        <NewItem
-          height={64}
-          disabled={(!canAddNewRobot) || Boolean(robotLength >= ConfigConstant.MAX_ROBOT_COUNT_PER_DST)}
-          onClick={async () => {
-            if(!canManageRobot) {
-              return;
-            }
-
-            await createNewRobot(datasheetId);
-            await refresh();
+      {
+        !currentRobotId && <Box
+          border={`1px solid ${theme.color.fc5}`}
+          height={84}
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          marginTop={16}
+          onClick={() => {
+            canAddNewRobot && toggleNewRobotModal();
+          }}
+          backgroundColor={`${theme.color.fc8}`}
+          style={{
+            cursor: canAddNewRobot ? 'pointer' : 'not-allowed',
           }}
         >
-          {
-            t(Strings.new_automation)
-          }
-        </NewItem>
-      </OrTooltip>
+          <Box
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            onClick={stopPropagation}
+          >
+            <AddRobotButton />
+          </Box>
+        </Box>
+      }
     </div>
   );
-});
+};

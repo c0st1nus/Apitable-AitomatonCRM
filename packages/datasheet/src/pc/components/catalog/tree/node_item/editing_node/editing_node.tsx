@@ -16,33 +16,33 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import * as React from 'react';
 import { FC, useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { ConfigConstant, INodesMapItem, StoreActions, Strings, t } from '@apitable/core';
+import * as React from 'react';
 import { RenameInput } from 'pc/components/common';
-import { useCatalogTreeRequest, useRequest } from 'pc/hooks';
-import { useCatalog } from 'pc/hooks/use_catalog';
-import { useKeyboardCollapse } from 'pc/hooks/use_keyborad_collapse';
+import { t, Strings, StoreActions, INodesMapItem, ConfigConstant } from '@apitable/core';
+import { useDispatch } from 'react-redux';
 import { KeyCode } from 'pc/utils';
+import { useCatalog } from 'pc/hooks/use_catalog';
+import { useCatalogTreeRequest } from 'pc/hooks';
+import { useRequest } from 'pc/hooks';
+import { useKeyboardCollapse } from 'pc/hooks/use_keyborad_collapse';
 
 export const NODE_NAME_MIN_LEN = 1;
 export const NODE_NAME_MAX_LEN = 100;
 
 export interface IEditingNodeProps {
   node: INodesMapItem;
-  isPrivate?: boolean;
 }
 
-export const EditingNode: FC<React.PropsWithChildren<IEditingNodeProps>> = ({ node, isPrivate }) => {
+export const EditingNode: FC<React.PropsWithChildren<IEditingNodeProps>> = ({
+  node,
+}) => {
   const [errMsg, setErrMsg] = useState('');
   const { checkRepeat } = useCatalog();
   const dispatch = useDispatch();
   const { renameNodeReq } = useCatalogTreeRequest();
   const [value, setValue] = useState(node.nodeName);
-  const { run: renameNode } = useRequest((nodeId: string, nodeName: string) =>
-    renameNodeReq(nodeId, nodeName, isPrivate ? ConfigConstant.Modules.PRIVATE : undefined), { manual: true }
-  );
+  const { run: renameNode } = useRequest(renameNodeReq, { manual: true });
 
   const blurHandler = (e: React.FocusEvent<HTMLInputElement>) => {
     const inputValue = e.target.value.trim();
@@ -54,7 +54,7 @@ export const EditingNode: FC<React.PropsWithChildren<IEditingNodeProps>> = ({ no
   };
 
   const cancelEdit = () => {
-    dispatch(StoreActions.setEditNodeId('', isPrivate ? ConfigConstant.Modules.PRIVATE : undefined));
+    dispatch(StoreActions.setEditNodeId(''));
     dispatch(StoreActions.setEditNodeId('', ConfigConstant.Modules.FAVORITE));
   };
 
@@ -90,20 +90,14 @@ export const EditingNode: FC<React.PropsWithChildren<IEditingNodeProps>> = ({ no
         cancelEdit();
         break;
       }
-      default:
-        return;
+      default: return;
     }
   };
 
   const submit = (nodeName: string) => {
     const { nodeId, type } = node;
-    if (errMsg) {
-      return;
-    }
-    if (nodeName === node.nodeName) {
-      cancelEdit();
-      return;
-    }
+    if (errMsg) { return; }
+    if (nodeName === node.nodeName) { cancelEdit(); return; }
     if (checkRepeat(nodeId, nodeName, type)) {
       setErrMsg(t(Strings.name_repeat));
       return;
@@ -112,9 +106,7 @@ export const EditingNode: FC<React.PropsWithChildren<IEditingNodeProps>> = ({ no
     cancelEdit();
   };
 
-  useKeyboardCollapse(() => {
-    submit(value);
-  });
+  useKeyboardCollapse(() => {submit(value);});
 
   return (
     <RenameInput

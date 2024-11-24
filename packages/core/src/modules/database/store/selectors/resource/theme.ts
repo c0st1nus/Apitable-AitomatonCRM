@@ -16,8 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { IReduxState } from '../../../../../exports/store/interfaces';
-import { ThemeName } from 'modules/database/store/interfaces/resource/theme';
+import { IReduxState, ThemeName } from '../../../../../exports/store';
 
 export const getTheme = (state: IReduxState) => {
   if (!state.theme) return ThemeName.Light;

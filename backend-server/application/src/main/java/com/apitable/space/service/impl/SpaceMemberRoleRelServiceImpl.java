@@ -18,33 +18,32 @@
 
 package com.apitable.space.service.impl;
 
-import static com.apitable.workspace.enums.PermissionException.CREATE_SUB_ADMIN_ERROR;
-import static com.apitable.workspace.enums.PermissionException.ROLE_NOT_EXIST;
-import static com.apitable.workspace.enums.PermissionException.UPDATE_ROLE_ERROR;
+import java.util.ArrayList;
+import java.util.List;
 
-import com.apitable.core.util.ExceptionUtil;
-import com.apitable.space.entity.SpaceMemberRoleRelEntity;
+import javax.annotation.Resource;
+
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.extension.toolkit.SqlHelper;
+import lombok.extern.slf4j.Slf4j;
+
 import com.apitable.space.mapper.SpaceMemberRoleRelMapper;
 import com.apitable.space.mapper.SpaceResourceMapper;
 import com.apitable.space.mapper.SpaceRoleResourceRelMapper;
 import com.apitable.space.service.ISpaceMemberRoleRelService;
-import com.baomidou.mybatisplus.core.toolkit.IdWorker;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.baomidou.mybatisplus.extension.toolkit.SqlHelper;
-import jakarta.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
-import lombok.extern.slf4j.Slf4j;
+import com.apitable.core.util.ExceptionUtil;
+import com.apitable.space.entity.SpaceMemberRoleRelEntity;
+
 import org.springframework.stereotype.Service;
 
-/**
- * Space member role relation service implements.
- */
+import static com.apitable.workspace.enums.PermissionException.CREATE_SUB_ADMIN_ERROR;
+import static com.apitable.workspace.enums.PermissionException.ROLE_NOT_EXIST;
+import static com.apitable.workspace.enums.PermissionException.UPDATE_ROLE_ERROR;
+
 @Service
 @Slf4j
-public class SpaceMemberRoleRelServiceImpl
-    extends ServiceImpl<SpaceMemberRoleRelMapper, SpaceMemberRoleRelEntity>
-    implements ISpaceMemberRoleRelService {
+public class SpaceMemberRoleRelServiceImpl extends ServiceImpl<SpaceMemberRoleRelMapper, SpaceMemberRoleRelEntity> implements ISpaceMemberRoleRelService {
 
     @Resource
     private SpaceResourceMapper spaceResourceMapper;
@@ -70,9 +69,9 @@ public class SpaceMemberRoleRelServiceImpl
     }
 
     @Override
-    public SpaceMemberRoleRelEntity getEntityById(Long id) {
+    public SpaceMemberRoleRelEntity findById(Long memberRoleId) {
         log.info("query role by id");
-        SpaceMemberRoleRelEntity entity = getById(id);
+        SpaceMemberRoleRelEntity entity = getById(memberRoleId);
         ExceptionUtil.isNotNull(entity, ROLE_NOT_EXIST);
         return entity;
     }
@@ -86,30 +85,17 @@ public class SpaceMemberRoleRelServiceImpl
         boolean flag = updateById(update);
         ExceptionUtil.isTrue(flag, UPDATE_ROLE_ERROR);
     }
-
+    
     @Override
-    public List<Long> getMemberIdListByResourceGroupCodes(String spaceId,
-                                                          List<String> resourceGroupCodes) {
-        List<String> resourceCodes =
-            spaceResourceMapper.selectResourceCodesByGroupCode(resourceGroupCodes);
+    public List<Long> getMemberId(String spaceId, List<String> resourceGroupCodes) {
+        List<String> resourceCodes = spaceResourceMapper.selectResourceCodesByGroupCode(resourceGroupCodes);
         if (resourceCodes.isEmpty()) {
             return new ArrayList<>();
         }
-        List<String> roleCodes =
-            spaceRoleResourceRelMapper.selectRoleCodeByResourceCodes(resourceCodes);
+        List<String> roleCodes = spaceRoleResourceRelMapper.selectRoleCodeByResourceCodes(resourceCodes);
         if (roleCodes.isEmpty()) {
             return new ArrayList<>();
         }
         return this.baseMapper.selectMemberIdBySpaceIdAndRoleCodes(spaceId, roleCodes);
-    }
-
-    @Override
-    public String getRoleCodeByMemberId(String spaceId, Long memberId) {
-        return baseMapper.selectRoleCodeByMemberId(spaceId, memberId);
-    }
-
-    @Override
-    public List<String> getRoleCodesBySpaceId(String spaceId) {
-        return baseMapper.selectRoleCodesBySpaceId(spaceId);
     }
 }

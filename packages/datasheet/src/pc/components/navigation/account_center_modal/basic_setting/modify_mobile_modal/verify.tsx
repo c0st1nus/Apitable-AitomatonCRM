@@ -16,13 +16,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Form } from 'antd';
 import { FC } from 'react';
-import { hiddenMobile, ConfigConstant, Strings, t } from '@apitable/core';
-
-import { IdentifyingCodeInput } from 'pc/components/common/input/identifying_code_input/identifying_code_input';
-import { WithTipWrapper } from 'pc/components/common/input/with_tip_wrapper/with_tip_wrapper';
+import { Form } from 'antd';
 import styles from './style.module.less';
+import {
+  hiddenMobile,
+  ConfigConstant,
+  Strings,
+  t,
+} from '@apitable/core';
+
+import {
+  WithTipWrapper,
+  IdentifyingCodeInput,
+} from 'pc/components/common';
 
 export interface IVerifyProps {
   onVerify: () => void;
@@ -39,12 +46,22 @@ export interface IVerifyProps {
   mode?: ConfigConstant.LoginMode;
 }
 
-export const Verify: FC<React.PropsWithChildren<IVerifyProps>> = ({ onVerify, onInputChange, errMsg, setErrMsg, data, smsType, emailType, mode }) => {
+export const Verify: FC<React.PropsWithChildren<IVerifyProps>> = ({
+  onVerify,
+  onInputChange,
+  errMsg,
+  setErrMsg,
+  data,
+  smsType,
+  emailType,
+  mode,
+}) => {
+
   const isMobileType = emailType === undefined;
 
   return (
     <div>
-      <Form onFinish={onVerify} key="verify">
+      <Form onFinish={onVerify} key='verify'>
         <div className={styles.tip}>
           {t(Strings.send_verification_code_to, {
             mobile: `${isMobileType ? data.areaCode : ''} ${isMobileType ? hiddenMobile(data.mobile!) : data.email}`,

@@ -16,13 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { IAutomationRobotDetailItem } from './robot_context';
-
-export interface IRobotHistoryTask {
-  status: number;
-  data: IRobotRunHistoryDetail;
-}
-
 export interface IRobotRunHistoryDetail {
   executedNodeIds: string[];
   nodeByIds: {
@@ -33,7 +26,7 @@ export interface IRobotRunHistoryDetail {
       startAt?: number;
       endAt?: number;
       errorStacks?: any[];
-    };
+    }
   };
 }
 
@@ -42,33 +35,21 @@ export interface IUISchemaLayoutGroup {
   items: string[];
 }
 
-export enum AutomationScenario {
-  'datasheet',
-  'node',
-}
-
 export interface IRobotContext {
+  triggerTypes: ITriggerType[];
+  actionTypes: IActionType[];
   currentRobotId?: string;
-  resourceId?: string;
-  scenario: AutomationScenario;
-  robot?: IAutomationRobotDetailItem;
+  isHistory?: boolean;
+  robotList: IRobotBaseInfo[];
+  isNewRobotModalOpen: boolean;
+  isEditingRobotName: boolean;
+  isEditingRobotDesc: boolean;
 }
-
-export type EnumTriggerEndpoint =
-  | 'button_field'
-  | 'button_clicked'
-  | 'form_submitted'
-  | 'record_matches_conditions'
-  | 'record_created'
-  | 'scheduled_time_arrive'
-  | 'sendLarkMsg'
-  | 'sendRequest'
-  | 'sendMail';
 
 interface INodeBaseType {
   name: string;
   description: string;
-  endpoint: EnumTriggerEndpoint;
+  endpoint: string;
   inputJsonSchema: INodeSchema;
   outputJsonSchema?: INodeSchema;
   service: {
@@ -77,8 +58,8 @@ interface INodeBaseType {
     logo: string;
     themeLogo: {
       dark: string;
-      light: string;
-    };
+      light: string
+    }
   };
 }
 
@@ -94,27 +75,21 @@ export type INodeType = ITriggerType | IActionType;
 
 export interface IRobotAction {
   id: string;
-  actionId: string;
   prevActionId: string;
   typeId: string;
-  actionTypeId: string;
   input: any;
 }
 
 export interface IRobotTrigger {
   triggerId: string;
-  prevTriggerId: string;
   triggerTypeId: string;
-  relatedResourceId?: string;
   input: any;
 }
 
 export interface INodeOutputSchema {
   id: string;
-  icon?: string;
   title: string;
   schema: IJsonSchema | undefined;
-  description?: string;
   uiSchema?: any;
 }
 
@@ -125,35 +100,13 @@ export interface IRobot {
   isActive: boolean;
 }
 
-export interface IAutomationDatum {
-  resourceId: string;
-  robotId: string;
-  name: string;
-  description: string;
-  isActive: boolean;
-  isOverLimit: boolean;
-  updatedBy: number;
-  updatedAt: number;
-  props: Props;
-  triggers: Trigger[];
-  actions: Action[];
-}
-
-export type Action = IRobotAction;
-
-export type Trigger = IRobotTrigger;
-
-export interface Props {
-  failureNotifyEnable: boolean;
-}
-
 export interface IRobotBaseInfo extends IRobot {
-  nodes?: any[];
+  nodes: any[];
 }
 
 export interface IRobotNodeTypeInfo {
   nodeTypeId: string;
-  service?: {
+  service: {
     logo: string;
   };
   type: IRobotNodeType;
@@ -162,6 +115,10 @@ export interface IRobotNodeTypeInfo {
 export enum IRobotNodeType {
   Action = 'action',
   Trigger = 'trigger',
+}
+
+export interface IRobotCardInfo extends IRobot {
+  nodeTypeList: IRobotNodeTypeInfo[];
 }
 
 export interface IRobotRunHistoryItem {
@@ -216,9 +173,6 @@ export interface IJsonSchema {
    * Title of the schema
    */
   title?: string;
-
-  icon?: string;
-
   /**
    * Schema description
    */
@@ -227,7 +181,7 @@ export interface IJsonSchema {
    * Default json for the object represented by
    * this schema
    */
-  default?: any;
+  'default'?: any;
 
   /////////////////////////////////////////////////
   // Number Validation
@@ -308,7 +262,7 @@ export interface IJsonSchema {
    * {"type": "string",
    *  "enum": ["red", "green", "blue"]}
    */
-  enum?: any[];
+  'enum'?: any[];
   enumNames?: any[];
   /**
    * The basic type of this schema, can be one of
@@ -339,13 +293,9 @@ export interface INodeSchema {
 }
 
 export interface IRobotHeadAddBtn {
+  style?: React.CSSProperties;
+  container?: React.FC<React.PropsWithChildren<any>>;
   toolTips?: any;
+  useTextBtn?: boolean;
   btnStyle?: React.CSSProperties;
-}
-
-export enum RobotRunStatusEnums {
-  RUNNING = 0,
-  SUCCESS = 1,
-  ERROR = 2,
-  LIMIT = 4,
 }

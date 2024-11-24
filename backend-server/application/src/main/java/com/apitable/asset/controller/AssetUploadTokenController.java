@@ -20,26 +20,22 @@ package com.apitable.asset.controller;
 
 import com.apitable.asset.enums.AssetType;
 import com.apitable.asset.ro.AssetUploadCertificateRO;
-import com.apitable.asset.ro.AssetUrlSignatureRo;
 import com.apitable.asset.service.IAssetService;
 import com.apitable.asset.service.IAssetUploadTokenService;
 import com.apitable.asset.vo.AssetUploadCertificateVO;
-import com.apitable.asset.vo.AssetUrlSignatureVo;
 import com.apitable.auth.enums.AuthException;
 import com.apitable.core.support.ResponseData;
 import com.apitable.core.util.ExceptionUtil;
 import com.apitable.shared.component.scanner.annotation.ApiResource;
-import com.apitable.shared.component.scanner.annotation.GetResource;
 import com.apitable.shared.component.scanner.annotation.PostResource;
 import com.apitable.shared.context.SessionContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.annotation.Resource;
-import jakarta.validation.Valid;
 import java.util.Collections;
 import java.util.List;
+import javax.annotation.Resource;
+import javax.validation.Valid;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -56,24 +52,11 @@ public class AssetUploadTokenController {
     @Resource
     private IAssetUploadTokenService iAssetUploadTokenService;
 
-    @GetResource(path = "/signature", requiredLogin = false)
-    @Operation(summary = "Get asset signature url")
-    public ResponseData<String> getSignatureUrl(@RequestParam(value = "token") String token) {
-        return ResponseData.success(iAssetUploadTokenService.getSignatureUrl(token));
-    }
-
-    @PostResource(path = "/signatures", requiredLogin = false)
-    @Operation(summary = "Batch get asset signature url")
-    public ResponseData<List<AssetUrlSignatureVo>> getSignatureUrls(
-        @RequestBody final AssetUrlSignatureRo data) {
-        return ResponseData.success(
-            iAssetUploadTokenService.getAssetUrlSignatureVos(data.getResourceKeys()));
-    }
-
     /**
      * Get upload presigned URL.
      */
-    @PostResource(path = "/upload/preSignedUrl", requiredLogin = false)
+    @PostResource(name = "Get upload presigned URL", path = "/upload/preSignedUrl",
+        requiredLogin = false)
     @Operation(summary = "Get upload presigned URL")
     public ResponseData<List<AssetUploadCertificateVO>> generatePreSignedUrl(
         @RequestBody @Valid AssetUploadCertificateRO data) {

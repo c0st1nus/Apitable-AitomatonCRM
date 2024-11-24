@@ -19,8 +19,7 @@
 package com.apitable.control.infrastructure;
 
 /**
- * Control Principal Builder.
- *
+ * Control Principal Builder
  * @author Shawn Deng
  */
 public class PrincipalBuilder {
@@ -41,9 +40,6 @@ public class PrincipalBuilder {
         return new RoleId(roleId);
     }
 
-    /**
-     * principal type.
-     */
     public interface Principal {
 
         Long getPrincipal();
@@ -51,10 +47,7 @@ public class PrincipalBuilder {
         PrincipalType getPrincipalType();
     }
 
-    /**
-     * abstract principal.
-     */
-    private abstract static class AbstractPrincipal implements Principal {
+    private static abstract class AbstractPrincipal implements Principal {
 
         private final Long principal;
 
@@ -68,9 +61,6 @@ public class PrincipalBuilder {
         }
     }
 
-    /**
-     * unit principal.
-     */
     public static class UnitId extends AbstractPrincipal {
 
         public UnitId(Long unitId) {
@@ -83,9 +73,6 @@ public class PrincipalBuilder {
         }
     }
 
-    /**
-     * member principal.
-     */
     public static class MemberId extends AbstractPrincipal {
 
         public MemberId(Long memberId) {
@@ -98,9 +85,6 @@ public class PrincipalBuilder {
         }
     }
 
-    /**
-     * team principal.
-     */
     public static class TeamId extends AbstractPrincipal {
 
         public TeamId(Long teamId) {
@@ -113,9 +97,6 @@ public class PrincipalBuilder {
         }
     }
 
-    /**
-     * role principal.
-     */
     public static class RoleId extends AbstractPrincipal {
 
         public RoleId(Long roleId) {

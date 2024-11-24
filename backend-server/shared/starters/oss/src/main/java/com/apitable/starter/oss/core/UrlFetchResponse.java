@@ -20,8 +20,9 @@ package com.apitable.starter.oss.core;
 
 /**
  * <p>
- * Upload results of network resources.
+ * Upload results of network resources
  * </p>
+ *
  */
 public class UrlFetchResponse {
 
@@ -36,14 +37,6 @@ public class UrlFetchResponse {
     public UrlFetchResponse() {
     }
 
-    /**
-     * constructor.
-     *
-     * @param keyName  keyName
-     * @param hash     hash
-     * @param size     size
-     * @param mimeType mimeType
-     */
     public UrlFetchResponse(String keyName, String hash, Long size, String mimeType) {
         this.keyName = keyName;
         this.hash = hash;
@@ -85,10 +78,10 @@ public class UrlFetchResponse {
 
     @Override
     public String toString() {
-        return "UrlFetchResponse{"
-            + "digest='" + hash + '\''
-            + ", size=" + size
-            + ", mimeType='" + mimeType + '\''
-            + '}';
+        return "UrlFetchResponse{" +
+                "digest='" + hash + '\'' +
+                ", size=" + size +
+                ", mimeType='" + mimeType + '\'' +
+                '}';
     }
 }

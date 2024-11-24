@@ -21,16 +21,25 @@ import { DatasheetRecordEntity } from '../entities/datasheet.record.entity';
 
 @EntityRepository(DatasheetRecordEntity)
 export class DatasheetRecordRepository extends Repository<DatasheetRecordEntity> {
+  selectIdsByDstIdAndRecordIds(dstId: string, recordIds: string[]): Promise<string[] | null> {
+    return this.find({
+      select: ['recordId'],
+      where: [{ dstId, recordId: In(recordIds), isDeleted: false }],
+    }).then(entities => {
+      return entities.map(entity => entity.recordId);
+    });
+  }
+
   selectRecordsDataByDstId(dstId: string): Promise<DatasheetRecordEntity[] | undefined> {
     return this.find({
-      select: ['recordId', 'data', 'recordMeta'],
+      select: ['recordId', 'data'],
       where: [{ dstId, isDeleted: false }],
     });
   }
 
   selectRecordsDataByDstIdIgnoreDeleted(dstId: string): Promise<DatasheetRecordEntity[] | undefined> {
     return this.find({
-      select: ['recordId', 'data', 'recordMeta'],
+      select: ['recordId', 'data'],
       where: [{ dstId }],
     });
   }
@@ -55,9 +64,5 @@ export class DatasheetRecordRepository extends Repository<DatasheetRecordEntity>
       `,
       [path, dstId, recordId],
     );
-  }
-
-  selectDeletedCountByDstIdAndRecordIs(dstId: string, recordIds: string[]): Promise<number> {
-    return this.count({ where: [{ dstId, recordId: In(recordIds), isDeleted: true }] });
   }
 }

@@ -18,14 +18,13 @@
 
 package com.apitable.shared.context;
 
-import static com.apitable.space.enums.SpacePermissionException.ILLEGAL_ASSIGN_RESOURCE;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
-import com.apitable.core.exception.BusinessException;
-import com.apitable.core.util.ExceptionUtil;
-import com.apitable.core.util.HttpContextUtil;
-import com.apitable.core.util.SpringContextHolder;
+
 import com.apitable.shared.cache.bean.LoginUserDto;
 import com.apitable.shared.cache.bean.UserSpaceDto;
 import com.apitable.shared.cache.service.LoginUserCacheService;
@@ -35,14 +34,16 @@ import com.apitable.shared.constants.ParamsConstants;
 import com.apitable.shared.holder.LoginUserHolder;
 import com.apitable.shared.holder.MemberHolder;
 import com.apitable.shared.holder.SpaceHolder;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-import org.apache.commons.lang3.StringUtils;
+import com.apitable.core.util.SpringContextHolder;
+import com.apitable.core.exception.BusinessException;
+import com.apitable.core.util.ExceptionUtil;
+import com.apitable.core.util.HttpContextUtil;
+
+import static com.apitable.space.enums.SpacePermissionException.ILLEGAL_ASSIGN_RESOURCE;
 
 /**
  * <p>
- * login context util.
+ * login context util
  * </p>
  *
  * @author Shawn Deng
@@ -53,8 +54,7 @@ public class LoginContext {
 
     private final UserSpaceCacheService userSpaceCacheService;
 
-    public LoginContext(LoginUserCacheService loginUserCacheService,
-                        UserSpaceCacheService userSpaceCacheService) {
+    public LoginContext(LoginUserCacheService loginUserCacheService, UserSpaceCacheService userSpaceCacheService) {
         this.loginUserCacheService = loginUserCacheService;
         this.userSpaceCacheService = userSpaceCacheService;
     }
@@ -64,7 +64,7 @@ public class LoginContext {
     }
 
     /**
-     * get current login user.
+     * get current login user
      * <p>
      * get login user from threadLocal if has
      * </p>
@@ -82,17 +82,14 @@ public class LoginContext {
     }
 
     /**
-     * get current request space id.
+     * get current request space id
      *
      * @return space id
      */
     public String getSpaceId() {
         String spaceId = SpaceHolder.get();
         if (spaceId == null) {
-            spaceId = HttpContextUtil.getRequest().getParameter(ParamsConstants.SPACE_ID_PARAMETER);
-            spaceId = StringUtils.isEmpty(spaceId)
-                ? HttpContextUtil.getRequest().getHeader(ParamsConstants.SPACE_ID) :
-                spaceId;
+            spaceId = HttpContextUtil.getRequest().getHeader(ParamsConstants.SPACE_ID);
             if (spaceId == null) {
                 throw new BusinessException("workspace does not exist");
             }
@@ -100,11 +97,6 @@ public class LoginContext {
         return spaceId;
     }
 
-    /**
-     * get user current member id in space.
-     *
-     * @return member id
-     */
     public Long getMemberId() {
         Long memberId = MemberHolder.get();
         if (memberId == null) {
@@ -124,7 +116,7 @@ public class LoginContext {
     }
 
     /**
-     * whether current user has resource.
+     * whether current user has resource
      *
      * @param resourceCodes resource code list
      */
@@ -136,12 +128,11 @@ public class LoginContext {
             return;
         }
         Set<String> userResources = userSpaceDto.getResourceCodes();
-        ExceptionUtil.isTrue(CollUtil.containsAny(userResources, resourceCodes),
-            ILLEGAL_ASSIGN_RESOURCE);
+        ExceptionUtil.isTrue(CollUtil.containsAny(userResources, resourceCodes), ILLEGAL_ASSIGN_RESOURCE);
     }
 
     /**
-     * get space stayed by current login user.
+     * get space stayed by current login user
      *
      * @param spaceId space
      * @return UserSpaceDto
@@ -152,22 +143,25 @@ public class LoginContext {
     }
 
     /**
-     * get current user locale.
+     * get current user locale
      * use {@code LocaleContextHolder.getLocale().toLanguageTag()}
      */
     public String getLocaleStr() {
         String result = null;
         try {
             result = getLoginUser().getLocale();
-        } catch (Exception ignored) {
-            // nothing
-        } finally {
+        }
+        catch (Exception ignored) {
+
+        }
+        finally {
             // parse request header：accept-language
             if (StrUtil.isBlank(result)) {
                 Locale reqLocale = HttpContextUtil.getRequest().getLocale();
                 if (Locale.CHINESE.getLanguage().equals(reqLocale.getLanguage())) {
                     result = LanguageManager.me().getDefaultLanguageTag();
-                } else {
+                }
+                else {
                     result = Locale.US.toLanguageTag();
                 }
             }
@@ -176,7 +170,7 @@ public class LoginContext {
     }
 
     /**
-     * get current user locale object.
+     * get current user locale object
      * use {@code LocaleContextHolder.getLocale().toLanguageTag()}
      */
     public Locale getLocale() {
@@ -184,7 +178,7 @@ public class LoginContext {
     }
 
     /**
-     * get current user locale, replace underscore from "-".
+     * get current user locale, replace underscore from "-"
      */
     public String getLocaleStrWithUnderLine() {
         return getLocaleStr().replace("-", "_");

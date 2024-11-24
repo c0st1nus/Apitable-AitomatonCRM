@@ -21,7 +21,6 @@ import { ITheme, ThemeName } from './theme.interface';
 
 export const light: ITheme = {
   color: lightColors,
-  // only  for widget
   palette: {
     type: ThemeName.Light,
     common: {

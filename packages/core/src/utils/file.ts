@@ -100,17 +100,6 @@ function getImageThumbSrcForQiniu(src: string, options: IImageThumbOption) {
     src[0] !== '/' && (src = '/' + src);
   }
 
-  if(src.includes('?')){
-    return [
-      src,
-      '&imageView2',
-      getFileMethod(options),
-      getFileSize(options),
-      getFileFormat(options),
-      getFileQuality(options),
-    ].join('');
-  }
-
   return [
     src,
     '?imageView2',
@@ -130,7 +119,7 @@ export function getImageThumbSrc(src: string, options?: IImageThumbOption) {
 
 declare const window: any;
 
-export const getHostOfAttachment = (bucket: string, fileUrl?: string) => {
+export const getHostOfAttachment = (bucket: string) => {
   if (typeof window != 'object') {
     return process.env[bucket.toUpperCase()] || process.env.OSS_HOST;
   }
@@ -139,13 +128,7 @@ export const getHostOfAttachment = (bucket: string, fileUrl?: string) => {
 
   if (bucket.toUpperCase() === 'QNY1') {
     const QNY1 = window.__initialization_data__?.envVars.QNY1;
-    if (QNY1.includes('http')) {
-      return QNY1;
-    }
-    if (fileUrl && startsWithIgnoreSlashPre(fileUrl, QNY1)) {
-      return origin;
-    }
-    return urlcat(origin, QNY1 + '');
+    return QNY1.includes('http') ? QNY1 : urlcat(origin, QNY1 + '');
   }
 
   if (bucket.toUpperCase() === 'QNY2') {
@@ -162,23 +145,17 @@ export function cellValueToImageSrc(
   options?: IImageSrcOption,
 ): string {
   if (!cellValue) return '';
-
   const { bucket, token, preview: previewToken, mimeType, name } = cellValue;
-
-  if (!bucket) return '';
-
   const host = getHostOfAttachment(bucket);
-
   if (!host) return '';
-
   const { formatToJPG, isPreview } = options || {};
   const fileArgument = { name, type: mimeType };
-  const originSrc = integrateCdnHost(token);
+  const originSrc = urlcat(host, token);
   const defaultSrc = getImageThumbSrc(originSrc, options);
 
   if (isPdf(fileArgument)) {
-    if (isPreview && options && Object.keys(options).length >= 1) {
-      return getImageThumbSrc(integrateCdnHost(previewToken!), options);
+    if (isPreview && options && Object.keys(options).length > 1) {
+      return getImageThumbSrc(urlcat(host, previewToken!), options);
     }
     return originSrc;
   }
@@ -208,21 +185,10 @@ export const integrateCdnHost = (
   if (!pathName) {
     return pathName;
   }
+  const host: string = getHostOfAttachment('QNY1');
   // TODO: delete this. Compatible with old version data
   if (pathName.startsWith('http')) {
     return pathName;
   }
-  const host: string = getHostOfAttachment('QNY1', pathName);
   return urlcat(host, pathName);
 };
-
-function startsWithIgnoreSlashPre(str: string, prefix: string): boolean {
-  if (str.startsWith(prefix)) {
-    return true;
-  }
-  return removeSlashPrefix(str).startsWith(removeSlashPrefix(prefix));
-}
-
-function removeSlashPrefix(str: string): string {
-  return str.startsWith('/') ? str.substring(1, str.length) : str;
-}

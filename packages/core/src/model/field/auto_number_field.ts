@@ -17,15 +17,13 @@
  */
 
 import Joi from 'joi';
-import { IRecord } from '../../exports/store/interfaces';
+import { IRecord } from '../../exports/store';
 import { FieldType, IField, IAutoNumberField } from 'types/field_types';
-import { DatasheetActions } from '../../commands_actions/datasheet';
+import { DatasheetActions } from '../datasheet';
 import { ICellValue } from 'model/record';
 import { NumberBaseField } from './number_base_field';
 import { FOperator, IAddOpenAutoNumberFieldProperty } from 'types';
 import { datasheetIdString, joiErrorResult } from './validate_schema';
-import { getFieldDefaultProperty } from './const';
-import { IAutoNumberFieldProperty } from 'types/field_types';
 
 export class AutoNumberField extends NumberBaseField {
   static propertySchema = Joi.object({
@@ -63,7 +61,11 @@ export class AutoNumberField extends NumberBaseField {
   }
 
   static defaultProperty() {
-    return getFieldDefaultProperty(FieldType.AutoNumber) as IAutoNumberFieldProperty;
+    return {
+      nextId: 0,
+      viewIdx: 0,
+      datasheetId: '',
+    };
   }
 
   override get isComputed() {

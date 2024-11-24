@@ -16,18 +16,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import {
+  Api,
+  ConfigConstant,
+  IReduxState,
+  Strings,
+  t
+} from '@apitable/core';
+import { useSetState } from 'pc/hooks';
 import { Form } from 'antd';
-import { FC, useState } from 'react';
-import * as React from 'react';
-import { shallowEqual } from 'react-redux';
-import { Button } from '@apitable/components';
-import { Api, ConfigConstant, IReduxState, Strings, t } from '@apitable/core';
 import { IdentifyingCodeInput, WithTipWrapper } from 'pc/components/common/input';
 import { Modal } from 'pc/components/common/modal/modal/modal';
-import { getVerifyData, IDelSpaceConfig, VerifyTypes } from 'pc/components/navigation/account_center_modal/utils';
-import { useRequest, useSetState } from 'pc/hooks';
-import { useAppSelector } from 'pc/store/react-redux';
+import { FC, useState } from 'react';
+import * as React from 'react';
+import { useSelector, shallowEqual } from 'react-redux';
 import styles from './style.module.less';
+import { useRequest } from 'pc/hooks';
+import { Button } from '@apitable/components';
+import { getVerifyData, IDelSpaceConfig, VerifyTypes } from 'pc/components/navigation/account_center_modal/utils';
 
 export interface IDelSpaceModalProps {
   setIsDelSpaceModal: React.Dispatch<React.SetStateAction<boolean>>;
@@ -37,32 +43,32 @@ export interface IDelSpaceModalProps {
 export const DelSpaceModal: FC<React.PropsWithChildren<IDelSpaceModalProps>> = (props) => {
   const [identifyingCode, setIdentifyingCode] = useState('');
   const { setIsDelSpaceModal, setIsDelSuccessModal } = props;
-  const { user, spaceId } = useAppSelector(
-    (state: IReduxState) => ({
-      spaceId: state.space.activeId || '',
-      user: state.user.info,
-    }),
-    shallowEqual,
-  );
-  const { run: del, loading } = useRequest((spaceId, code, type) => Api.deleteSpace(spaceId, code, type), {
-    manual: true,
-    onSuccess: (res) => {
-      const { success, message } = res.data;
-      if (success) {
-        setIsDelSuccessModal(true);
-        handleCancel();
-        return;
+  const { user, spaceId } = useSelector((state: IReduxState) => ({
+    spaceId: state.space.activeId || '',
+    user: state.user.info
+  }), shallowEqual);
+  const { run: del, loading } = useRequest(
+    (spaceId, code, type) => Api.deleteSpace(spaceId, code, type),
+    {
+      manual: true,
+      onSuccess: (res) => {
+        const { success, message } = res.data;
+        if (success) {
+          setIsDelSuccessModal(true);
+          handleCancel();
+          return;
+        }
+        setErrMsg({ identifyingCodeErrMsg: message });
       }
-      setErrMsg({ identifyingCodeErrMsg: message });
-    },
-  });
+    }
+  );
 
   const [errMsg, setErrMsg] = useSetState<{
     accountErrMsg: string;
     identifyingCodeErrMsg: string;
   }>({
     accountErrMsg: '',
-    identifyingCodeErrMsg: '',
+    identifyingCodeErrMsg: ''
   });
   const handleCancel = () => {
     setIsDelSpaceModal(false);
@@ -72,29 +78,32 @@ export const DelSpaceModal: FC<React.PropsWithChildren<IDelSpaceModalProps>> = (
     if (!user || !spaceId) {
       return;
     }
-    const type = user.mobile ? ConfigConstant.CodeTypes.SMS_CODE : ConfigConstant.CodeTypes.EMAIL_CODE;
+    const type = user.mobile ? ConfigConstant.CodeTypes.SMS_CODE :
+      ConfigConstant.CodeTypes.EMAIL_CODE;
     del(spaceId, identifyingCode, type);
   };
 
-  const handleIdentifyingCodeChange = React.useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (errMsg.identifyingCodeErrMsg) {
-        setErrMsg({ identifyingCodeErrMsg: '' });
-      }
+  const handleIdentifyingCodeChange = React.useCallback((
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    if (errMsg.identifyingCodeErrMsg) {
+      setErrMsg({ identifyingCodeErrMsg: '' });
+    }
 
-      const value = e.target.value.trim();
-      setIdentifyingCode(value);
-    },
-    [setErrMsg, errMsg.identifyingCodeErrMsg],
-  );
+    const value = e.target.value.trim();
+    setIdentifyingCode(value);
+  }, [setErrMsg, errMsg.identifyingCodeErrMsg]);
 
   const CodeContent = React.useMemo(() => {
     if (!user || !(user?.email || user?.mobile)) return null;
 
-    const { codeMode, title, smsType, emailType, areaCode, verifyAccount } = getVerifyData({ key: VerifyTypes.DEL_SPACE }) as IDelSpaceConfig;
+    const { codeMode, title, smsType, emailType, areaCode, verifyAccount } =
+      getVerifyData({ key: VerifyTypes.DEL_SPACE }) as IDelSpaceConfig;
     return (
       <>
-        <div className={styles.tip}>{title}</div>
+        <div className={styles.tip}>
+          {title}
+        </div>
         <WithTipWrapper tip={errMsg.identifyingCodeErrMsg} captchaVisible>
           <IdentifyingCodeInput
             data={{ areaCode, account: verifyAccount }}
@@ -104,7 +113,10 @@ export const DelSpaceModal: FC<React.PropsWithChildren<IDelSpaceModalProps>> = (
             onChange={handleIdentifyingCodeChange}
             setErrMsg={setErrMsg}
             error={Boolean(errMsg.identifyingCodeErrMsg)}
-            disabled={Boolean(errMsg.accountErrMsg || errMsg.identifyingCodeErrMsg)}
+            disabled={Boolean(
+              errMsg.accountErrMsg ||
+              errMsg.identifyingCodeErrMsg
+            )}
           />
         </WithTipWrapper>
       </>
@@ -113,7 +125,7 @@ export const DelSpaceModal: FC<React.PropsWithChildren<IDelSpaceModalProps>> = (
 
   return (
     <Modal
-      title={user?.mobile ? t(Strings.modal_verify_admin_phone) : t(Strings.modal_verify_admin_email)}
+      title={(user?.mobile) ? t(Strings.modal_verify_admin_phone) : t(Strings.modal_verify_admin_email)}
       visible
       className={styles.delSpaceModal}
       footer={null}
@@ -125,7 +137,14 @@ export const DelSpaceModal: FC<React.PropsWithChildren<IDelSpaceModalProps>> = (
       <div>
         <Form>
           {CodeContent}
-          <Button className={styles.delBtn} disabled={!identifyingCode} variant="fill" color="danger" loading={loading} onClick={handleSubmit}>
+          <Button
+            className={styles.delBtn}
+            disabled={!identifyingCode}
+            variant='fill'
+            color='danger'
+            loading={loading}
+            onClick={handleSubmit}
+          >
             {t(Strings.confirm_delete)}
           </Button>
         </Form>

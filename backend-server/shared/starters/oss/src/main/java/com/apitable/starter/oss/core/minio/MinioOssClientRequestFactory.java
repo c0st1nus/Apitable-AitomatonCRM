@@ -18,13 +18,11 @@
 
 package com.apitable.starter.oss.core.minio;
 
-import com.apitable.starter.oss.core.OssClientRequest;
-import com.apitable.starter.oss.core.OssClientRequestFactory;
 import io.minio.MinioClient;
 
-/**
- * minio oss client request factory.
- */
+import com.apitable.starter.oss.core.OssClientRequest;
+import com.apitable.starter.oss.core.OssClientRequestFactory;
+
 public class MinioOssClientRequestFactory implements OssClientRequestFactory {
 
     private final String endpoint;
@@ -35,16 +33,7 @@ public class MinioOssClientRequestFactory implements OssClientRequestFactory {
 
     private final String bucketPolicyJson;
 
-    /**
-     * constructor.
-     *
-     * @param endpoint         minio endpoint
-     * @param accessKey        access key
-     * @param secretKey        secret key
-     * @param bucketPolicyJson bucket policy json
-     */
-    public MinioOssClientRequestFactory(String endpoint, String accessKey, String secretKey,
-                                        String bucketPolicyJson) {
+    public MinioOssClientRequestFactory(String endpoint, String accessKey, String secretKey, String bucketPolicyJson) {
         this.endpoint = endpoint;
         this.accessKey = accessKey;
         this.secretKey = secretKey;

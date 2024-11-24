@@ -18,12 +18,9 @@
 
 import React from 'react';
 import { Dropdown } from './index';
-import { Dropdown as FloatDropdown } from './float_ui';
 import { StoryType } from '../../stories/constants';
 import { Story } from '@storybook/react';
 import { IDropdownProps } from './interface';
-import { FloatUiTooltip } from '../tooltip/float_ui';
-import { Typography } from '../typography';
 
 const COMPONENT_NAME = 'Dropdown';
 
@@ -41,31 +38,25 @@ export default {
   args: {
     children: 'Dropdown',
     data: [
-      [
-        {
-          text: 'option 1-1',
-        },
-        {
-          text: 'option 1-2',
-        },
-        {
-          text: 'option 1-3',
-        },
-      ],
-      [
-        {
-          text: 'option 2-1',
-        },
-      ],
-    ],
-  },
+      [{
+        text: 'option 1-1',
+      }, {
+        text: 'option 1-2',
+      }, {
+        text: 'option 1-3',
+      }],
+      [{
+        text: 'option 2-1',
+      }],
+    ]
+  }
 };
 
 const Template: Story<IDropdownProps> = (args) => <Dropdown {...args} />;
 
 export const Default = Template.bind({});
 Default.args = {
-  id: 'default',
+  id: 'default'
 };
 
 export const HideArrow = Template.bind({});
@@ -78,7 +69,7 @@ export const RightClick = Template.bind({});
 RightClick.args = {
   children: 'right click dropdown',
   id: 'right-click',
-  trigger: ['contextMenu'],
+  trigger: ['contextMenu']
 };
 
 export const SecondaryMenu = Template.bind({});
@@ -86,28 +77,24 @@ SecondaryMenu.args = {
   children: 'multi level dropdown',
   id: 'secondary-menu',
   data: [
-    [
-      {
-        text: 'option 1-1',
-      },
-    ],
-    [
-      {
-        text: 'option 2-1',
-        children: [
-          {
-            text: 'option 2-1-1',
-          },
-          {
-            text: 'option 2-1-2',
-          },
-          {
-            text: 'option 2-1-3',
-          },
-        ],
-      },
-    ],
-  ],
+    [{
+      text: 'option 1-1',
+    }],
+    [{
+      text: 'option 2-1',
+      children: [
+        {
+          text: 'option 2-1-1',
+        },
+        {
+          text: 'option 2-1-2',
+        },
+        {
+          text: 'option 2-1-3',
+        },
+      ]
+    }],
+  ]
 };
 
 export const DisabledMenu = Template.bind({});
@@ -115,76 +102,19 @@ DisabledMenu.args = {
   children: 'disable some options dropdown',
   id: 'disabled-menu',
   data: [
-    [
-      {
-        text: 'option 1-1',
-      },
-      {
-        text: 'option 1-2',
-        disabled: true,
-      },
-      {
-        text: 'option 1-3',
-        disabled: true,
-      },
-    ],
-    [
-      {
-        text: 'option 2-1',
-      },
-    ],
-  ],
-};
-
-export const FloatDropdownUi = () => {
-  return (
-    <>
-      <br />
-
-      <FloatUiTooltip
-        placement={'top'}
-        arrow={false}
-        content={
-          <>
-            <Typography variant={'body4'} color={'red'}>
-              content
-            </Typography>
-          </>
-        }
-      >
-        <span>FloatUiTooltip</span>
-      </FloatUiTooltip>
-      <br />
-      <br />
-      <br />
-      <FloatUiTooltip
-        placement={'top'}
-        content={
-          <>
-            <Typography variant={'body4'} color={'red'}>
-              content
-            </Typography>
-          </>
-        }
-      >
-        <span>FloatUiTooltip</span>
-      </FloatUiTooltip>
-      <FloatDropdown trigger={() => <div>trigger</div>}>
-        {() => {
-          return <div> overlay</div>;
-        }}
-      </FloatDropdown>
-      <br />
-      <br />
-      <br />
-      <br />
-      <FloatDropdown trigger={<div>ddd</div>}>
-        {() => {
-          return <div> overlay</div>;
-        }}
-      </FloatDropdown>
-    </>
-  );
+    [{
+      text: 'option 1-1',
+    }, {
+      text: 'option 1-2',
+      disabled: true,
+    }, {
+      text: 'option 1-3',
+      disabled: true,
+    }],
+    [{
+      text: 'option 2-1',
+    }],
+  ]
 };
 
 export const SelectMenuValue = () => {
@@ -197,35 +127,31 @@ export const SelectMenuValue = () => {
       <Dropdown
         id="select-menu-value"
         data={[
-          [
-            {
-              text: 'option 1-1',
-              data: '1-1',
-              onClick: handleClick,
-            },
-          ],
-          [
-            {
-              text: 'option 2-1',
-              children: [
-                {
-                  text: 'option 2-1-1',
-                  data: '2-1-1',
-                  onClick: handleClick,
-                },
-                {
-                  text: 'option 2-1-2',
-                  data: '2-1-2',
-                  onClick: handleClick,
-                },
-                {
-                  text: 'option 2-1-3',
-                  data: '2-1-3',
-                  onClick: handleClick,
-                },
-              ],
-            },
-          ],
+          [{
+            text: 'option 1-1',
+            data: '1-1',
+            onClick: handleClick,
+          }],
+          [{
+            text: 'option 2-1',
+            children: [
+              {
+                text: 'option 2-1-1',
+                data: '2-1-1',
+                onClick: handleClick,
+              },
+              {
+                text: 'option 2-1-2',
+                data: '2-1-2',
+                onClick: handleClick,
+              },
+              {
+                text: 'option 2-1-3',
+                data: '2-1-3',
+                onClick: handleClick,
+              },
+            ]
+          }],
         ]}
       >
         {value || 'please select'}
@@ -233,3 +159,4 @@ export const SelectMenuValue = () => {
     </div>
   );
 };
+

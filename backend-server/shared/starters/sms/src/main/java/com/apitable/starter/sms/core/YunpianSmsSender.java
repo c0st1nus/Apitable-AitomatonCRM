@@ -18,17 +18,18 @@
 
 package com.apitable.starter.sms.core;
 
+import java.util.Map;
+
 import cn.hutool.core.util.StrUtil;
 import com.yunpian.sdk.YunpianClient;
 import com.yunpian.sdk.model.Result;
 import com.yunpian.sdk.model.SmsSingleSend;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * <p>
- * Cloud chip SMS implementation class.
+ * Cloud chip SMS implementation class
  * </p>
  *
  */
@@ -36,7 +37,7 @@ public class YunpianSmsSender implements SmsSender {
 
     private static final Logger log = LoggerFactory.getLogger(YunpianSmsSender.class);
 
-    private final String apikey;
+    private String apikey;
 
     public YunpianSmsSender(String apikey) {
         this.apikey = apikey;

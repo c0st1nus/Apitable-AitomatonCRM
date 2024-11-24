@@ -22,11 +22,11 @@ import { find, isString } from 'lodash';
 import { isNullValue } from 'model/utils';
 import { getFieldOptionColor } from 'model/color';
 import { ICellValue } from 'model/record';
-import { IReduxState } from '../../../exports/store/interfaces';
+import { IReduxState } from '../../../exports/store';
 import { BasicValueType, FieldType, IField, ISelectFieldProperty, ISingleSelectField, IStandardValue } from 'types/field_types';
 import { ISelectFieldBaseOpenValue } from 'types/field_types_open';
 import { FOperator, IFilterCondition, IFilterSingleSelect } from 'types/view_types';
-import { DatasheetActions } from '../../../commands_actions/datasheet';
+import { DatasheetActions } from '../../datasheet';
 import { isOptionId, SelectField } from './common_select_field';
 import { IEffectOption, IWriteOpenSelectBaseFieldProperty } from 'types/open';
 import { IOpenFilterValueSelect } from 'types/open/open_filter_types';
@@ -71,11 +71,11 @@ export class SingleSelectField extends SelectField {
   }).allow(null).required();
 
   validateCellValue(cv: ICellValue): Joi.ValidationResult {
-    return SingleSelectField.cellValueSchema.validate(cv, { context: { field: this.field } });
+    return SingleSelectField.cellValueSchema.validate(cv, { context: { field: this.field }});
   }
 
   validateOpenWriteValue(owv: string | ISelectFieldBaseOpenValue | null): Joi.ValidationResult {
-    return SingleSelectField.openWriteValueSchema.validate(owv, { context: { field: this.field } });
+    return SingleSelectField.openWriteValueSchema.validate(owv, { context: { field: this.field }});
   }
 
   override defaultValue(): string | null {
@@ -203,21 +203,22 @@ export class SingleSelectField extends SelectField {
     if (operator === FOperator.IsNotEmpty) {
       return cellValue != null;
     }
+    const [filterValue] = conditionValue;
     switch (operator) {
       case FOperator.Is: {
-        return Array.isArray(conditionValue) && cellValue === conditionValue[0];
+        return cellValue === filterValue;
       }
 
       case FOperator.IsNot: {
-        return Array.isArray(conditionValue) && cellValue !== conditionValue[0];
+        return cellValue !== filterValue;
       }
 
       case FOperator.Contains: {
-        return Array.isArray(conditionValue) && conditionValue.some(value => value === cellValue);
+        return conditionValue.some(value => value === cellValue);
       }
 
       case FOperator.DoesNotContain: {
-        return !Array.isArray(conditionValue) || !conditionValue.some(value => value === cellValue);
+        return !conditionValue.some(value => value === cellValue);
       }
 
       default: {
@@ -261,7 +262,7 @@ export class SingleSelectField extends SelectField {
     options: Joi.array().items(Joi.object({
       id: Joi.string(),
       name: Joi.string().required(),
-      color: Joi.alternatives(Joi.number(), Joi.string())
+      color: Joi.string(),
     })).required(),
     defaultValue: Joi.string()
   }).required();

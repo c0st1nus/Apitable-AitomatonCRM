@@ -106,6 +106,11 @@ export interface IPaginationProps {
   showQuickJump?: boolean;
 
   /**
+   * i18n
+   */
+  lang?: 'zh' | 'en';
+
+  /**
    * Size or page change callback
    */
   onChange?: (page: number, pageSize: number) => void;

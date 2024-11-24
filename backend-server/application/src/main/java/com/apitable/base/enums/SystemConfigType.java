@@ -22,8 +22,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * system config type.
- *
+ * system config type
  * @author tao
  */
 @Getter
@@ -31,15 +30,15 @@ import lombok.Getter;
 public enum SystemConfigType {
 
     /**
-     * 0:wizard.
+     * 0:wizard
      */
     WIZARD_CONFIG(0),
     /**
-     * 1:recommend.
+     * 1:recommend
      */
     RECOMMEND_CONFIG(1),
     /**
-     * 2:gm permission.
+     * 2:gm permission
      */
     GM_PERMISSION_CONFIG(2),
 

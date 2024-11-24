@@ -16,38 +16,37 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import classnames from 'classnames';
-import Trigger from 'rc-trigger';
 import { FC, useEffect, useState } from 'react';
-import { shallowEqual } from 'react-redux';
-import { useThemeColors } from '@apitable/components';
+import { shallowEqual, useSelector } from 'react-redux';
 import { Api, ConfigConstant, DATASHEET_ID, Selectors, Strings, t } from '@apitable/core';
-import { MirrorOutlined } from '@apitable/icons';
-import { TComponent } from 'pc/components/common/t_component';
-import { MirrorListInner } from 'pc/components/mirror/mirror_list/mirror_list_inner';
-import { ToolItem } from 'pc/components/tool_bar/tool_item';
-import { useAppSelector } from 'pc/store/react-redux';
-import { IForeignFormProps, IMirrorItem } from './interface';
 import styles from './style.module.less';
+import classnames from 'classnames';
+import { useThemeColors } from '@apitable/components';
+import Trigger from 'rc-trigger';
+import { ToolItem } from 'pc/components/tool_bar/tool_item';
+import { MirrorListInner } from 'pc/components/mirror/mirror_list/mirror_list_inner';
+import { TComponent } from 'pc/components/common/t_component';
+import { MirrorOutlined } from '@apitable/icons';
+import { IForeignFormProps, IMirrorItem } from './interface';
 
-export const MirrorList: FC<React.PropsWithChildren<IForeignFormProps>> = (props) => {
+export const MirrorList: FC<React.PropsWithChildren<IForeignFormProps>> = props => {
   const colors = useThemeColors();
   const { className, showLabel = true, isHide } = props;
   const [loading, setLoading] = useState(false);
   const [panelVisible, setPanelVisible] = useState(false);
   const [mirrorList, setMirrorList] = useState<IMirrorItem[]>([]);
-  // const spaceId = useAppSelector(state => state.space.activeId);
+  // const spaceId = useSelector(state => state.space.activeId);
   const {
     folderId,
     datasheetId,
     viewId,
     // viewName,
-  } = useAppSelector((state) => {
+  } = useSelector(state => {
     const datasheetId = Selectors.getActiveDatasheetId(state)!;
     const datasheet = Selectors.getDatasheet(state, datasheetId);
     const activeView = Selectors.getActiveViewId(state)!;
     const views = datasheet?.snapshot.meta.views || [];
-    const viewName = views.find((item) => item.id === activeView)?.name;
+    const viewName = views.find(item => item.id === activeView)?.name;
     return {
       folderId: Selectors.getDatasheetParentId(state)!,
       datasheetId,
@@ -55,7 +54,7 @@ export const MirrorList: FC<React.PropsWithChildren<IForeignFormProps>> = (props
       viewName,
     };
   }, shallowEqual);
-  const creatable = useAppSelector((state) => {
+  const creatable = useSelector(state => {
     const { manageable } = state.catalogTree.treeNodesMap[folderId]?.permissions || {};
     const { editable } = Selectors.getPermissions(state);
     return manageable && editable;
@@ -63,7 +62,7 @@ export const MirrorList: FC<React.PropsWithChildren<IForeignFormProps>> = (props
 
   const fetchMirrorList = () => {
     setLoading(true);
-    Api.getRelateNodeByDstId(datasheetId, viewId, ConfigConstant.NodeType.MIRROR).then((res) => {
+    Api.getRelateNodeByDstId(datasheetId, viewId, ConfigConstant.NodeType.MIRROR).then(res => {
       const { success, data } = res.data;
       if (success) {
         setMirrorList(data);
@@ -88,10 +87,10 @@ export const MirrorList: FC<React.PropsWithChildren<IForeignFormProps>> = (props
         action={['click']}
         popup={<MirrorListInner creatable={creatable} mirrorList={mirrorList} loading={loading} />}
         destroyPopupOnHide
-        popupAlign={{ points: ['tr', 'br'], offset: [0, 0], overflow: { adjustX: true, adjustY: true } }}
+        popupAlign={{ points: ['tr', 'br'], offset: [0, 0], overflow: { adjustX: true, adjustY: true }}}
         popupStyle={{ width: 400 }}
         popupVisible={panelVisible}
-        onPopupVisibleChange={(visible) => setPanelVisible(visible)}
+        onPopupVisibleChange={visible => setPanelVisible(visible)}
         zIndex={1000}
       >
         <ToolItem

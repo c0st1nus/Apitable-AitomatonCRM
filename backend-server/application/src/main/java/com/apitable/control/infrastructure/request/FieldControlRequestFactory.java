@@ -18,12 +18,10 @@
 
 package com.apitable.control.infrastructure.request;
 
-import com.apitable.control.infrastructure.ControlType;
 import java.util.List;
 
-/**
- * filed control request factory.
- */
+import com.apitable.control.infrastructure.ControlType;
+
 public class FieldControlRequestFactory implements ControlRequestFactory {
 
     @Override

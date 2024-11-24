@@ -20,9 +20,6 @@ package com.apitable.workspace.dto;
 
 import lombok.Data;
 
-/**
- * Datasheet Meta DTO.
- */
 @Data
 public class DatasheetMetaDTO {
 

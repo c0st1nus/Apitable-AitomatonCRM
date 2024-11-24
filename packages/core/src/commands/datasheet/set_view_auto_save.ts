@@ -16,14 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { DatasheetActions } from 'commands_actions/datasheet';
+import { DatasheetActions } from 'model';
 import { ExecuteResult, ICollaCommandDef } from 'command_manager';
 import { IJOTAction } from 'engine';
-import { IViewProperty } from '../../exports/store/interfaces';
-import {
-  getActiveDatasheetId,
-  getSnapshot,
-} from 'modules/database/store/selectors/resource/datasheet/base';
+import { IViewProperty, Selectors } from '../../exports/store';
 import { CollaCommandName } from '..';
 import { ResourceType } from 'types';
 import { manualSaveView } from 'commands/datasheet/manual_save_view';
@@ -39,10 +35,10 @@ export const setViewAutoSave: ICollaCommandDef<ISetViewAutoSave> = {
   undoable: false,
 
   execute: (context, options) => {
-    const { state: state, fieldMapSnapshot } = context;
+    const { model: state, fieldMapSnapshot } = context;
     const { autoSave, viewId, viewProperty } = options;
-    const datasheetId = getActiveDatasheetId(state)!;
-    const snapshot = getSnapshot(state, datasheetId);
+    const datasheetId = Selectors.getActiveDatasheetId(state)!;
+    const snapshot = Selectors.getSnapshot(state, datasheetId);
 
     if (!snapshot) {
       return null;

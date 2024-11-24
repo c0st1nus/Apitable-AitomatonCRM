@@ -18,11 +18,12 @@
 
 package com.apitable.workspace.entity;
 
+import java.io.Serializable;
+import java.time.LocalDateTime;
+
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
-import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -32,7 +33,7 @@ import lombok.experimental.Accessors;
 
 /**
  * <p>
- * Workbench - Node Description Table.
+ * Workbench - Node Description Table
  * </p>
  *
  * @author Mybatis Generator Tool
@@ -49,28 +50,28 @@ public class NodeDescEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Primary Key.
+     * Primary Key
      */
     @TableId(value = "id", type = IdType.ASSIGN_ID)
     private Long id;
 
     /**
-     * Custom Node ID.
+     * Custom Node ID
      */
     private String nodeId;
 
     /**
-     * Node Description.
+     * Node Description
      */
     private String description;
 
     /**
-     * Create Time.
+     * Create Time
      */
     private LocalDateTime createdAt;
 
     /**
-     * Update Time.
+     * Update Time
      */
     private LocalDateTime updatedAt;
 

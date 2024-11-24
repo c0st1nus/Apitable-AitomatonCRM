@@ -18,21 +18,6 @@
 
 package com.apitable.internal.service.impl;
 
-import static com.apitable.shared.util.HtmlParser.extractShortcutFaviconFromHeader;
-import static com.apitable.shared.util.HtmlParser.usingUrlDefaultFaviconUrl;
-
-import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.StrUtil;
-import com.apitable.internal.service.IFieldService;
-import com.apitable.internal.vo.UrlAwareContentVo;
-import com.apitable.internal.vo.UrlAwareContentsVo;
-import com.apitable.shared.config.properties.ConstProperties;
-import com.apitable.shared.util.ClientUriUtil;
-import com.apitable.shared.util.UrlRequestUtil;
-import com.apitable.workspace.service.INodeService;
-import com.apitable.workspace.service.INodeShareService;
-import jakarta.annotation.Resource;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
@@ -44,14 +29,28 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
+import javax.annotation.Resource;
+
+import cn.hutool.core.util.CharUtil;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Call;
+
+import com.apitable.internal.vo.UrlAwareContentVo;
+import com.apitable.internal.vo.UrlAwareContentsVo;
+import com.apitable.internal.service.IFieldService;
+import com.apitable.shared.config.properties.ConstProperties;
+import com.apitable.workspace.service.INodeService;
+import com.apitable.workspace.service.INodeShareService;
+import com.apitable.shared.util.ClientUriUtil;
+import com.apitable.shared.util.UrlRequestUtil;
+
 import org.springframework.stereotype.Service;
 
 
 /**
- * field service implementation.
- *
  * @author tao
  */
 @Service
@@ -64,48 +63,57 @@ public class FieldServiceImpl implements IFieldService {
     @Resource
     private ConstProperties constProperties;
 
+
     @Resource
     private INodeShareService nodeShareService;
 
-    private String getSelfServerHost() {
+    private String getSiteUrlHost() {
+        String siteUrlHost = StrUtil.EMPTY;
         try {
             String serverDomain = constProperties.getServerDomain();
             URL url = new URL(serverDomain);
-            return url.getHost();
-        } catch (MalformedURLException e) {
-            log.error("malformed url exception", e);
-            return StrUtil.EMPTY;
+            siteUrlHost = url.getHost();
         }
+        catch (Throwable e) {
+            log.error(e.getMessage());
+        }
+        log.info("hostname: [{}]", siteUrlHost);
+        return siteUrlHost;
     }
 
     @Override
     public UrlAwareContentsVo getUrlAwareContents(List<String> urls, Long userId) {
-        // distinct urls
-        List<String> distinctUrls = urls.stream().distinct().toList();
         UrlAwareContentsVo contents = new UrlAwareContentsVo();
-        Map<String, UrlAwareContentVo> urlToUrlAwareContents = new HashMap<>(distinctUrls.size());
+        Map<String, UrlAwareContentVo> urlToUrlAwareContents = new HashMap<>(urls.size());
         contents.setContents(urlToUrlAwareContents);
-        if (distinctUrls.size() == 1) {
-            String url = distinctUrls.iterator().next();
-            urlToUrlAwareContents.put(url, buildSingleUrlAwareContent(url, userId));
+        if (urls.size() == 1) {
+            String url = urls.get(0);
+            UrlAwareContentVo urlAwareContent = getUrlAwareContent(url, userId);
+            urlToUrlAwareContents.put(url, urlAwareContent);
             return contents;
         }
-        String selfServerHost = getSelfServerHost();
+        String siteUrlHost = getSiteUrlHost();
         CompletableFuture<String> lastFuture = null;
         boolean isStopFetchOffSiteUrl = false;
         List<Call> calls = new ArrayList<>();
-        for (String url : distinctUrls) {
+        for (String url : urls) {
+            if (urlToUrlAwareContents.containsKey(url)) {
+                continue;
+            }
+            URL urlObj;
             // Check the validity of the URL, if successful, convert the URL to a JAVA object
             Optional<URL> checkUrl = ClientUriUtil.checkUrl(url);
-            if (checkUrl.isEmpty()) {
+            if (checkUrl.isPresent()) {
+                urlObj = checkUrl.get();
+            }
+            else {
                 urlToUrlAwareContents.put(url, new UrlAwareContentVo(false));
                 continue;
             }
-            URL urlObj = checkUrl.get();
             // determine whether the url address is an internal site url
-            if (isInternalSite(selfServerHost, urlObj)) {
+            if (isIntranetSite(siteUrlHost, urlObj)) {
                 // identify the internal url content of the site s address
-                UrlAwareContentVo vo = getInternalSiteUrlContent(urlObj, selfServerHost, userId);
+                UrlAwareContentVo vo = getIntranetSiteUrlContent(urlObj, siteUrlHost, userId);
                 if (vo.getIsAware()) {
                     urlToUrlAwareContents.put(url, vo);
                     continue;
@@ -122,7 +130,8 @@ public class FieldServiceImpl implements IFieldService {
             if (calls.size() % 20 == 0 && UrlRequestUtil.readyRequestCount() > 200) {
                 // crawl busy stop crawling external links
                 isStopFetchOffSiteUrl = true;
-            } else {
+            }
+            else {
                 lastFuture = getOffSiteUrlContent(vo, calls, urlObj);
             }
         }
@@ -130,18 +139,18 @@ public class FieldServiceImpl implements IFieldService {
         return contents;
     }
 
-    private UrlAwareContentVo buildSingleUrlAwareContent(String url, Long userId) {
+    private UrlAwareContentVo getUrlAwareContent(String url, Long userId) {
+        URL urlObj;
         Optional<URL> checkUrl = ClientUriUtil.checkUrl(url);
-        if (checkUrl.isEmpty()) {
-            // invalid url
+        if (!checkUrl.isPresent()) {
             return new UrlAwareContentVo(false);
         }
-        URL urlObj = checkUrl.get();
+        urlObj = checkUrl.get();
         // determine whether the url address is an internal site url
-        String siteUrlHost = getSelfServerHost();
-        if (isInternalSite(siteUrlHost, urlObj)) {
+        String siteUrlHost = getSiteUrlHost();
+        if (isIntranetSite(siteUrlHost, urlObj)) {
             // identify the internal url content of the site s address
-            UrlAwareContentVo vo = getInternalSiteUrlContent(urlObj, siteUrlHost, userId);
+            UrlAwareContentVo vo = getIntranetSiteUrlContent(urlObj, siteUrlHost, userId);
             if (vo.getIsAware()) {
                 return vo;
             }
@@ -151,13 +160,12 @@ public class FieldServiceImpl implements IFieldService {
     }
 
     /**
-     * determine whether the url belongs to the internal site.
-     *
+     * determine whether the url belongs to the internal site
      * @param siteUrlHost the internal site domain name
-     * @param url         url
+     * @param url url
      * @return whether the url belongs to the internal site
      */
-    private boolean isInternalSite(String siteUrlHost, URL url) {
+    private boolean isIntranetSite(String siteUrlHost, URL url) {
         String host = url.getHost();
         if (ObjectUtil.isNull(host)) {
             return false;
@@ -166,17 +174,17 @@ public class FieldServiceImpl implements IFieldService {
     }
 
     /**
-     * get url related content on the internal site.
+     * get url related content on the internal site
      *
-     * @param url         internal site url
+     * @param url internal site url
      * @param siteUrlHost internal domain
-     * @param userId      user id
+     * @param userId user id
      * @return internal related content
      */
-    private UrlAwareContentVo getInternalSiteUrlContent(URL url, String siteUrlHost, Long userId) {
+    private UrlAwareContentVo getIntranetSiteUrlContent(URL url, String siteUrlHost, Long userId) {
         UrlAwareContentVo vo = defaultIntranetSiteUrlContent(siteUrlHost);
         Optional<URI> turnIntoUri = ClientUriUtil.urlTurnIntoURI(url.toString());
-        if (turnIntoUri.isEmpty()) {
+        if (!turnIntoUri.isPresent()) {
             return urlAwareFailureWithFavicon(url);
         }
         URI uri = turnIntoUri.get();
@@ -187,21 +195,23 @@ public class FieldServiceImpl implements IFieldService {
                 Optional<String> nodeName = nodeShareService.getNodeNameByShareId(id);
                 nodeName.ifPresent(vo::setTitle);
             });
-        } else if (ClientUriUtil.isMatchWorkbenchPath(uri)) {
-            // determine if the url is a workbench node
+        }
+        // determine if the url is a workbench node
+        else if (ClientUriUtil.isMatchWorkbenchPath(uri)) {
             Optional<String> nodeId = ClientUriUtil.getNodeIdByPath(uri);
             nodeId.ifPresent(id -> {
                 Optional<String> nodeName = nodeService.getNodeName(id, userId);
                 nodeName.ifPresent(vo::setTitle);
             });
-        } else {
+        }
+        else {
             vo.setIsAware(false);
         }
         return vo;
     }
 
     /**
-     * get extranet site url related content.
+     * get extranet site url related content
      *
      * @param url extranet url
      * @return extranet url related content
@@ -212,7 +222,8 @@ public class FieldServiceImpl implements IFieldService {
         if (title.isPresent() && StrUtil.isNotBlank(title.get())) {
             urlAwareContentVo.setIsAware(true);
             urlAwareContentVo.setTitle(title.get());
-        } else {
+        }
+        else {
             urlAwareContentVo.setIsAware(false);
         }
         urlAwareContentVo.setFavicon(getUrlFavicon(url));
@@ -225,22 +236,24 @@ public class FieldServiceImpl implements IFieldService {
             if (ObjectUtil.isNotNull(lastFuture)) {
                 lastFuture.get(2, TimeUnit.SECONDS);
             }
-        } catch (ExecutionException | TimeoutException | InterruptedException e) {
-            log.error("call url failed", e);
+        }
+        catch (ExecutionException | TimeoutException | InterruptedException e) {
+            log.info("request failed:[{}]", e.getMessage());
         }
         // Cancel pending requests
         calls.forEach(Call::cancel);
     }
 
     private CompletableFuture<String> getOffSiteUrlContent(UrlAwareContentVo vo,
-                                                           List<Call> calls, URL urlObj) {
+            List<Call> calls, URL urlObj) {
         CompletableFuture<String> future = UrlRequestUtil.getTitle(urlObj.toString(), calls);
         future.whenComplete((title, e) -> {
             if (ObjectUtil.isNotNull(title)) {
                 vo.setIsAware(true);
                 vo.setTitle(title);
-            } else {
-                log.error("Offsite address [{}] recognition failed", urlObj, e);
+            }
+            else {
+                log.info("Offsite address [{}] recognition failed: [{}]", urlObj, e.getMessage());
             }
         });
         return future;
@@ -253,8 +266,18 @@ public class FieldServiceImpl implements IFieldService {
     }
 
     private String getUrlFavicon(URL url) {
-        String shortcutFavicon = extractShortcutFaviconFromHeader(url);
-        return shortcutFavicon == null ? usingUrlDefaultFaviconUrl(url) : shortcutFavicon;
+        StringBuilder builder = StrUtil.builder()
+                .append(url.getProtocol())
+                .append(StrUtil.COLON)
+                .append(StrUtil.SLASH)
+                .append(StrUtil.SLASH)
+                .append(url.getHost());
+        if (url.getPort() != -1) {
+            builder.append(CharUtil.COLON)
+                    .append(url.getPort());
+        }
+        builder.append("/favicon.ico");
+        return builder.toString();
     }
 
     private UrlAwareContentVo defaultIntranetSiteUrlContent(String siteUrlHost) {
@@ -266,10 +289,10 @@ public class FieldServiceImpl implements IFieldService {
 
     private String getIntranetSiteFaviconUrl(String siteUrlHost) {
         return StrUtil.builder()
-            .append("https://")
-            .append(siteUrlHost)
-            .append("/favicon.ico")
-            .toString();
+                .append("https://")
+                .append(siteUrlHost)
+                .append("/favicon.ico")
+                .toString();
     }
 
 }

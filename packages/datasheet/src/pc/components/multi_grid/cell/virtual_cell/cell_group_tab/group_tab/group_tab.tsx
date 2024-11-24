@@ -19,11 +19,6 @@
 /*
  * @doc https://www.notion.so/vikadata/50b41920a64f4bffaf55f7f9b4427985
  */
-import Trigger from 'rc-trigger';
-import { useCallback, useMemo, useRef } from 'react';
-import * as React from 'react';
-import { shallowEqual } from 'react-redux';
-import { useThemeColors } from '@apitable/components';
 import {
   ConfigConstant,
   Field,
@@ -39,17 +34,21 @@ import {
   Strings,
   t,
 } from '@apitable/core';
-import { ConicalDownFilled, ConicalRightFilled, TriangleDownFilled, TriangleRightFilled } from '@apitable/icons';
-import { FieldPermissionLock } from 'pc/components/field_permission';
 import { CellValue } from 'pc/components/multi_grid/cell/cell_value';
 import { GROUP_OFFSET } from 'pc/components/multi_grid/enum';
 import { store } from 'pc/store';
-import { useAppSelector } from 'pc/store/react-redux';
+import { useThemeColors } from '@apitable/components';
 import { setStorage, StorageName } from 'pc/utils/storage/storage';
-import { dispatch } from 'pc/worker/store';
+import Trigger from 'rc-trigger';
+import { useCallback, useMemo, useRef } from 'react';
+import * as React from 'react';
+import { shallowEqual, useSelector } from 'react-redux';
 import { StatOption } from '../../../stat_option';
 import styles from '../../../styles.module.less';
 import { GROUP_HEIGHT } from '../constant';
+import { FieldPermissionLock } from 'pc/components/field_permission';
+import { dispatch } from 'pc/worker/store';
+import { ConicalDownFilled, ConicalRightFilled, TriangleDownFilled, TriangleRightFilled } from '@apitable/icons';
 
 interface IGroupTab {
   row: ILinearRowGroupTab;
@@ -65,12 +64,12 @@ export enum ExpandType {
   RetractAll = 'RetractAll',
 }
 
-const GroupTabBase: React.FC<React.PropsWithChildren<IGroupTab>> = (props) => {
+const GroupTabBase: React.FC<React.PropsWithChildren<IGroupTab>> = props => {
   const { row, actualColumnIndex, groupInfo, isSort } = props;
   const fieldId = groupInfo[row.depth]?.fieldId;
   const pathKey = `${row.recordId}_${row.depth}`;
   const colors = useThemeColors();
-  const { field, statTypeFieldId, viewId, datasheetId, groupingCollapseIds, isSearching, fieldPermissionMap } = useAppSelector((state) => {
+  const { field, statTypeFieldId, viewId, datasheetId, groupingCollapseIds, isSearching, fieldPermissionMap } = useSelector(state => {
     const columns = Selectors.getVisibleColumns(state);
     const statTypeFieldId = columns[actualColumnIndex].fieldId;
     return {
@@ -83,7 +82,7 @@ const GroupTabBase: React.FC<React.PropsWithChildren<IGroupTab>> = (props) => {
       fieldPermissionMap: Selectors.getFieldPermissionMap(state),
     };
   }, shallowEqual);
-  const groupingCollapseIdsMap = new Map<string, boolean>(groupingCollapseIds?.map((v) => [v, true]));
+  const groupingCollapseIdsMap = new Map<string, boolean>(groupingCollapseIds?.map(v => [v, true]));
   const fieldRole = Selectors.getFieldRoleByFieldId(fieldPermissionMap, fieldId);
   const isCryptoField = fieldRole === ConfigConstant.Role.None;
   const triggerRef = useRef<any>();
@@ -129,16 +128,15 @@ const GroupTabBase: React.FC<React.PropsWithChildren<IGroupTab>> = (props) => {
 
   function partOfToggle() {
     return (
-      <div
-        className={styles.icon}
-        onClick={clickExpandToggle}
-        style={{
-          transition: 'all 0.3s',
-          transform: groupingCollapseIdsMap.has(pathKey) ? 'rotate(-90deg)' : 'rotate(0)',
-          marginRight: '8px',
-        }}
-      >
-        <TriangleDownFilled color={colors.thirdLevelText} size={10} />
+      <div className={styles.icon} onClick={clickExpandToggle} style={{
+        transition: 'all 0.3s',
+        transform: groupingCollapseIdsMap.has(pathKey) ? 'rotate(-90deg)' : 'rotate(0)',
+        marginRight: '8px',
+      }}>
+        <TriangleDownFilled
+          color={colors.thirdLevelText}
+          size={10}
+        />
       </div>
     );
   }
@@ -204,7 +202,7 @@ const GroupTabBase: React.FC<React.PropsWithChildren<IGroupTab>> = (props) => {
 
   function findChildGroupTab() {
     const state = store.getState();
-    const res = groupSketch.getChildBreakpointIds(state, row.recordId, row.depth).map((recordId) => `${recordId}_${row.depth + 1}`);
+    const res = groupSketch.getChildBreakpointIds(state, row.recordId, row.depth).map(recordId => `${recordId}_${row.depth + 1}`);
     res.push(`${row.recordId}_${row.depth}`);
     return res;
   }
@@ -246,9 +244,9 @@ const GroupTabBase: React.FC<React.PropsWithChildren<IGroupTab>> = (props) => {
 
     return (
       <ul className={styles.contextMenu}>
-        {childGroupTabKey.some((item) => groupingCollapseIdsMap.has(item)) ? (
+        {childGroupTabKey.some(item => groupingCollapseIdsMap.has(item)) ? (
           <li
-            onMouseDown={(e) => {
+            onMouseDown={e => {
               groupCommand(ExpandType.Pull, e);
             }}
           >
@@ -260,9 +258,9 @@ const GroupTabBase: React.FC<React.PropsWithChildren<IGroupTab>> = (props) => {
         ) : (
           <></>
         )}
-        {childGroupTabKey.some((item) => !groupingCollapseIdsMap.has(item)) ? (
+        {childGroupTabKey.some(item => !groupingCollapseIdsMap.has(item)) ? (
           <li
-            onMouseDown={(e) => {
+            onMouseDown={e => {
               groupCommand(ExpandType.Retract, e);
             }}
           >
@@ -274,9 +272,9 @@ const GroupTabBase: React.FC<React.PropsWithChildren<IGroupTab>> = (props) => {
         ) : (
           <></>
         )}
-        {allGroupTabIds.some((item) => groupingCollapseIdsMap.has(item)) ? (
+        {allGroupTabIds.some(item => groupingCollapseIdsMap.has(item)) ? (
           <li
-            onMouseDown={(e) => {
+            onMouseDown={e => {
               groupCommand(ExpandType.PullAll, e);
             }}
           >
@@ -288,11 +286,10 @@ const GroupTabBase: React.FC<React.PropsWithChildren<IGroupTab>> = (props) => {
         ) : (
           <></>
         )}
-        {
-          // When there are group tab that are not collapsed
+        { // When there are group tab that are not collapsed
           setComplement(Array.from(groupingCollapseIdsMap.keys()), allGroupTabIds).length > 0 ? (
             <li
-              onMouseDown={(e) => {
+              onMouseDown={e => {
                 groupCommand(ExpandType.RetractAll, e);
               }}
             >
@@ -303,8 +300,7 @@ const GroupTabBase: React.FC<React.PropsWithChildren<IGroupTab>> = (props) => {
             </li>
           ) : (
             <></>
-          )
-        }
+          )}
       </ul>
     );
   }
@@ -382,7 +378,7 @@ const GroupTabBase: React.FC<React.PropsWithChildren<IGroupTab>> = (props) => {
             width: 'calc(100% - 16px)',
             height: '100%',
           }}
-          onClick={(e) => {
+          onClick={e => {
             triggerRef.current!.onContextMenuClose(e);
           }}
         >

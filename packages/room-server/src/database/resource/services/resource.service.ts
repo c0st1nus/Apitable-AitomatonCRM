@@ -16,10 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { FieldType, IMeta, ResourceIdPrefix, ResourceType } from '@apitable/core';
+import { FieldType, ResourceIdPrefix, ResourceType } from '@apitable/core';
 import { Span } from '@metinseylan/nestjs-opentelemetry';
 import { Injectable } from '@nestjs/common';
-import { AutomationService } from 'automation/services/automation.service';
 import { PermissionException, ServerException } from 'shared/exception';
 import { IAuthHeader } from 'shared/interfaces';
 import { DatasheetMetaService } from '../../datasheet/services/datasheet.meta.service';
@@ -27,6 +26,8 @@ import { DatasheetService } from '../../datasheet/services/datasheet.service';
 import { NodeService } from '../../../node/services/node.service';
 import { WidgetService } from '../../widget/services/widget.service';
 import { DatasheetPack } from 'database/interfaces';
+import type { DatasheetPackResponse } from '@apitable/room-native-api';
+import { RobotRobotService } from 'automation/services/robot.robot.service';
 
 @Injectable()
 export class ResourceService {
@@ -35,7 +36,7 @@ export class ResourceService {
     private readonly datasheetService: DatasheetService,
     private readonly datasheetMetaService: DatasheetMetaService,
     private readonly widgetService: WidgetService,
-    private readonly automationService: AutomationService,
+    private readonly robotService: RobotRobotService,
   ) {}
 
   @Span()
@@ -54,11 +55,7 @@ export class ResourceService {
 
   @Span()
   async getHasRobotByResourceIds(resourceIds: string[]) {
-    const hasRobot = await this.automationService.isResourcesHasRobots(resourceIds);
-    if (!hasRobot) {
-      return await this.automationService.isResourcesHasTriggers(resourceIds);
-    }
-    return hasRobot;
+    return await this.robotService.isResourcesHasRobots(resourceIds);
   }
 
   async fetchForeignDatasheetPack(
@@ -67,7 +64,7 @@ export class ResourceService {
     auth: IAuthHeader,
     allowNative: boolean,
     shareId?: string,
-  ): Promise<DatasheetPack> {
+  ): Promise<DatasheetPack | DatasheetPackResponse> {
     // Obtain referenced datasheet
     const datasheetId = resourceId.startsWith(ResourceIdPrefix.Datasheet) ? resourceId : await this.nodeService.getMainNodeId(resourceId);
     return this.datasheetService.fetchForeignDatasheetPack(datasheetId, foreignDatasheetId, auth, allowNative, shareId);
@@ -88,22 +85,15 @@ export class ResourceService {
       return;
     }
     // Check if datasheet has linked datasheet with foreignDatasheetId
-    const metaMap = await this.datasheetMetaService.getMetaMapByDstIds([dstId, resourceId]);
-    const isExist = this.hasLinkRelation(metaMap[dstId], resourceId) || this.hasLinkRelation(metaMap[resourceId], dstId);
-    if (!isExist) {
-      throw new ServerException(PermissionException.ACCESS_DENIED);
-    }
-  }
-
-  private hasLinkRelation(meta?: IMeta, resourceId?: string): boolean {
-    if (!meta) {
-      return false;
-    }
-    return Object.values(meta.fieldMap).some((field) => {
-      if (field.type === FieldType.Link || field.type === FieldType.OneWayLink) {
+    const meta = await this.datasheetMetaService.getMetaDataByDstId(dstId);
+    const isExist = Object.values(meta.fieldMap).some(field => {
+      if (field.type === FieldType.Link) {
         return field.property.foreignDatasheetId === resourceId;
       }
       return false;
     });
+    if (!isExist) {
+      throw new ServerException(PermissionException.ACCESS_DENIED);
+    }
   }
 }

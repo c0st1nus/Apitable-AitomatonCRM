@@ -99,11 +99,11 @@ import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.annotation.Resource;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -116,7 +116,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @Slf4j
 @RestController
-@Tag(name = "User")
+@Tag(name = "Account Center Module_User Management Interface")
 @ApiResource(path = "/user")
 public class UserController {
 
@@ -216,22 +216,25 @@ public class UserController {
      * @param request HttpServletRequest
      * @return Get personal information
      */
-    @GetResource(path = "/me", requiredPermission = false)
-    @Operation(summary = "get personal information")
+    @GetResource(name = "get personal information", path = "/me",
+        requiredPermission = false)
+    @Operation(summary = "get personal information", description = "get personal "
+        + "information")
     @Parameters({
-        @Parameter(name = "spaceId", in = ParameterIn.QUERY, description = "space id",
-            schema = @Schema(type = "string"), example = "spc8mXUeiXyVo"),
-        @Parameter(name = "nodeId", in = ParameterIn.QUERY, description = "node id",
-            schema = @Schema(type = "string"), example = "dstS94qPZFXjC1LKns"),
-        @Parameter(name = "filter", in = ParameterIn.QUERY,
-            description = "whether to filter space related information",
-            schema = @Schema(type = "boolean"), example = "true")
+        @Parameter(name = "spaceId", description = "space id",
+            schema = @Schema(type = "string"), in = ParameterIn.QUERY, example =
+            "spc8mXUeiXyVo"),
+        @Parameter(name = "nodeId", description = "node id", schema =
+            @Schema(type = "string"), in = ParameterIn.QUERY, example = "dstS94qPZFXjC1LKns"),
+        @Parameter(name = "filter", description = "whether to filter space "
+            + "related information", schema = @Schema(type = "boolean"),
+            in = ParameterIn.QUERY, example = "true")
     })
     public ResponseData<UserInfoVo> userInfo(
         @RequestParam(name = "spaceId", required = false) final String spaceId,
         @RequestParam(name = "nodeId", required = false) final String nodeId,
-        @RequestParam(name = "filter", required = false,
-            defaultValue = "false") final Boolean filter,
+        @RequestParam(name = "filter", required = false, defaultValue =
+            "false") final Boolean filter,
         final HttpServletRequest request) {
         Long userId = SessionContext.getUserId();
 
@@ -261,7 +264,8 @@ public class UserController {
      */
     // Before getting the user information, try to return the Space id first
     private String tryReturnSpaceId(final String nodeId, final String spaceId,
-                                    final Long userId, final HttpServletRequest request) {
+        final Long userId,
+        final HttpServletRequest request) {
         if (StrUtil.isNotBlank(nodeId)) {
             // 1.Use url - NodeId to locate the space and return the bound
             // domain name
@@ -305,7 +309,7 @@ public class UserController {
      */
     // Return the space station domain name
     private String returnSpaceDomain(final String spaceId,
-                                     final String userSpaceId) {
+        final String userSpaceId) {
         // Returns the domain name information, and returns the public domain
         // name if there is no credential acquisition or search
         if (StrUtil.isNotBlank(spaceId)) {
@@ -328,9 +332,10 @@ public class UserController {
      *
      * @return {@link ResponseData}
      */
-    @GetResource(path = "/email/bind", requiredPermission = false)
-    @Operation(summary = "Query whether users bind mail",
-        description = "Query whether users bind mail")
+    @GetResource(name = "Query whether user bind mail", path = "/email/bind",
+        requiredPermission = false)
+    @Operation(summary = "Query whether users bind mail", description = "Query "
+        + "whether users bind mail")
     public ResponseData<Boolean> validBindEmail() {
         Long userId = SessionContext.getUserId();
         Boolean exist = iUserService.checkUserHasBindEmail(userId);
@@ -343,8 +348,9 @@ public class UserController {
      * @param data CheckUserEmailRo
      * @return {@link ResponseData}
      */
-    @Deprecated(since = "v1.10.0")
-    @PostResource(path = "/validate/email", requiredPermission = false)
+    @PostResource(name = "Query whether the user is consistent with the "
+        + "specified mail", path = "/validate/email", requiredPermission =
+        false)
     @Operation(summary = "Query whether the user is consistent with the "
         + "specified mail", description = "Query whether the user is consistent "
         + "with the specified mail. It can only be determined if the user has"
@@ -364,9 +370,10 @@ public class UserController {
      * @param data UserLinkEmailRo
      * @return {@link ResponseData}
      */
-    @PostResource(path = "/link/inviteEmail", requiredPermission = false)
-    @Operation(summary = "Associate the invited mail",
-        description = "Users can only associate with invited mail when they have no other mail")
+    @PostResource(name = "Associate the invited mail", path = "/link"
+        + "/inviteEmail", requiredPermission = false)
+    @Operation(summary = "Associate the invited mail", description = "Users can "
+        + "only associate with invited mail when they have no other mail")
     public ResponseData<Void> linkInviteEmail(
         @RequestBody @Valid final UserLinkEmailRo data) {
         String email = data.getEmail();
@@ -382,7 +389,8 @@ public class UserController {
      * @param param EmailCodeValidateRo
      * @return {@link ResponseData}
      */
-    @PostResource(path = "/bindEmail", requiredPermission = false)
+    @PostResource(name = "Bind mail", path = "/bindEmail",
+        requiredPermission = false)
     @Operation(summary = "Bind mail", description = "Bind mail and modify mail")
     public ResponseData<Void> bindEmail(
         @RequestBody @Valid final EmailCodeValidateRo param) {
@@ -395,8 +403,7 @@ public class UserController {
         boolean exist = iUserService.checkByEmail(param.getEmail());
         ExceptionUtil.isFalse(exist, EMAIL_HAS_BIND);
         Long userId = SessionContext.getUserId();
-        String oldEmail = LoginContext.me().getLoginUser().getEmail();
-        iUserService.updateEmailByUserId(userId, param.getEmail(), oldEmail);
+        iUserService.updateEmailByUserId(userId, param.getEmail());
         return ResponseData.success();
     }
 
@@ -406,7 +413,8 @@ public class UserController {
      * @param param CodeValidateRo
      * @return {@link ResponseData}
      */
-    @PostResource(path = "/unbindEmail", requiredPermission = false)
+    @PostResource(name = "Unbind mail", path = "/unbindEmail",
+        requiredPermission = false)
     @Operation(summary = "Unbind mail", description = "Bind mail and modify mail")
     public ResponseData<Void> unbindEmail(
         @RequestBody @Valid final CodeValidateRo param) {
@@ -428,7 +436,8 @@ public class UserController {
      * @param param SmsCodeValidateRo
      * @return {@link ResponseData}
      */
-    @PostResource(path = "/bindPhone", requiredPermission = false)
+    @PostResource(name = "Bind a new phone", path = "/bindPhone",
+        requiredPermission = false)
     @Operation(summary = "Bind a new phone", description = "Bind a new phone")
     public ResponseData<Void> verifyPhone(
         @RequestBody @Valid final SmsCodeValidateRo param) {
@@ -454,8 +463,10 @@ public class UserController {
      * @param param CodeValidateRo
      * @return {@link ResponseData}
      */
-    @PostResource(path = "/unbindPhone", requiredPermission = false)
-    @Operation(summary = "Unbind mobile phone")
+    @PostResource(name = "Unbind mobile phone", path = "/unbindPhone",
+        requiredPermission = false)
+    @Operation(summary = "Unbind mobile phone", description = "Unbind mobile "
+        + "phone")
     public ResponseData<Void> unbindPhone(
         @RequestBody @Valid final CodeValidateRo param) {
         LoginUserDto loginUser = LoginContext.me().getLoginUser();
@@ -477,9 +488,10 @@ public class UserController {
      * @param param UserOpRo
      * @return {@link ResponseData}
      */
-    @PostResource(path = "/update", requiredPermission = false)
-    @Operation(summary = "Edit user information",
-        description = "Request parameters cannot be all empty")
+    @PostResource(name = "Edit user information", path = "/update",
+        requiredPermission = false)
+    @Operation(summary = "Edit user information", description = "Request "
+        + "parameters cannot be all empty")
     public ResponseData<String> update(
         @RequestBody @Valid final UserOpRo param) {
         ExceptionUtil.isTrue(
@@ -513,10 +525,11 @@ public class UserController {
      * @param param UpdatePwdOpRo
      * @return {@link ResponseData}
      */
-    @PostResource(path = "/updatePwd", requiredPermission = false)
-    @Operation(summary = "Change Password",
-        description = "Scene: 1. Personal setting and password modification;"
-            + " 2. Initialize after login for accounts without password")
+    @PostResource(name = "Change Password", path = "/updatePwd",
+        requiredPermission = false)
+    @Operation(summary = "Change Password", description = "Scene: 1. Personal "
+        + "setting and password modification; 2. Initialize after login for "
+        + "accounts without password")
     public ResponseData<Void> updatePwd(
         @RequestBody final UpdatePwdOpRo param) {
         verificationService.verifyPassword(param.getPassword());
@@ -574,7 +587,8 @@ public class UserController {
      * @param param RetrievePwdOpRo
      * @return {@link ResponseData}
      */
-    @PostResource(path = "/retrievePwd", requiredLogin = false)
+    @PostResource(name = "Retrieve password", path = "/retrievePwd",
+        requiredLogin = false)
     @Operation(summary = "Retrieve password")
     public ResponseData<Void> retrievePwd(
         @RequestBody @Valid final RetrievePwdOpRo param) {
@@ -625,9 +639,10 @@ public class UserController {
      *
      * @return {@link ResponseData}
      */
-    @PostResource(path = "/applyForClosing", requiredPermission = false)
-    @Operation(summary = "Apply for cancellation of user account",
-        description = "Registered login user applies for account cancellation")
+    @PostResource(name = "Apply for cancellation of user account", path =
+        "/applyForClosing", requiredPermission = false)
+    @Operation(summary = "Apply for cancellation of user account", description =
+        "Registered login user applies for account cancellation")
     public ResponseData<Void> applyForClosing() {
         // Get the current login user
         Long userId = SessionContext.getUserId();
@@ -653,7 +668,8 @@ public class UserController {
      *
      * @return {@link ResponseData}
      */
-    @GetResource(path = "/checkForClosing", requiredPermission = false)
+    @GetResource(name = "Verify whether the account can be cancelled", path =
+        "/checkForClosing", requiredPermission = false)
     @Operation(summary = "Verify whether the account can be cancelled",
         description = "Unregistered users verify whether the account meets the "
             + "cancellation conditions")
@@ -674,9 +690,10 @@ public class UserController {
      *
      * @return {@link ResponseData}
      */
-    @PostResource(path = "/cancelClosing", requiredPermission = false)
-    @Operation(summary = "Apply for account restoration",
-        description = "User recovery account has been applied for cancellation")
+    @PostResource(name = "Apply for account restoration", path =
+        "/cancelClosing", requiredPermission = false)
+    @Operation(summary = "Apply for account restoration", description = "User "
+        + "recovery account has been applied for cancellation")
     public ResponseData<Void> cancelClosing() {
         // Get the current login user
         Long userId = SessionContext.getUserId();
@@ -698,8 +715,10 @@ public class UserController {
      * @param spaceId space id
      * @return {@link ResponseData}
      */
-    @GetResource(path = "/labs/features", requiredPermission = false)
-    @Operation(summary = "Get the enabled experimental functions")
+    @GetResource(name = "Get the enabled experimental functions", path =
+        "/labs/features", requiredPermission = false)
+    @Operation(summary = "Get the enabled experimental functions", description =
+        "Get the enabled experimental functions")
     public ResponseData<LabsFeatureVo> getEnabledLabFeatures(
         @RequestParam final String spaceId) {
         Long userId = SessionContext.getUserId();
@@ -762,8 +781,8 @@ public class UserController {
      *
      * @return {@link ResponseData}
      */
-    @PostResource(path = "/delActiveSpaceCache",
-        method = {RequestMethod.GET}, requiredPermission = false)
+    @PostResource(path = "/delActiveSpaceCache", method = {
+        RequestMethod.GET}, requiredPermission = false)
     @Operation(summary = "Delete Active Space Cache")
     public ResponseData<Void> delActiveSpaceCache() {
         // Fill in the invitation code and reward integral

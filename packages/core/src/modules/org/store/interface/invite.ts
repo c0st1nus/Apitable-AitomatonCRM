@@ -23,7 +23,6 @@ export interface IInvite {
   linkList: IInviteLink[];
   inviteLinkInfo: IInviteLinkInfo | null;
   linkToken: string;
-  inviteLinkData?: string;
   mailToken: string;
   errCode: number | null;
   nodeId?: string;

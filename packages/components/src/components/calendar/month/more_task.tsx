@@ -25,10 +25,9 @@ import { IconButton } from '../../icon_button';
 import { NarrowOutlined, CloseOutlined } from '@apitable/icons';
 import { MoreDiv, MoreListDiv, MoreHeader, DrawerStyled, ListItemStyled } from './styled';
 import { CalendarContext } from '../calendar_context';
-import { MAX_LEVEL } from '../constants';
+import { DETAIL_WEEKS, MAX_LEVEL } from '../constants';
 import { formatDayValue } from '../utils';
 import { Task } from './task';
-import { Strings, t } from '@apitable/core';
 
 interface IMoreTask {
   mIndex: number;
@@ -42,15 +41,13 @@ interface IMoreTask {
 
 export const MoreTask = (props: IMoreTask) => {
   const { mIndex, curDay, moreTasks, takeLevelLen } = props;
-  const { listHeight, defaultListHeight, space, isMobile, moreText } = useContext(CalendarContext);
+  const { lang, listHeight, defaultListHeight, space, isMobile, moreText } = useContext(CalendarContext);
   const [visible, setVisible] = useState(false);
-
-  const detailWeeks: string[] = JSON.parse(t(Strings.calendar_const_detail_weeks)) || [];
   const title = (
     <Typography variant="h6">
-      {formatDayValue(curDay.month, curDay.day)}
+      {formatDayValue(curDay.month, curDay.day, lang)}
       <MoreHeader>
-        {detailWeeks[mIndex]}
+        {DETAIL_WEEKS[lang][mIndex]}
       </MoreHeader>
     </Typography>
   );

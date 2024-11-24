@@ -18,12 +18,13 @@
 
 package com.apitable.shared.component.scanner;
 
-import com.apitable.shared.component.ResourceDefinition;
 import java.util.List;
+
+import com.apitable.shared.component.ResourceDefinition;
 
 /**
  * <p>
- * api resource factory.
+ * api resource factory
  * </p>
  *
  * @author Shawn Deng
@@ -31,22 +32,22 @@ import java.util.List;
 public interface ApiResourceFactory {
 
     /**
-     * register a resource into container.
+     * register a resource into container
      *
      * @param apiResource api resource
      */
     void registerDefinition(List<ResourceDefinition> apiResource);
 
     /**
-     * get resource by url.
+     * get resource by url
      *
      * @param resourceUrl url
      * @return ResourceDefinition
      */
-    ResourceDefinition getResourceByUrl(String resourceUrl, String httpMethod);
+    ResourceDefinition getResourceByUrl(String resourceUrl);
 
     /**
-     * clear resource.
+     * clear resource
      */
     void clear();
 }

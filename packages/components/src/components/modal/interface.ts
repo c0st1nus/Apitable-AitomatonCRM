@@ -23,8 +23,6 @@ import React from 'react';
 export interface IModalProps {
   className?: string;
 
-  contentClassName?: string;
-
   /**
    * Whether visible or hidden
    */
@@ -34,7 +32,6 @@ export interface IModalProps {
    * Modal title
    */
   title?: React.ReactNode | string;
-  renderTitle?: React.ReactNode | string;
 
   /**
    * Whether show close button or not
@@ -128,8 +125,6 @@ export interface IModalProps {
   okButtonProps?: IButtonProps;
 
   cancelButtonProps?: ITextButtonProps;
-
-  isCloseable?: () => Promise<boolean>;
 }
 
 export interface IModalFuncProps {

@@ -23,9 +23,6 @@ import com.alibaba.excel.annotation.write.style.ColumnWidth;
 import com.alibaba.excel.annotation.write.style.HeadFontStyle;
 import lombok.Data;
 
-/**
- * contact template data.
- */
 @Data
 @HeadFontStyle(fontHeightInPoints = 11)
 public class ContactTemplateData {

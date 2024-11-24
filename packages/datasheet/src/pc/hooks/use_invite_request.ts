@@ -21,11 +21,12 @@ import { Message } from 'pc/components/common';
 import { secondStepVerify } from 'pc/hooks/utils';
 
 export const useInviteRequest = () => {
+
   /**
    * Get link list
    */
   const linkListReq = () => {
-    return Api.getLinkList().then((res) => {
+    return Api.getLinkList().then(res => {
       const { success, data, message } = res.data;
       if (success) {
         return data;
@@ -39,7 +40,7 @@ export const useInviteRequest = () => {
    * @param teamId
    */
   const readTeamReq = (teamId = '0') => {
-    return Api.readTeam(teamId).then((res) => {
+    return Api.readTeam(teamId).then(res => {
       const { success, data, message } = res.data;
       if (success) {
         return data;
@@ -53,7 +54,7 @@ export const useInviteRequest = () => {
    * @param teamId
    */
   const getSubTeamsReq = (teamId: string) => {
-    return Api.getSubTeams(teamId).then((res) => {
+    return Api.getSubTeams(teamId).then(res => {
       const { success, data, message } = res.data;
       if (success) {
         return data;
@@ -67,7 +68,7 @@ export const useInviteRequest = () => {
    * @param teamId
    */
   const generateLinkReq = (teamId: string, nodeId?: string) => {
-    return Api.createLink(teamId, nodeId).then((res) => {
+    return Api.createLink(teamId, nodeId).then(res => {
       const { success, data, message } = res.data;
       if (success) {
         return data;
@@ -81,7 +82,7 @@ export const useInviteRequest = () => {
    * @param teamId
    */
   const deleteLinkReq = (teamId: string) => {
-    return Api.deleteLink(teamId).then((res) => {
+    return Api.deleteLink(teamId).then(res => {
       const { success, message } = res.data;
       if (success) {
         return true;
@@ -94,8 +95,8 @@ export const useInviteRequest = () => {
   /**
    * Send an email to invite members
    */
-  const sendInviteReq = (spaceId: string, invite: IInviteMemberList[], nvcVal?: string) => {
-    return Api.sendInvite(spaceId, invite, nvcVal).then((res) => {
+  const sendInviteReq = (invite: IInviteMemberList[], nodeId?: string, nvcVal?: string) => {
+    return Api.sendInvite(invite, nodeId, nvcVal).then(res => {
       const { success, message, code, data } = res.data;
       if (!success) {
         Message.error({ content: message });
@@ -110,7 +111,7 @@ export const useInviteRequest = () => {
    * @param keyword
    */
   const fetchTeamAndMember = (keyword: string, searchEmail: boolean) => {
-    return Api.loadOrSearch({ keyword, searchEmail }).then((res) => {
+    return Api.loadOrSearch({ keyword, searchEmail }).then(res => {
       const { success, data, message } = res.data;
       if (success) {
         return data;

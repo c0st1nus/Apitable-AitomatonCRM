@@ -18,19 +18,15 @@
 
 package com.apitable.shared.component.notification.subject;
 
-import com.apitable.player.ro.NotificationCreateRo;
-import com.apitable.shared.component.notification.observer.NotifyObserver;
 import java.util.Vector;
 
-/**
- * notify subject.
- *
- * @param <T> context
- */
+import com.apitable.shared.component.notification.observer.NotifyObserver;
+import com.apitable.player.ro.NotificationCreateRo;
+
 public abstract class NotifySubject<T> {
 
     /**
-     * send notification.
+     * send notification
      */
     public abstract void send(NotificationCreateRo ro);
 
@@ -40,11 +36,6 @@ public abstract class NotifySubject<T> {
 
     private final Vector<NotifyObserver> observers = new Vector<>();
 
-    /**
-     * add observer.
-     *
-     * @param observer observer
-     */
     public void addObserver(NotifyObserver observer) {
         if (!observers.contains(observer)) {
             observers.add(observer);
@@ -56,8 +47,7 @@ public abstract class NotifySubject<T> {
     }
 
     /**
-     * notify observer processing.
-     *
+     * notify observer processing
      * @param ro notification parameters
      */
     protected void notifyObserver(NotificationCreateRo ro) {

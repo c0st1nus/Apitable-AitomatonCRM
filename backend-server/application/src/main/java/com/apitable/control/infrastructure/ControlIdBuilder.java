@@ -23,8 +23,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * control id builder.
- *
+ * control id builder
  * @author Shawn Deng
  */
 public class ControlIdBuilder {
@@ -43,17 +42,8 @@ public class ControlIdBuilder {
         return fieldIds(datasheetId, Collections.singletonList(fieldId));
     }
 
-    /**
-     * build with filed id.
-     *
-     * @param datasheetId datasheet id
-     * @param fieldIds    field id list
-     * @return control id
-     */
     public static ControlId fieldIds(String datasheetId, List<String> fieldIds) {
-        List<String> controlIds =
-            fieldIds.stream().map(fieldId -> datasheetId.concat(SYMBOL).concat(fieldId))
-                .collect(Collectors.toList());
+        List<String> controlIds = fieldIds.stream().map(fieldId -> datasheetId.concat(SYMBOL).concat(fieldId)).collect(Collectors.toList());
         return new FieldControlId(controlIds);
     }
 
@@ -61,23 +51,11 @@ public class ControlIdBuilder {
         return viewIds(datasheetId, Collections.singletonList(viewId));
     }
 
-    /**
-     * build with view id.
-     *
-     * @param datasheetId datasheet id
-     * @param viewIds     view id list
-     * @return control id
-     */
     public static ControlId viewIds(String datasheetId, List<String> viewIds) {
-        List<String> controlIds =
-            viewIds.stream().map(viewId -> datasheetId.concat(SYMBOL).concat(viewId))
-                .collect(Collectors.toList());
+        List<String> controlIds = viewIds.stream().map(viewId -> datasheetId.concat(SYMBOL).concat(viewId)).collect(Collectors.toList());
         return new ViewControlId(controlIds);
     }
 
-    /**
-     * control id.
-     */
     public interface ControlId {
 
         List<String> getControlIds();
@@ -87,10 +65,7 @@ public class ControlIdBuilder {
         List<String> toRealIdList();
     }
 
-    /**
-     * control id abstract class.
-     */
-    private abstract static class AbstractControlId implements ControlId {
+    private static abstract class AbstractControlId implements ControlId {
 
         private final List<String> controlIds;
 
@@ -108,9 +83,7 @@ public class ControlIdBuilder {
             if (getControlType() == ControlType.NODE) {
                 return getControlIds();
             }
-            return getControlIds().stream().map(
-                    controlId -> controlId.substring(controlId.indexOf(ControlIdBuilder.SYMBOL) + 1))
-                .collect(Collectors.toList());
+            return getControlIds().stream().map(controlId -> controlId.substring(controlId.indexOf(ControlIdBuilder.SYMBOL) + 1)).collect(Collectors.toList());
         }
 
         @Override
@@ -119,16 +92,12 @@ public class ControlIdBuilder {
                 if (controlIds.size() == 1) {
                     return controlIds.get(0);
                 }
-                return controlIds.stream().map(String::toString)
-                    .reduce("", (s, s2) -> s.concat(",").concat(s2));
+                return controlIds.stream().map(String::toString).reduce("", (s, s2) -> s.concat(",").concat(s2));
             }
             return "";
         }
     }
 
-    /**
-     * node control id.
-     */
     public static class NodeControlId extends AbstractControlId {
 
         public NodeControlId(List<String> controlIds) {
@@ -141,9 +110,6 @@ public class ControlIdBuilder {
         }
     }
 
-    /**
-     * field control id.
-     */
     public static class FieldControlId extends AbstractControlId {
 
         public FieldControlId(List<String> controlIds) {
@@ -156,9 +122,6 @@ public class ControlIdBuilder {
         }
     }
 
-    /**
-     * view control id.
-     */
     public static class ViewControlId extends AbstractControlId {
 
         public ViewControlId(List<String> controlIds) {

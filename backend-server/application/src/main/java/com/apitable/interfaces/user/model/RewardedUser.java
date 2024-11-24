@@ -18,11 +18,7 @@
 
 package com.apitable.interfaces.user.model;
 
-/**
- * rewarded user.
- */
 public class RewardedUser {
-
     private Long userId;
 
     private String nickName;

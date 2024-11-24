@@ -18,17 +18,10 @@
 
 import { AstNode, FormulaExprParser } from './parser';
 import { Interpreter, ResolverFunction } from './interpreter/interpreter';
-import { IFieldMap, IFieldPermissionMap, IReduxState } from 'exports/store/interfaces';
-import {
-  getDatasheet,
-  getFieldMap,
-  getFieldPermissionMap,
-  getFieldRoleByFieldId,
-  getCellValue
-} from 'modules/database/store/selectors/resource/datasheet';
+import { IFieldMap, IFieldPermissionMap, IReduxState, Selectors } from 'exports/store';
 import { TokenType, FormulaExprLexer } from './lexer';
-import { Field } from 'model/field';
-import { ArrayValueField } from 'model/field/array_field';
+import { getCellValue, getDatasheet, getFieldMap } from 'exports/store/selectors';
+import { Field, LookUpField, ArrayValueField } from 'model';
 import { IFormulaContext, IFormulaEvaluateContext, FormulaBaseError } from './functions/basic';
 import { BasicValueType, FieldType, IField } from 'types';
 import { t, Strings } from 'exports/i18n';
@@ -66,12 +59,12 @@ function resolverWrapper(context: IFormulaContext): ResolverFunction {
     const fieldMap = datasheet.snapshot.meta.fieldMap;
     // const fieldMap = getFieldMap(state, context.field.property.datasheetId)!;
     if (hostField.type === FieldType.LookUp && fieldId === ROLLUP_KEY_WORDS) {
-      const flatCellValue = Field.bindContext(hostField, state).getFlatCellValue(context.record.id, true);
-      return Field.bindContext(hostField, state).cellValueToArray(flatCellValue);
+      const flatCellValue = LookUpField.bindContext(hostField, state).getFlatCellValue(context.record.id, true);
+      return LookUpField.bindContext(hostField, state).cellValueToArray(flatCellValue);
     }
-
-    const fieldPermissionMap = getFieldPermissionMap(state, datasheet.id);
-    const fieldRole = getFieldRoleByFieldId(fieldPermissionMap, fieldId);
+ 
+    const fieldPermissionMap = Selectors.getFieldPermissionMap(state, datasheet.id);
+    const fieldRole = Selectors.getFieldRoleByFieldId(fieldPermissionMap, fieldId);
 
     const field = fieldMap[fieldId];
     if (!field && !fieldRole) {
@@ -83,7 +76,7 @@ function resolverWrapper(context: IFormulaContext): ResolverFunction {
     }
 
     const record = context.record;
-    const recordSnapshot = { meta: { fieldMap: fieldMap }, recordMap: { [record.id]: record } };
+    const recordSnapshot = { meta: { fieldMap: fieldMap }, recordMap: { [record.id]: record }};
     const cellValue = getCellValue(state, recordSnapshot, record.id, fieldId, false, datasheet.id, true);
 
     // TODO what if field is undefined?
@@ -263,7 +256,7 @@ export function expressionTransform(
     function getTokenValue() {
       const pureTokenValue = tokenValue.slice(1, -1).replace(/\\(.)/g, '$1');
       const field = revertFieldMap[pureTokenValue];
-      const fieldRole = getFieldRoleByFieldId(fieldPermissionMap, pureTokenValue);
+      const fieldRole = Selectors.getFieldRoleByFieldId(fieldPermissionMap, pureTokenValue);
 
       if (fieldRole === ConfigConstant.Role.None) {
         return `{${t(Strings.crypto_field)}}`;

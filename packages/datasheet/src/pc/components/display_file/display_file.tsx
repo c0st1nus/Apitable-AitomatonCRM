@@ -16,13 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import classNames from 'classnames';
-import * as React from 'react';
-import { shallowEqual } from 'react-redux';
 import { CollaCommandName, CutMethod, IAttachmentValue, IField, isGif } from '@apitable/core';
-import { useGetSignatureAssertByToken } from '@apitable/widget-sdk';
+import classNames from 'classnames';
+import Image from 'next/image';
+import { usePlatform } from 'pc/hooks/use_platform';
 import { resourceService } from 'pc/resource_service';
 import { getCellValueThumbSrc, showOriginImageThumbnail } from 'pc/utils';
+import * as React from 'react';
+import { shallowEqual } from 'react-redux';
 import { expandPreviewModal } from '../preview_file';
 import styles from './style.module.less';
 
@@ -36,10 +37,7 @@ interface IDisplayFileProps {
   className?: string;
   imageStyle?: React.CSSProperties;
   cutImage?: boolean;
-  isCoverFit?: boolean;
-
   setPreviewIndex?(index: number): void;
-
   datasheetId?: string;
   recordId: string;
   editable: boolean;
@@ -47,7 +45,7 @@ interface IDisplayFileProps {
   disabledDownload?: boolean;
 }
 
-const DisplayFileBase: React.FC<React.PropsWithChildren<IDisplayFileProps>> = (props) => {
+const DisplayFileBase: React.FC<React.PropsWithChildren<IDisplayFileProps>> = props => {
   const {
     fileList,
     index,
@@ -63,34 +61,32 @@ const DisplayFileBase: React.FC<React.PropsWithChildren<IDisplayFileProps>> = (p
     field,
     editable,
     onSave,
-    disabledDownload,
-    isCoverFit,
+    disabledDownload
   } = props;
   const PIXEL_RATIO = window.devicePixelRatio || 1;
   const lastIndex = fileList.length - 1;
   const activeIndex = index > lastIndex ? lastIndex : index;
-  const _curFile = fileList[activeIndex];
-  const curFile = useGetSignatureAssertByToken(_curFile);
+  const curFile = fileList[activeIndex];
+  const { mobile } = usePlatform();
 
   const onChange = (value: IAttachmentValue[]) => {
     resourceService.instance!.commandManager.execute({
       cmd: CollaCommandName.SetRecords,
-      data: [
-        {
-          recordId: recordId,
-          fieldId: field.id,
-          value,
-        },
-      ],
+      data: [{
+        recordId: recordId,
+        fieldId: field.id,
+        value,
+      }],
     });
   };
 
   const _isGif = isGif({ name: curFile.name, type: curFile.mimeType });
-  const imgSrc = getCellValueThumbSrc(curFile, {
-    size: (width || 0) * PIXEL_RATIO,
-    method: cutImage ? CutMethod.CUT : CutMethod.UNCUT,
-    formatToJPG: _isGif,
-  });
+  const imgSrc = getCellValueThumbSrc(
+    curFile, {
+      size: (width || 0) * PIXEL_RATIO,
+      method: cutImage ? CutMethod.CUT : CutMethod.UNCUT,
+      formatToJPG: _isGif,
+    });
 
   return (
     <div
@@ -105,36 +101,45 @@ const DisplayFileBase: React.FC<React.PropsWithChildren<IDisplayFileProps>> = (p
           cellValue: fileList,
           editable,
           onChange: onSave || onChange,
-          disabledDownload: Boolean(disabledDownload),
+          disabledDownload: Boolean(disabledDownload)
         });
         setPreviewIndex && setPreviewIndex(activeIndex);
       }}
     >
-      <div
-        className={classNames(_isGif && styles.gif, styles.imageWrapper, 'vk-flex vk-items-center vk-overflow-hidden vk-justify-center')}
-        style={{
-          width: !width ? '100%' : width,
-          height: !height ? '100%' : height,
-
-          ...imageStyle,
-        }}
-      >
-        {showOriginImageThumbnail(curFile) ? (
-          <img src={imgSrc} alt="" style={{ width: '100%', height: '100%', objectFit: isCoverFit ? 'cover' : 'contain' }} />
+      {
+        showOriginImageThumbnail(curFile) ? (
+          <div
+            className={classNames(_isGif && styles.gif, styles.imageWrapper)}
+            style={{
+              backgroundImage: `url(${imgSrc})`,
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'center',
+              backgroundSize: 'cover',
+              width: !width ? '100%' : width,
+              height: !height ? '100%' : height,
+              ...imageStyle,
+            }}
+          >
+            <Image src={imgSrc} layout={'fill'} objectFit={'cover'} />
+          </div>
         ) : (
-          <img
-            src={imgSrc}
-            alt="attachment"
+          <span
             style={{
               maxWidth: '100%',
-              width: '100%',
-              height: '100%',
-              objectFit: isCoverFit ? 'cover' : 'contain',
+              width: mobile ? undefined : 80
             }}
             className={styles.imgWrapper}
-          />
-        )}
-      </div>
+          >
+            <Image
+              src={imgSrc}
+              alt='attachment'
+              layout={'fill'}
+              objectFit={'contain'}
+            />
+          </span>
+
+        )
+      }
     </div>
   );
 };

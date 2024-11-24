@@ -16,12 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useUnmount } from 'ahooks';
-import dayjs from 'dayjs';
-import { isEmpty, isEqual, noop, omit } from 'lodash';
-import * as React from 'react';
-import { ClipboardEvent, forwardRef, KeyboardEvent, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
-import { shallowEqual } from 'react-redux';
 import { Message } from '@apitable/components';
 import {
   Cell,
@@ -34,7 +28,6 @@ import {
   Group,
   ICell,
   ICellValue,
-  IDateTimeField,
   IField,
   IHyperlinkSegment,
   IRange,
@@ -49,40 +42,58 @@ import {
   StoreActions,
   Strings,
   t,
-  ViewType,
+  ViewType
 } from '@apitable/core';
+
+import { isEqual, noop, omit } from 'lodash';
 import { ContextName, ShortcutActionManager, ShortcutActionName, ShortcutContext } from 'modules/shared/shortcut_key';
 import { appendRow } from 'modules/shared/shortcut_key/shortcut_actions/append_row';
-import { autoTaskScheduling } from 'pc/components/gantt_view/utils/auto_task_line_layout';
 import { useDispatch } from 'pc/hooks';
 import { resourceService } from 'pc/resource_service';
 import { store } from 'pc/store';
-import { useAppSelector } from 'pc/store/react-redux';
-import { IURLMeta, printableKey, recognizeURLAndSetTitle, stopPropagation } from 'pc/utils';
+import { IURLMeta, printableKey, recognizeURLAndSetTitle } from 'pc/utils';
 import { EDITOR_CONTAINER } from 'pc/utils/constant';
-import { expandRecordIdNavigate } from '../expand_record';
+
+import * as React from 'react';
+import {
+  ClipboardEvent,
+  forwardRef,
+  KeyboardEvent,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState
+} from 'react';
+import { shallowEqual, useSelector } from 'react-redux';
+import { stopPropagation } from '../../utils/dom';
 import { IEditorContainerOwnProps } from './attach_event_hoc';
 import { AttachmentEditor } from './attachment_editor';
-import { CascaderEditor } from './cascader_editor';
 import { CheckboxEditor } from './checkbox_editor';
 import { DateTimeEditor } from './date_time_editor';
-import { setEndEditCell } from './end_edit_cell';
 import { EnhanceTextEditor } from './enhance_text_editor';
+import { CascaderEditor } from './cascader_editor';
 import { useCellEditorVisibleStyle } from './hooks';
 import { IContainerEdit, IEditor } from './interface';
 import { LinkEditor } from './link_editor';
 import { MemberEditor } from './member_editor';
+import { autoTaskScheduling } from 'pc/components/gantt_view/utils/auto_task_line_layout';
 
 // Editors
 import { NoneEditor } from './none_editor';
 import { NumberEditor } from './number_editor';
 import { OptionsEditor } from './options_editor';
 import { RatingEditor } from './rating_editor';
-import { TextEditor } from './text_editor';
-import { WorkdocEditor } from './workdoc_editor/workdoc_editor';
-// @ts-ignore
-import { convertAlarmStructure } from 'enterprise/alarm/date_time_alarm/utils';
+
 import styles from './style.module.less';
+import { TextEditor } from './text_editor';
+import { expandRecordIdNavigate } from '../expand_record';
+import { useUnmount } from 'ahooks';
+import { setEndEditCell } from './end_edit_cell';
+// @ts-ignore
+import { convertAlarmStructure } from 'enterprise';
+import dayjs from 'dayjs';
 
 export interface IEditorPosition {
   width: number;
@@ -118,39 +129,37 @@ const EditorContainerBase: React.ForwardRefRenderFunction<IContainerEdit, Editor
     }),
   );
   const { record, field, selectionRange, selection, activeCell, scrollLeft, scrollTop, rectCalculator } = props;
-  const collaborators = useAppSelector((state) => Selectors.collaboratorSelector(state));
-  const userTimeZone = useAppSelector(Selectors.getUserTimeZone)!;
-  const snapshot = useAppSelector((state) => Selectors.getSnapshot(state)!);
-  const cellValue = useAppSelector((state) => {
+  const collaborators = useSelector(state => Selectors.collaboratorSelector(state));
+  const snapshot = useSelector(state => Selectors.getSnapshot(state)!);
+  const cellValue = useSelector(state => {
     if (field && !Field.bindModel(field).isComputed && record) {
       return Selectors.getCellValue(state, snapshot, record.id, field.id);
     }
     return null;
   });
-  const viewId = useAppSelector((state) => Selectors.getActiveViewId(state))!;
-  const datasheetId = useAppSelector((state) => Selectors.getActiveDatasheetId(state))!;
-  const fieldPermissionMap = useAppSelector(Selectors.getFieldPermissionMap);
+  const viewId = useSelector(state => Selectors.getActiveViewId(state))!;
+  const datasheetId = useSelector(state => Selectors.getActiveDatasheetId(state))!;
+  const fieldPermissionMap = useSelector(Selectors.getFieldPermissionMap);
   const recordEditable = field ? Field.bindModel(field).recordEditable() : false;
-  // workdoc cellValue not empty can expand and read
-  const isWorkdoc = field?.type === FieldType.WorkDoc && !isEmpty(cellValue);
-  const isRecordExpanded = useAppSelector((state) => Boolean(state.pageParams.recordId));
-  const previewModalVisible = useAppSelector((state) => state.space.previewModalVisible);
-  const allowCopyDataToExternal = useAppSelector((state) => {
+  const isRecordExpanded = useSelector(state => Boolean(state.pageParams.recordId));
+  const previewModalVisible = useSelector(state => state.space.previewModalVisible);
+  const allowCopyDataToExternal = useSelector(state => {
     const _allowCopyDataToExternal = state.space.spaceFeatures?.allowCopyDataToExternal || state.share.allowCopyDataToExternal;
     return Boolean(_allowCopyDataToExternal);
   });
-  const role = useAppSelector((state) => Selectors.getDatasheet(state, datasheetId)!.role);
-  const { groupInfo, groupBreakpoint, visibleRowsIndexMap } = useAppSelector(
-    (state) => ({
-      groupInfo: Selectors.getActiveViewGroupInfo(state),
-      groupBreakpoint: Selectors.getGroupBreakpoint(state),
-      visibleRowsIndexMap: Selectors.getPureVisibleRowsIndexMap(state),
-    }),
-    shallowEqual,
-  );
+  const role = useSelector(state => Selectors.getDatasheet(state, datasheetId)!.role);
+  const {
+    groupInfo,
+    groupBreakpoint,
+    visibleRowsIndexMap
+  } = useSelector(state => ({
+    groupInfo: Selectors.getActiveViewGroupInfo(state),
+    groupBreakpoint: Selectors.getGroupBreakpoint(state),
+    visibleRowsIndexMap: Selectors.getPureVisibleRowsIndexMap(state)
+  }), shallowEqual);
 
-  const activeView = useAppSelector((state) => Selectors.getCurrentView(state));
-  const visibleRows = useAppSelector((state) => Selectors.getVisibleRows(state));
+  const activeView = useSelector(state => Selectors.getCurrentView(state));
+  const visibleRows = useSelector(state => Selectors.getVisibleRows(state));
 
   // FIXME: Here we are still using the component's internal editing control state, using redux's isEditing state, the edit box will blink a little.
   const [editing, setEditing] = useState(false);
@@ -169,14 +178,10 @@ const EditorContainerBase: React.ForwardRefRenderFunction<IContainerEdit, Editor
    * you can tell if you are clicking on the same cell again and stop the editing state switching from being broken
    *
    */
-  const activeCellRef = useRef<ICell | null>(
-    field && record
-      ? {
-        recordId: record.id,
-        fieldId: field.id,
-      }
-      : null,
-  );
+  const activeCellRef = useRef<ICell | null>((field && record) ? {
+    recordId: record.id,
+    fieldId: field.id,
+  } : null);
   const dispatch = useDispatch();
   const [editPositionInfo, setEditPositionInfo] = useState<IEditorPosition>(() => ({
     x: 0,
@@ -190,10 +195,6 @@ const EditorContainerBase: React.ForwardRefRenderFunction<IContainerEdit, Editor
   // };
 
   useEffect(() => {
-    // workdoc field editing should disable datasheet shortcut
-    if (editing && field.type === FieldType.WorkDoc) {
-      return;
-    }
     ShortcutContext.bind(ContextName.isEditing, () => editing);
     return () => {
       ShortcutContext.unbind(ContextName.isEditing);
@@ -218,7 +219,7 @@ const EditorContainerBase: React.ForwardRefRenderFunction<IContainerEdit, Editor
    *
    */
   const startEdit = (keepValue = false) => {
-    if (!recordEditable && !isWorkdoc) {
+    if (!recordEditable) {
       fieldPermissionMap &&
         fieldPermissionMap[field.id] &&
         Message.warning({
@@ -272,18 +273,15 @@ const EditorContainerBase: React.ForwardRefRenderFunction<IContainerEdit, Editor
     }
   };
 
-  const endEdit = useCallback(
-    (cancel = false) => {
-      if (!editing) {
-        return;
-      }
-      const editorRefCurrent = editorRef.current!;
-      editorRefCurrent.onEndEdit && editorRefCurrent.onEndEdit(cancel);
-      setEditing(false);
-      dispatch(StoreActions.setEditStatus(datasheetId, null));
-    },
-    [datasheetId, dispatch, editing],
-  );
+  const endEdit = useCallback((cancel = false) => {
+    if (!editing) {
+      return;
+    }
+    const editorRefCurrent = editorRef.current!;
+    editorRefCurrent.onEndEdit && editorRefCurrent.onEndEdit(cancel);
+    setEditing(false);
+    dispatch(StoreActions.setEditStatus(datasheetId, null));
+  }, [datasheetId, dispatch, editing]);
 
   // Exposing endEdit
   setEndEditCell(endEdit);
@@ -300,6 +298,7 @@ const EditorContainerBase: React.ForwardRefRenderFunction<IContainerEdit, Editor
   };
 
   useEffect(() => {
+
     if (selection?.ranges || selection?.recordRanges) {
       focus();
     }
@@ -368,7 +367,7 @@ const EditorContainerBase: React.ForwardRefRenderFunction<IContainerEdit, Editor
   };
 
   const toggleEditing = (next?: boolean) => {
-    if (!recordEditable && !isWorkdoc) {
+    if (!recordEditable) {
       return;
     }
     if (editing) {
@@ -396,7 +395,7 @@ const EditorContainerBase: React.ForwardRefRenderFunction<IContainerEdit, Editor
     cellMove(CellDirection.Left);
   };
 
-  const appendNewRow = async () => {
+  const appendNewRow = async() => {
     await appendRow();
     const state = store.getState();
     setTimeout(() => {
@@ -573,7 +572,7 @@ const EditorContainerBase: React.ForwardRefRenderFunction<IContainerEdit, Editor
     if (depthBreakpoints.length && isCheckGroup) {
       const nextRowIndex = visibleRowsIndexMap.get(nextActiveCell.recordId);
       // No movement is allowed when the next cell is the starting position of the deepest level grouping
-      if (depthBreakpoints.findIndex((bp) => bp === nextRowIndex) > -1) return;
+      if (depthBreakpoints.findIndex(bp => bp === nextRowIndex) > -1) return;
     }
     const nextCellUIIndex = Selectors.getCellUIIndex(state, nextActiveCell);
     if (nextCellUIIndex) {
@@ -627,7 +626,7 @@ const EditorContainerBase: React.ForwardRefRenderFunction<IContainerEdit, Editor
     const rect = rectCalculator ? rectCalculator(activeCell) : getCellRelativeRect(activeCell);
     if (rect) {
       const { x, y, width, height } = rect;
-      setEditPositionInfo((prev) => ({
+      setEditPositionInfo(prev => ({
         x: x || prev.x,
         y: y || prev.y,
         width: width || prev.width,
@@ -677,7 +676,7 @@ const EditorContainerBase: React.ForwardRefRenderFunction<IContainerEdit, Editor
           });
         };
 
-        if (isUrl(url) && cellValue?.[0].text !== (value[0] as any)?.text) {
+        if (isUrl(url)) {
           recognizeURLAndSetTitle({
             url,
             callback,
@@ -685,78 +684,77 @@ const EditorContainerBase: React.ForwardRefRenderFunction<IContainerEdit, Editor
         }
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [datasheetId, record, field],
   );
 
-  const onSaveForDateCell = useCallback(
-    (value: ICellValue, curAlarm: any) => {
-      if (!record || !field) {
-        return;
-      }
-      const alarm = Selectors.getDateTimeCellAlarmForClient(snapshot, record.id, field.id);
+  const onSaveForDateCell = useCallback((value: ICellValue, curAlarm: any) => {
+    if (!record || !field) {
+      return;
+    }
+    const alarm = Selectors.getDateTimeCellAlarmForClient(snapshot, record.id, field.id);
 
-      let formatCurAlarm = curAlarm;
+    let formatCurAlarm = curAlarm;
 
-      if (curAlarm) {
-        const subtractMatch = curAlarm?.subtract?.match(/^([0-9]+)(\w{1,2})$/);
-        if (!curAlarm?.subtract || (subtractMatch[2] !== 'm' && subtractMatch[2] !== 'h')) {
-          const noChange = curAlarm?.alarmAt && !curAlarm?.time;
-          if (!noChange && cellValue) {
-            const timeZone = (field as IDateTimeField).property.timeZone || userTimeZone;
-            let alarmAt = timeZone ? dayjs.tz(cellValue).tz(timeZone) : dayjs.tz(cellValue);
-            if (subtractMatch) {
-              alarmAt = alarmAt.subtract(Number(subtractMatch[1]), subtractMatch[2]);
-            }
-            const time = curAlarm?.time || (timeZone ? dayjs.tz(curAlarm?.alarmAt).tz(timeZone) : dayjs.tz(curAlarm?.alarmAt)).format('HH:mm');
-            alarmAt = dayjs.tz(`${alarmAt.format('YYYY-MM-DD')} ${time}`, timeZone);
-            formatCurAlarm = {
-              ...omit(formatCurAlarm, 'time'),
-              alarmAt: alarmAt.valueOf(),
-            };
+    if (curAlarm) {
+      const subtractMatch = curAlarm?.subtract?.match(/^([0-9]+)(\w{1,2})$/);
+      if (!curAlarm?.subtract || (subtractMatch[2] !== 'm' && subtractMatch[2] !== 'h')) {
+        const noChange = curAlarm?.alarmAt && !curAlarm?.time;
+        if (!noChange) {
+          const timeZone = field.property.timeZone;
+          let alarmAt = timeZone ? dayjs(cellValue).tz(timeZone) : dayjs(cellValue);
+          if (subtractMatch) {
+            alarmAt = alarmAt.subtract(Number(subtractMatch[1]), subtractMatch[2]);
           }
+          const time = curAlarm?.time || (timeZone ? dayjs(curAlarm?.alarmAt).tz(timeZone) : dayjs(curAlarm?.alarmAt)).format('HH:mm');
+          alarmAt = dayjs.tz(`${alarmAt.format('YYYY-MM-DD')} ${time}`, timeZone);
+          formatCurAlarm = {
+            ...omit(formatCurAlarm, 'time'),
+            alarmAt: alarmAt.valueOf()
+          };
         }
       }
+    }
 
-      if (field.type === FieldType.DateTime && isEqual(cellValue, value) && !isEqual(alarm, formatCurAlarm) && convertAlarmStructure) {
-        resourceService.instance!.commandManager.execute({
-          cmd: CollaCommandName.SetDateTimeCellAlarm,
+    if (
+      field.type === FieldType.DateTime && isEqual(cellValue, value) &&
+      !isEqual(alarm, formatCurAlarm) &&
+      convertAlarmStructure
+    ) {
+      resourceService.instance!.commandManager.execute({
+        cmd: CollaCommandName.SetDateTimeCellAlarm,
+        recordId: record.id,
+        fieldId: field.id,
+        alarm: convertAlarmStructure(formatCurAlarm as IRecordAlarmClient) || null,
+      });
+
+    } else {
+      resourceService.instance!.commandManager.execute({
+        cmd: CollaCommandName.SetRecords,
+        datasheetId,
+        alarm: convertAlarmStructure ? convertAlarmStructure(formatCurAlarm as IRecordAlarmClient) : null,
+        data: [{
           recordId: record.id,
           fieldId: field.id,
-          alarm: convertAlarmStructure(formatCurAlarm as IRecordAlarmClient) || null,
-        });
-      } else {
-        resourceService.instance!.commandManager.execute({
-          cmd: CollaCommandName.SetRecords,
-          datasheetId,
-          alarm: convertAlarmStructure ? convertAlarmStructure(formatCurAlarm as IRecordAlarmClient) : undefined,
-          data: [
-            {
-              recordId: record.id,
-              fieldId: field.id,
-              value,
-            },
-          ],
-        });
-      }
+          value,
+        }],
+      });
+    }
 
-      if (activeView && activeView.type === ViewType.Gantt) {
-        // eslint-disable-next-line no-unsafe-optional-chaining
-        const { linkFieldId, endFieldId } = activeView?.style;
-        if (!(linkFieldId && endFieldId === field.id)) return;
-        const sourceRecordData = {
-          recordId: record!.id,
-          endTime: value as number | null,
-        };
-        const commandDataArr = autoTaskScheduling(visibleRows, activeView.style, sourceRecordData);
-        resourceService.instance?.commandManager.execute({
-          cmd: CollaCommandName.SetRecords,
-          data: commandDataArr,
-        });
-      }
-    },
-    [datasheetId, field, record, cellValue, snapshot, activeView, visibleRows],
-  );
+    if (activeView && activeView.type === ViewType.Gantt) {
+      const { linkFieldId, endFieldId } = activeView?.style;
+      if (!(linkFieldId && endFieldId === field.id)) return;
+      const sourceRecordData = {
+        recordId: record!.id,
+        endTime: value as number | null,
+      };
+      const commandDataArr = autoTaskScheduling(visibleRows, activeView.style, sourceRecordData);
+      resourceService.instance?.commandManager.execute({
+        cmd: CollaCommandName.SetRecords,
+        data: commandDataArr,
+      });
+    }
+
+  }, [datasheetId, field, record, cellValue, snapshot, activeView, visibleRows]);
 
   useMemo(
     calcEditorRect,
@@ -782,7 +780,6 @@ const EditorContainerBase: React.ForwardRefRenderFunction<IContainerEdit, Editor
   const commonProps = {
     datasheetId,
     editable: recordEditable,
-    disabled: !recordEditable,
     field,
     height,
     width,
@@ -800,11 +797,19 @@ const EditorContainerBase: React.ForwardRefRenderFunction<IContainerEdit, Editor
       case FieldType.SingleText:
         return <TextEditor style={editorRect} ref={editorRef} {...commonProps} />;
       case FieldType.Cascader:
-        return <CascaderEditor style={editorRect} ref={editorRef} {...commonProps} field={field} toggleEditing={toggleEditing} />;
+        return (
+          <CascaderEditor
+            style={editorRect}
+            ref={editorRef}
+            {...commonProps}
+            field={field}
+            toggleEditing={toggleEditing}
+          />
+        );
       case FieldType.URL:
       case FieldType.Email:
       case FieldType.Phone:
-        return <EnhanceTextEditor style={editorRect} ref={editorRef} recordId={record.id} setEditing={setEditing} {...commonProps} />;
+        return <EnhanceTextEditor style={editorRect} ref={editorRef} recordId={record.id} {...commonProps} />;
       case FieldType.Rating:
         return <RatingEditor style={editorRect} ref={editorRef} cellValue={cellValue} {...commonProps} />;
       case FieldType.Checkbox:
@@ -822,7 +827,7 @@ const EditorContainerBase: React.ForwardRefRenderFunction<IContainerEdit, Editor
         return (
           <DateTimeEditor
             style={editorRect}
-            ref={(ele) => (editorRef.current = ele)}
+            ref={ele => (editorRef.current = ele)}
             {...commonProps}
             recordId={record.id}
             field={field}
@@ -831,7 +836,6 @@ const EditorContainerBase: React.ForwardRefRenderFunction<IContainerEdit, Editor
           />
         );
       case FieldType.Link:
-      case FieldType.OneWayLink:
         return (
           <LinkEditor
             style={editorRect}
@@ -860,8 +864,6 @@ const EditorContainerBase: React.ForwardRefRenderFunction<IContainerEdit, Editor
             recordId={record.id}
           />
         );
-      case FieldType.WorkDoc:
-        return <WorkdocEditor ref={editorRef} toggleEditing={toggleEditing} recordId={record.id} cellValue={cellValue} {...commonProps} />;
       default:
         return <NoneEditor style={editorRect} ref={editorRef} {...commonProps} />;
     }
@@ -884,3 +886,4 @@ const EditorContainerBase: React.ForwardRefRenderFunction<IContainerEdit, Editor
 };
 
 export const PureEditorContainer = React.memo(forwardRef(EditorContainerBase));
+

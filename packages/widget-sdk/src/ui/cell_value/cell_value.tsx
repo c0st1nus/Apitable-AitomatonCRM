@@ -130,7 +130,7 @@ export const CellValue = (props: {
     if (!realType) {
       return null;
     }
-    type = getFieldTypeString(realType) as any as FieldType;
+    type = getFieldTypeString(realType);
     if (
       type === FieldType.Attachment ||
       type === FieldType.MultiSelect ||

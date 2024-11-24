@@ -17,8 +17,8 @@
  */
 
 import { createContext } from 'react';
-import { IGanttViewStatus, IGanttViewStyle, IViewColumn } from '@apitable/core';
 import { IGanttGroupMap, ISplitterProps, ITaskLineSetting, IRowsCellValueMap, ITargetTaskInfo } from '../interface';
+import { IGanttViewStatus, IGanttViewStyle, IViewColumn } from '@apitable/core';
 
 export interface IKonvaGanttViewContextProps {
   isLocking: boolean;

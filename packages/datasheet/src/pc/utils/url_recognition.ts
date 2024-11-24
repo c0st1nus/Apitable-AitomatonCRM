@@ -16,8 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Api, Strings, t } from '@apitable/core';
-import { Message } from 'pc/components/common/message/message';
+import {
+  Api,
+  Strings,
+  t,
+} from '@apitable/core';
+import { Message } from 'pc/components/common';
 
 interface ISetURLRecogProps {
   url: string;
@@ -30,7 +34,10 @@ export interface IURLMeta {
   title: string | null;
 }
 
-export const recognizeURLAndSetTitle = async ({ url, callback }: ISetURLRecogProps) => {
+export const recognizeURLAndSetTitle = async({
+  url,
+  callback,
+}: ISetURLRecogProps) => {
   const res = await Api.getURLMetaBatch([url]);
 
   if (res?.data?.success) {

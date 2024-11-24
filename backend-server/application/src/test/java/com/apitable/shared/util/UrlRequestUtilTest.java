@@ -32,15 +32,14 @@ public class UrlRequestUtilTest {
 
     @Test
     void testGetTitle() throws ExecutionException, InterruptedException {
-        CompletableFuture<String> title =
-            UrlRequestUtil.getTitle("https://aitable.ai", new ArrayList<>());
+        CompletableFuture<String> title = UrlRequestUtil.getTitle("https://www.baidu.com", new ArrayList<>());
         String titleString = title.get();
         assertThat(titleString).isNotNull();
     }
 
     @Test
     void testGetHtmlTitle() throws MalformedURLException {
-        Optional<String> title = UrlRequestUtil.getHtmlTitle(new URL("https://aitable.ai"));
+        Optional<String> title = UrlRequestUtil.getHtmlTitle(new URL("http://www.baidu.com"));
         assertThat(title).isNotNull();
     }
 

@@ -18,14 +18,12 @@
 
 package com.apitable.workspace.dto;
 
-import com.apitable.core.support.tree.Tree;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import java.util.List;
+import com.apitable.core.support.tree.Tree;
 import lombok.Data;
 
-/**
- * node file tree.
- */
+import java.util.List;
+
 @Data
 public class NodeFileTree implements Tree {
 
@@ -42,31 +40,19 @@ public class NodeFileTree implements Tree {
     private String cover;
 
     /**
-     * data file name，map files in `/data`.
+     * data file name，map files in `/data`
      */
     private String data;
 
     /**
-     * child node.
+     * child node
      */
     private List<NodeFileTree> child;
 
     public NodeFileTree() {
     }
 
-    /**
-     * constructor.
-     *
-     * @param parentId parent id
-     * @param nodeId   node id
-     * @param name     node name
-     * @param icon     icon
-     * @param type     type
-     * @param cover    cover
-     * @param data     data
-     */
-    public NodeFileTree(String parentId, String nodeId, String name, String icon, Integer type,
-                        String cover, String data) {
+    public NodeFileTree(String parentId, String nodeId, String name, String icon, Integer type, String cover, String data) {
         this.parentId = parentId;
         this.nodeId = nodeId;
         this.nodeName = name;

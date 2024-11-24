@@ -16,18 +16,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import dynamic from 'next/dynamic';
 import { useContext, useEffect, useState, useRef } from 'react';
-import { lightColors, Message } from '@apitable/components';
-import { Selectors, CollaCommandName, t, Strings, KONVA_DATASHEET_ID, ConfigConstant } from '@apitable/core';
-import { ClearOutlined, ConnectOutlined } from '@apitable/icons';
-import { getRecordName } from 'pc/components/expand_record';
-import { KonvaGanttViewContext, generateTargetName, IScrollState } from 'pc/components/gantt_view';
-import { Icon, ToolTip, Text, autoSizerCanvas } from 'pc/components/konva_components';
+import dynamic from 'next/dynamic';
 import { KonvaGridContext } from 'pc/components/konva_grid';
+import { ClearOutlined, ConnectOutlined } from '@apitable/icons';
+import { KonvaGanttViewContext, generateTargetName, IScrollState } from 'pc/components/gantt_view';
 import { KonvaGridViewContext } from 'pc/components/konva_grid/context';
+import { Icon, ToolTip } from 'pc/components/konva_components';
 import { resourceService } from 'pc/resource_service';
 import { store } from 'pc/store';
+import { Selectors, CollaCommandName, t, Strings, KONVA_DATASHEET_ID, ConfigConstant } from '@apitable/core';
+import { getRecordName } from 'pc/components/expand_record';
+import { lightColors, Message } from '@apitable/components';
+import { Text, autoSizerCanvas } from 'pc/components/konva_components';
 import { rgbaToHex } from 'pc/utils';
 
 const Rect = dynamic(() => import('pc/components/gantt_view/hooks/use_gantt_timeline/rect'), { ssr: false });
@@ -127,7 +128,7 @@ export const useTaskLineSetting = (props: ITaskLineSettingProps) => {
   const showContactInfo = () => {
     setShowConnect(true);
   };
-
+  
   // TODO Extracting a variable
   const shadowProps =
     cacheTheme === 'light'
@@ -189,7 +190,7 @@ export const useTaskLineSetting = (props: ITaskLineSettingProps) => {
           <Text x={90} y={138} text={endTime} fill={colors.fc1} height={20} verticalAlign={'middle'} />
         </Group>
       ) : (
-        <Group x={x - 40} y={dashEnabled || y - scrollTop < 200 ? y + 2 : y - 42}>
+        <Group x={x - 40} y={(dashEnabled || y - scrollTop < 200) ? y + 2 : y - 42}>
           <Rect
             name={generateTargetName({
               targetName: KONVA_DATASHEET_ID.GANTT_LINE_SETTING,

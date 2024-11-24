@@ -37,7 +37,8 @@ export const useSelectIndex = (props: IUseSelectProps) => {
   const { inputRef, listContainerRef, activeItemClass, listLength, onEnter, containerRef } = props;
   const isEditing = () => {
     if (inputRef) {
-      return document.activeElement === ReactDOM.findDOMNode(inputRef.current?.input) || document.activeElement === inputRef.current;
+      return document.activeElement === ReactDOM.findDOMNode(inputRef.current?.input) ||
+        document.activeElement === inputRef.current;
     }
     if (containerRef && containerRef.current) {
       return containerRef.current.contains(document.activeElement);
@@ -57,9 +58,7 @@ export const useSelectIndex = (props: IUseSelectProps) => {
   };
 
   useEffect(() => {
-    if (!listContainerRef?.current) {
-      return;
-    }
+    if (!listContainerRef?.current) { return; }
     if (index === -1) {
       if (listContainerRef?.current) {
         listContainerRef?.current.scrollTo(0, 0);
@@ -67,13 +66,13 @@ export const useSelectIndex = (props: IUseSelectProps) => {
     }
   }, [index, listContainerRef]);
 
-  useKeyPress('UpArrow', (e) => {
+  useKeyPress('UpArrow', e => {
     updateIndex(e, -1);
   });
-  useKeyPress('DownArrow', (e) => {
+  useKeyPress('DownArrow', e => {
     updateIndex(e, +1);
   });
-  useKeyPress('Enter', (e) => {
+  useKeyPress('Enter', e => {
     e.stopImmediatePropagation();
     e.stopPropagation();
     if (isEditing()) {

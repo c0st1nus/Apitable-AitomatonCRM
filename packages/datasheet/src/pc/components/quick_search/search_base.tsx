@@ -1,28 +1,27 @@
+import { useThemeColors, ThemeName, TextInput, Typography } from '@apitable/components';
+import { Api, getArrayLoopIndex, Navigation, Strings, t } from '@apitable/core';
 import type { InputRef } from 'antd';
 import { Form } from 'antd';
 import classnames from 'classnames';
 import throttle from 'lodash/throttle';
+import Image from 'next/image';
 import { ShortcutActionManager, ShortcutActionName } from 'modules/shared/shortcut_key';
 import { getShortcutKeyString } from 'modules/shared/shortcut_key/keybinding_config';
-import Image from 'next/image';
-import * as React from 'react';
-import { FC, useEffect, useRef, useState } from 'react';
-import { useThemeColors, ThemeName, TextInput, Typography } from '@apitable/components';
-import { Api, getArrayLoopIndex, Navigation, StoreActions, Strings, t, ConfigConstant } from '@apitable/core';
 import { ScreenSize } from 'pc/components/common/component_display';
 import { Router } from 'pc/components/route_manager/router';
 import { useResponsive } from 'pc/hooks';
-import { useAppDispatch } from 'pc/hooks/use_app_dispatch';
-import { useAppSelector } from 'pc/store/react-redux';
 import { getElementDataset, KeyCode } from 'pc/utils';
+import * as React from 'react';
+import { FC, useEffect, useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
 import NotDataImgDark from 'static/icon/datasheet/empty_state_dark.png';
 import NotDataImgLight from 'static/icon/datasheet/empty_state_light.png';
-import { Loading } from '../common/loading';
+import { ISearchNode, Node } from './node';
+import styles from './style.module.less';
+import { nodeTypeList, TabNodeType, TypeTab } from './type_tab';
 import { DefaultContent } from './default_content';
 import { FooterTips } from './footer_tips';
-import { ISearchNode, Node } from './node';
-import { nodeTypeList, TabNodeType, TypeTab } from './type_tab';
-import styles from './style.module.less';
+import { Loading } from '../common/loading';
 
 let reqToken: () => void;
 
@@ -38,53 +37,38 @@ export interface ISearchProps {
 
 export const SearchBase: FC<React.PropsWithChildren<ISearchProps>> = ({ className, closeSearch }) => {
   const colors = useThemeColors();
-  const dispatch = useAppDispatch();
   const [keyword, setKeyword] = useState('');
   const [dataNodeList, setDataNodeList] = useState<ISearchNode[]>([]);
   const [tabType, setTabType] = useState<TabNodeType>(TabNodeType.ALL_TYPE);
   const [currentIndex, setCurrentIndex] = useState<number>(-1);
   const [loading, setLoading] = useState<boolean>();
-
+  
   const inputRef = useRef<InputRef>(null);
   const listContainerRef = useRef<any>(null);
-  const spaceId = useAppSelector((state) => state.space.activeId);
+  const spaceId = useSelector(state => state.space.activeId);
   const { screenIsAtMost } = useResponsive();
   const isMobile = screenIsAtMost(ScreenSize.md);
   const ref = useRef<HTMLDivElement>(null);
 
-  const nodeList = tabType === TabNodeType.ALL_TYPE ? dataNodeList : dataNodeList.filter((v) => v.type === tabType);
+  const nodeList = tabType === TabNodeType.ALL_TYPE ? dataNodeList : dataNodeList.filter(v => v.type === tabType);
   const totalSearchResultItemsCount = nodeList.length;
 
   useEffect(() => {
     const eventBundle = new Map([
-      [
-        ShortcutActionName.QuickSearchEnter,
-        () => {
-          jumpNode(nodeList[currentIndex].nodeId);
-        },
-      ],
-      [
-        ShortcutActionName.QuickSearchUp,
-        () => {
-          setCurrentIndex(getArrayLoopIndex(totalSearchResultItemsCount, currentIndex, -1));
-          focusIntoView('up');
-        },
-      ],
-      [
-        ShortcutActionName.QuickSearchDown,
-        () => {
-          setCurrentIndex(getArrayLoopIndex(totalSearchResultItemsCount, currentIndex, +1));
-          focusIntoView('down');
-        },
-      ],
-      [
-        ShortcutActionName.QuickSearchTab,
-        () => {
-          const tabTypeIndex = nodeTypeList.findIndex((v) => v.type === tabType);
-          const nextTabType = tabTypeIndex < nodeTypeList.length - 1 ? nodeTypeList[tabTypeIndex + 1].type : TabNodeType.ALL_TYPE;
-          setTabType(nextTabType as TabNodeType);
-        },
-      ],
+      [ShortcutActionName.QuickSearchEnter, () => { jumpNode(nodeList[currentIndex].nodeId); }],
+      [ShortcutActionName.QuickSearchUp, () => {
+        setCurrentIndex(getArrayLoopIndex(totalSearchResultItemsCount, currentIndex, -1));
+        focusIntoView('up');
+      }],
+      [ShortcutActionName.QuickSearchDown, () => { 
+        setCurrentIndex(getArrayLoopIndex(totalSearchResultItemsCount, currentIndex, +1));
+        focusIntoView('down');
+      }],
+      [ShortcutActionName.QuickSearchTab, () => {
+        const tabTypeIndex = nodeTypeList.findIndex(v => v.type === tabType);
+        const nextTabType = tabTypeIndex < nodeTypeList.length - 1 ? nodeTypeList[tabTypeIndex + 1].type : TabNodeType.ALL_TYPE;
+        setTabType(nextTabType as TabNodeType);
+      }],
     ]);
 
     eventBundle.forEach((cb, key) => {
@@ -101,14 +85,7 @@ export const SearchBase: FC<React.PropsWithChildren<ISearchProps>> = ({ classNam
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
-
-  useEffect(() => {
-    setTimeout(() => {
-      inputRef.current?.select();
-    }, 0);
-  }, []);
-
-  const themeName = useAppSelector((state) => state.theme);
+  const themeName = useSelector(state => state.theme);
   const EmptyResultIcon = themeName === ThemeName.Light ? NotDataImgLight : NotDataImgDark;
 
   const focusIntoView = throttle((direction: 'up' | 'down') => {
@@ -135,7 +112,7 @@ export const SearchBase: FC<React.PropsWithChildren<ISearchProps>> = ({ classNam
       reqToken();
     }
     Api.findNode(val, (c: () => void) => (reqToken = c))
-      .then((res) => {
+      .then(res => {
         const { data, success } = res.data;
         if (success) {
           setDataNodeList(data);
@@ -166,9 +143,6 @@ export const SearchBase: FC<React.PropsWithChildren<ISearchProps>> = ({ classNam
     e.nativeEvent.stopImmediatePropagation();
     setKeyword('');
 
-    sessionStorage.removeItem('searchKeyword');
-    sessionStorage.removeItem('searchData');
-
     setCurrentIndex(-1);
   };
 
@@ -178,20 +152,20 @@ export const SearchBase: FC<React.PropsWithChildren<ISearchProps>> = ({ classNam
     }
   };
 
-  const handleNodeClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>, nodePrivate?: boolean) => {
+  const handleNodeClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     const nodeId = getElementDataset(e.currentTarget, 'nodeId');
-    jumpNode(nodeId, shouldOpenInNewTab(e), nodePrivate);
+    jumpNode(nodeId, shouldOpenInNewTab(e));
   };
 
-  const jumpNode = (nodeId?: string | null, openInNewTab?: boolean, nodePrivate?: boolean) => {
+  const jumpNode = (nodeId?: string | null, openInNewTab?: boolean) => {
     if (!nodeId) {
       return;
     }
     const params = { spaceId, nodeId };
-    openInNewTab ? Router.newTab(Navigation.WORKBENCH, { params }) : Router.push(Navigation.WORKBENCH, { params });
+    openInNewTab ? Router.newTab(Navigation.WORKBENCH, { params }) :
+      Router.push(Navigation.WORKBENCH, { params });
     setKeyword('');
     closeSearch();
-    dispatch(StoreActions.setActiveTreeType(nodePrivate ? ConfigConstant.Modules.PRIVATE : ConfigConstant.Modules.CATALOG));
   };
 
   const Empty = () => (
@@ -201,25 +175,6 @@ export const SearchBase: FC<React.PropsWithChildren<ISearchProps>> = ({ classNam
     </div>
   );
 
-  useEffect(() => {
-    const savedKeyword = sessionStorage.getItem('searchKeyword');
-    const savedData = sessionStorage.getItem('searchData');
-    if (savedKeyword) {
-      setKeyword(savedKeyword);
-      getNodeList(savedKeyword);
-    }
-    if (savedData) {
-      setDataNodeList(JSON.parse(savedData));
-    }
-  }, []);
-
-  useEffect(() => {
-    sessionStorage.setItem('searchKeyword', keyword);
-    if (dataNodeList.length > 0) {
-      sessionStorage.setItem('searchData', JSON.stringify(dataNodeList));
-    }
-  }, [keyword, dataNodeList]);
-
   return (
     <div className={classnames(styles.searchWrapper, className)} ref={ref}>
       <div className={styles.searchContent}>
@@ -227,11 +182,11 @@ export const SearchBase: FC<React.PropsWithChildren<ISearchProps>> = ({ classNam
           <TextInput
             ref={inputRef as any}
             className={styles.searchInput}
-            size="small"
+            size='small'
             placeholder={
-              isMobile
-                ? t(Strings.quick_search_placeholder)
-                : t(Strings.search_node_pleaseholder, { shortcutKey: getShortcutKeyString(ShortcutActionName.SearchNode) })
+              isMobile ? 
+                t(Strings.quick_search_placeholder) :
+                t(Strings.search_node_pleaseholder, { shortcutKey: getShortcutKeyString(ShortcutActionName.SearchNode) })
             }
             autoFocus
             lineStyle
@@ -241,44 +196,38 @@ export const SearchBase: FC<React.PropsWithChildren<ISearchProps>> = ({ classNam
             suffix={
               keyword && (
                 <div onClick={clearKeyword} className={styles.closeBtn}>
-                  <Typography variant="body4" color={colors.textBrandDefault}>
-                    {t(Strings.clear)}
-                  </Typography>
+                  <Typography variant='body4' color={colors.textBrandDefault}>{t(Strings.clear)}</Typography>
                 </div>
               )
             }
           />
         </Form>
-        {!keyword ? (
-          <DefaultContent />
-        ) : (
-          <>
-            <TypeTab nodeType={tabType} onChange={setTabType} />
-            {!loading ? (
-              <>
-                {!totalSearchResultItemsCount ? (
-                  <Empty />
-                ) : (
-                  <div className={styles.nodeList} onClick={handleNodeClick} style={{ background: 'transparent' }} ref={listContainerRef}>
-                    {nodeList.map((node) => {
-                      const nodeClasses = nodeList[currentIndex]?.nodeId === node.nodeId ? `${styles.hover} active` : '';
-                      return <Node key={node.nodeId} node={node} onMouseDown={(e) => handleNodeClick(e, node.nodePrivate)} className={nodeClasses} />;
-                    })}
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className={styles.loadingWrap}>
-                <Loading className={styles.loading} showText={false} />
-                <Typography color={colors.textCommonTertiary} variant={'body2'}>
-                  {t(Strings.quick_search_loading)}
-                </Typography>
-              </div>
-            )}
-          </>
-        )}
+        { !keyword && <DefaultContent />}
+        {/** content */}
+        { keyword && <>
+          <TypeTab nodeType={tabType} onChange={setTabType}/>
+          {
+            !loading && <>
+              {!totalSearchResultItemsCount ? <Empty/> : <div
+                className={styles.nodeList}
+                onClick={handleNodeClick}
+                style={{ background: 'transparent' }}
+                ref={listContainerRef}
+              >
+                {nodeList.map(node => {
+                  const nodeClasses = nodeList[currentIndex]?.nodeId === node.nodeId ? `${styles.hover} active` : '';
+                  return <Node key={node.nodeId} node={node} onMouseDown={handleNodeClick} className={nodeClasses} />;
+                })}
+              </div>}
+            </>
+          }
+          {loading && <div className={styles.loadingWrap}>
+            <Loading className={styles.loading} showText={false}/>
+            <Typography color={colors.textCommonTertiary} variant={'body2'}>{t(Strings.quick_search_loading)}</Typography>
+          </div>}
+        </> }
       </div>
-      {!isMobile && keyword && <FooterTips shortcutEsc={!keyword} />}
+      {!isMobile && keyword && <FooterTips shortcutEsc={!keyword}/>}
     </div>
   );
 };

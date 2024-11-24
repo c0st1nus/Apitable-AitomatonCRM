@@ -17,7 +17,7 @@
  */
 
 import { useState, MouseEvent } from 'react';
-import { EVENT_TYPE } from './const';
+import { EVENT_TYPE } from './consts';
 import { manager } from './event_manager';
 import { IContextMenuClickState } from './interface';
 

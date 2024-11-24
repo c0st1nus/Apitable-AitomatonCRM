@@ -20,13 +20,10 @@ package com.apitable.space.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import cn.hutool.json.JSONUtil;
 import com.apitable.AbstractMyBatisMapperTest;
 import com.apitable.space.dto.NodeStaticsDTO;
 import com.apitable.space.dto.NodeTypeStaticsDTO;
-import com.apitable.workspace.mapper.DatasheetMapper;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,9 +38,6 @@ public class StaticsMapperTest extends AbstractMyBatisMapperTest {
 
     @Autowired
     StaticsMapper staticsMapper;
-
-    @Autowired
-    DatasheetMapper datasheetMapper;
 
     @Test
     @Sql({"/sql/space-member-role-rel-data.sql", "/sql/space-role-resource-rel-data.sql"})
@@ -69,15 +63,7 @@ public class StaticsMapperTest extends AbstractMyBatisMapperTest {
     @Test
     @Sql({"/sql/datasheet-meta-data.sql", "/sql/datasheet-data.sql"})
     void testCountRecordsBySpaceId() {
-        List<String> count = staticsMapper.countRecordsBySpaceId("spc41");
-        assertThat(3).isEqualTo(JSONUtil.parseArray(count.get(0)).size());
-    }
-
-    @Test
-    @Sql({"/sql/datasheet-meta-data.sql", "/sql/datasheet-data.sql"})
-    void testCountRecordsByDstIds() {
-        List<String> dstIds = datasheetMapper.selectDstIdBySpaceId("spc41");
-        Long count = staticsMapper.countRecordsByDstIds(dstIds);
+        Long count = staticsMapper.countRecordsBySpaceId("spc41");
         assertThat(count).isEqualTo(3);
     }
 
@@ -99,7 +85,7 @@ public class StaticsMapperTest extends AbstractMyBatisMapperTest {
     @Test
     @Sql("/sql/api-usage-data.sql")
     void testSelectMaxId() {
-        Long id = staticsMapper.selectApiUsageMaxId();
+        Long id = staticsMapper.selectMaxId();
         assertThat(id).isEqualTo(41L);
     }
 
@@ -127,8 +113,7 @@ public class StaticsMapperTest extends AbstractMyBatisMapperTest {
     @Test
     @Sql({"/sql/datasheet-meta-data.sql", "/sql/datasheet-data.sql"})
     void testSelectDstViewStaticsBySpaceId() {
-        List<String> entities =
-            staticsMapper.selectDstViewStaticsByDstIds(Collections.singletonList("ni41"));
+        List<String> entities = staticsMapper.selectDstViewStaticsBySpaceId("spc41");
         assertThat(entities).isNotEmpty();
     }
 

@@ -18,7 +18,7 @@
 
 import { RobotNotificationTypeEnum } from 'shared/enums/ding-talk/robot-notification-type.enum';
 
-interface INotificationAt {
+interface NotificationAt {
   /**
    * Cell phone number
    * Cell phone number of the person being @ (add the @person's cell phone number to the content)
@@ -30,30 +30,30 @@ interface INotificationAt {
   isAll: boolean;
 }
 
-interface IText {
+interface Text {
   content: string;
 }
 
-interface IMarkDown {
+interface MarkDown {
   title: string;
   text: string;
 }
 
-export interface IRobotNotificationType {
+export interface RobotNotificationType {
   msgtype: RobotNotificationTypeEnum;
 }
 
-export interface IRobotDto {
+export interface RobotDto {
   accessToken: string;
   secret: string;
 }
 
-export interface IRobotNotificationTextDto extends IRobotNotificationType {
-  text: IText;
-  at?: INotificationAt;
+export interface RobotNotificationTextDto extends RobotNotificationType {
+  text: Text;
+  at?: NotificationAt;
 }
 
-export interface IRobotNotificationMarkDownDto extends IRobotNotificationType {
-  markdown: IMarkDown;
-  at?: INotificationAt;
+export interface RobotNotificationMarkDownDto extends RobotNotificationType {
+  markdown: MarkDown;
+  at?: NotificationAt;
 }

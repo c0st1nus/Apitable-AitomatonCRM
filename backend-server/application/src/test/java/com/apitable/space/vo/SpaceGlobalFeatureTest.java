@@ -18,16 +18,17 @@
 
 package com.apitable.space.vo;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
-import com.apitable.control.infrastructure.ExportLevelEnum;
-import com.apitable.space.ro.SpaceSecuritySettingRo;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+
+import com.apitable.control.infrastructure.ExportLevelEnum;
+import com.apitable.space.ro.SpaceSecuritySettingRo;
+
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 /**
  * @author tao

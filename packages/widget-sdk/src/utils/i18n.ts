@@ -54,7 +54,6 @@ export function t(string: IString) {
     return ERROR_STR;
   }
   const lang = getLanguage().replace(/-/g, '_');
-  const defaultLang = window.__initialization_data__?.envVars?.IS_APITABLE ? 'en_US' : 'zh_CN';
-  const text = lang in string ? string[lang] : string[defaultLang] || ERROR_STR;
+  const text = lang in string ? string[lang] : string['zh_CN'] || ERROR_STR;
   return text;
 }

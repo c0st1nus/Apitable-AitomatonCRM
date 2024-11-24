@@ -16,19 +16,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useMount, useSize } from 'ahooks';
-import { Tabs } from 'antd';
-import QueueAnim from 'rc-queue-anim';
-import * as React from 'react';
-import { FC, useEffect, useState } from 'react';
-import { shallowEqual, useDispatch } from 'react-redux';
 import { Button, TextButton } from '@apitable/components';
 import { Api, IReduxState, NOTIFICATION_ID, StoreActions, Strings, t } from '@apitable/core';
 import { NotificationCheckOutlined } from '@apitable/icons';
+import { useMount, useSize } from 'ahooks';
+import { Tabs } from 'antd';
 import { Loading } from 'pc/components/common';
 import { ComponentDisplay, ScreenSize } from 'pc/components/common/component_display';
 import { useNotificationRequest, useRequest, useResponsive } from 'pc/hooks';
-import { useAppSelector } from 'pc/store/react-redux';
+import QueueAnim from 'rc-queue-anim';
+import * as React from 'react';
+import { FC, useEffect, useState } from 'react';
+import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { Card } from './card';
 import { NoData } from './no_data';
 import styles from './style.module.less';
@@ -48,8 +47,8 @@ interface ITabKey {
 type ITabKeyType = keyof ITabKey;
 const DOM_WRAP_CLS = styles.notification;
 
-export const Notification: FC<React.PropsWithChildren<any>> = () => {
-  const { unReadCount, readCount, unReadNoticeList, readNoticeList, newNoticeListFromWs } = useAppSelector(
+export const Notification: FC<React.PropsWithChildren> = () => {
+  const { unReadCount, readCount, unReadNoticeList, readNoticeList, newNoticeListFromWs } = useSelector(
     (state: IReduxState) => ({
       unReadCount: state.notification.unReadCount,
       readCount: state.notification.readCount,
@@ -66,7 +65,7 @@ export const Notification: FC<React.PropsWithChildren<any>> = () => {
   const { getNotificationPage } = useNotificationRequest();
   const { run: getAllData, loading: firstLoading } = useRequest(
     () =>
-      Api.getNotificationStatistics().then(async (res) => {
+      Api.getNotificationStatistics().then(async res => {
         const { success, data } = res.data;
         if (!success) {
           return;
@@ -85,7 +84,7 @@ export const Notification: FC<React.PropsWithChildren<any>> = () => {
   const { run: getMoreRead, loading: moreReadLoading } = useRequest(getNotificationPage, { manual: true });
   const { run: allToRead, loading: allToReadBtnLoading } = useRequest(
     () =>
-      Api.transferNoticeToRead([], true).then((res) => {
+      Api.transferNoticeToRead([], true).then(res => {
         const { success } = res.data;
         if (!success) return;
         dispatch(StoreActions.delUnReadNoticeList([], true));
@@ -138,7 +137,7 @@ export const Notification: FC<React.PropsWithChildren<any>> = () => {
     const moreLoading = tabKey === TabKey.Unprocessed ? moreUnReadLoading : moreReadLoading;
     const numEqual = tabKey === TabKey.Unprocessed ? unReadCount === unReadNoticeList.length : readCount === readNoticeList.length;
     const clickFun = tabKey === TabKey.Unprocessed ? moreUnReadMsg : moreReadMsg;
-    // When the message list is moreLoading, it shows "Loading", loaded and in the process of rendering the list is not displayed,
+    // When the message list is moreLoading, it shows "Loading", loaded and in the process of rendering the list is not displayed, 
     // and after the list is rendered, it shows "Loading more".
     const visible = moreLoading || rendered ? 'visible' : 'hidden';
     const dom = numEqual ? (
@@ -206,17 +205,16 @@ export const Notification: FC<React.PropsWithChildren<any>> = () => {
             <AllToReadButton />
           </ComponentDisplay>
         </div>
-        <Tabs className={styles.tabs} onChange={onTabActiveChange} activeKey={tabActiveKey}>
+        <Tabs onChange={onTabActiveChange} activeKey={tabActiveKey}>
           <TabPane tab={t(Strings.unprocessed) + `(${unReadCount})`} key={TabKey.Unprocessed}>
             {unReadCount !== 0 && !firstLoading && (
               <div className={styles.tabContent} id={tabActiveKey === TabKey.Unprocessed ? NOTIFICATION_ID.NOTICE_LIST_WRAPPER : ''}>
                 {unReadNoticeList.length > 0 && (
                   <div className={styles.cardWrapper}>
-                    <QueueAnim ease="easeInQuint" duration={500} onEnd={(e) => noticeListRended(e, TabKey.Unprocessed)}>
-                      {unReadNoticeList.map((item) => {
-                        if (['subscribed_record_archived', 'subscribed_record_unarchived'].includes(item.templateId)) return null;
-                        return <Card key={item.id} data={item} />;
-                      })}
+                    <QueueAnim ease="easeInQuint" duration={500} onEnd={e => noticeListRended(e, TabKey.Unprocessed)}>
+                      {unReadNoticeList.map(item => (
+                        <Card key={item.id} data={item} />
+                      ))}
                     </QueueAnim>
                   </div>
                 )}
@@ -237,8 +235,8 @@ export const Notification: FC<React.PropsWithChildren<any>> = () => {
               >
                 {readNoticeList.length > 0 && (
                   <div className={styles.cardWrapper}>
-                    <QueueAnim ease="easeInQuint" duration={500} onEnd={(e) => noticeListRended(e, TabKey.Processed)}>
-                      {readNoticeList.map((item) => (
+                    <QueueAnim ease="easeInQuint" duration={500} onEnd={e => noticeListRended(e, TabKey.Processed)}>
+                      {readNoticeList.map(item => (
                         <Card key={item.id} data={item} isProcessed />
                       ))}
                     </QueueAnim>

@@ -18,6 +18,6 @@
 
 import { store } from 'pc/store';
 // @ts-ignore
-import { currentStepInHook } from 'enterprise/guide/utils';
+import { currentStepInHook } from 'enterprise';
 
 store.subscribe(currentStepInHook || (() => {}));

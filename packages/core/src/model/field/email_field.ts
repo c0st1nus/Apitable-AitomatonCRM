@@ -16,12 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { IReduxState } from '../../exports/store/interfaces';
+import { IReduxState } from '../../exports/store';
 import { FieldType, IEmailField, IField } from 'types/field_types';
-import { DatasheetActions } from '../../commands_actions/datasheet';
+import { DatasheetActions } from '../datasheet';
 import { TextBaseField } from './text_base_field';
-import { getFieldDefaultProperty } from './const';
-import { IEmailProperty } from 'types/field_types';
+
 export class EmailField extends TextBaseField {
   constructor(public override field: IEmailField, public override state: IReduxState) {
     super(field, state);
@@ -32,7 +31,7 @@ export class EmailField extends TextBaseField {
   }
 
   static defaultProperty() {
-    return getFieldDefaultProperty(FieldType.Email) as IEmailProperty;
+    return null;
   }
 
   static createDefault(fieldMap: { [fieldId: string]: IField }): IEmailField {

@@ -87,7 +87,7 @@ const IconWrapper = styled.span`
 const TextWrapper = styled.span.attrs(applyDefaultTheme)`
   ${props => {
     return css`
-      color: ${props.theme.color.staticWhite0}
+      color: ${props.theme.palette.common.white}
     `;
   }}
 `;
@@ -99,7 +99,7 @@ export const MessageUI: React.FC<React.PropsWithChildren<IMessageUIProps>> = ({
   duration = 3,
   icon,
 }: IMessageUIProps) => {
-
+  
   const timerRef = useRef<number>();
   const Icon: React.ReactNode = React.useMemo(() => {
     if(typeof icon === 'object' && !icon) return <></>;
@@ -132,9 +132,7 @@ export const MessageUI: React.FC<React.PropsWithChildren<IMessageUIProps>> = ({
     <MessageWrapper motionClassName={motionClassName}>
       <ContentWrapper type={type}>
         <IconWrapper>{Icon}</IconWrapper>
-        {
-          typeof content === 'string' ? <TextWrapper>{content}</TextWrapper> : content
-        }
+        <TextWrapper>{content}</TextWrapper>
       </ContentWrapper>
     </MessageWrapper>
   );

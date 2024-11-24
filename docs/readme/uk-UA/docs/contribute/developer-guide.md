@@ -25,6 +25,8 @@ curl -s "https://get.sdkman.io" | bash
 nvm install 16.15.0 && nvm use 16.15.0 && corepack enable
 # install java development kit
 sdk env install
+# install rust toolchain
+curl -sSf https://sh.rustup.rs | sh -s -- --default-toolchain nightly --profile minimal -y && source "$HOME/.cargo/env"
 ```
 
 ### macOS
@@ -72,7 +74,7 @@ sudo apt install make
 
 ## Який інструмент збірки ми використовуємо?
 
-Ми використовуємо `make` як центральний елемент інструменту збірки, який керує іншими інструментами збірки, такими як `gradle` / `npm` / `pnpm`.
+Ми використовуємо `make` як центральний елемент інструменту збірки, який керує іншими інструментами збірки, такими як `gradle` / `npm` / `yarn`.
 
 Таким чином, ви можете просто ввести команду make і побачити всі команди збірки:
 

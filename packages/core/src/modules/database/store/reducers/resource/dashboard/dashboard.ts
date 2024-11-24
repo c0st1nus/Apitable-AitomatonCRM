@@ -18,11 +18,8 @@
 
 import produce from 'immer';
 import { AnyAction, combineReducers } from 'redux';
-import * as ActionConstants from 'modules/shared/store/action_constants';
-import {
-  IResetDashboard, ISetDashboardClientAction, ISetDashboardDataAction, ISetDashboardLoadingAction, IUpdateDashboardName
-} from 'modules/database/store/actions/resource';
-
+import { ActionConstants } from '../../../../../../exports/store';
+import { IResetDashboard, ISetDashboardClientAction, ISetDashboardDataAction, ISetDashboardLoadingAction, IUpdateDashboardName } from '../../../../../../exports/store/actions';
 import { IUpdateDashboardInfo } from '../../../../../../exports/store/interfaces';
 import * as actions from '../../../../../shared/store/action_constants';
 import {

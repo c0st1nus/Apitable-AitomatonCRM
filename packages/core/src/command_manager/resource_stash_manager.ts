@@ -17,16 +17,13 @@
  */
 
 import { Store } from 'redux';
-import { IReduxState } from '../exports/store/interfaces';
-import { getSnapshot,getDatasheetIds } from 'modules/database/store/selectors//resource/datasheet';
+import { IReduxState, Selectors, StoreActions } from '../exports/store';
 import { UndoManager } from './undo_manager';
 import LRU from 'lru-cache';
 import _ from 'lodash';
 import { batchActions } from 'redux-batched-actions';
 import { RoomService } from 'sync';
-import { ComputeRefManager } from 'compute_manager/compute_reference_manager';
-import { resetDashboard } from 'modules/database/store/actions/resource/dashboard/dashboard';
-import { resetDatasheet } from 'modules/database/store/actions/resource/datasheet/datasheet';
+import { ComputeRefManager } from 'compute_manager';
 
 export class ResourceStashManager {
   private stash: LRU<string, UndoManager>;
@@ -42,7 +39,7 @@ export class ResourceStashManager {
     const computeRefManager = new ComputeRefManager();
 
     for (const resourceId of stashResourceIds) {
-      const currSnapshot = getSnapshot(state, resourceId);
+      const currSnapshot = Selectors.getSnapshot(state, resourceId);
       const fieldMap = currSnapshot?.meta.fieldMap;
       if (!fieldMap) {
         continue;
@@ -131,14 +128,14 @@ export class ResourceStashManager {
 
       this.calcRefMap(stashResourceIds, activeDstIds);
 
-      const dstIdsInRedux = getDatasheetIds(state);
+      const dstIdsInRedux = Selectors.getDatasheetIds(state);
       const unActiveDstIds = _.difference(dstIdsInRedux, activeDstIds);
 
       const _batchActions: any[] = [];
 
       unActiveDstIds.map(id => {
         roomService.quit(id);
-        _batchActions.push(resetDatasheet(id));
+        _batchActions.push(StoreActions.resetDatasheet(id));
       });
 
       this.store.dispatch(batchActions(_batchActions));
@@ -152,7 +149,7 @@ export class ResourceStashManager {
 
       unActiveDashboardIds.map(id => {
         roomService.quit(id);
-        _batchActions.push(resetDashboard(id));
+        _batchActions.push(StoreActions.resetDashboard(id));
       });
 
       this.store.dispatch(batchActions(_batchActions));

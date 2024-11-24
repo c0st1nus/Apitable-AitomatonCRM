@@ -35,5 +35,4 @@ export interface IAvatarProps {
   className?: string;
   /** avatar image alt attribute */
   alt?: string;
-  onClick?: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
 }

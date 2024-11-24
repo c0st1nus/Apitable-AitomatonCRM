@@ -16,12 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useUnmount } from 'ahooks';
-import classNames from 'classnames';
-import * as React from 'react';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { DragDropContext, Draggable, Droppable, DropResult } from 'react-beautiful-dnd';
-import { Alert, Button, useThemeColors, IUseListenTriggerInfo, useListenVisualHeight } from '@apitable/components';
 import {
   Api,
   ConfigConstant,
@@ -35,20 +29,26 @@ import {
   t,
   ViewType,
 } from '@apitable/core';
-import { AddOutlined } from '@apitable/icons';
-import { Modal } from 'pc/components/common';
-import { ScreenSize } from 'pc/components/common/component_display';
-import { LineSearchInput } from 'pc/components/list/common_list/line_search_input';
-import { changeView, useResponsive } from 'pc/hooks';
 import { store } from 'pc/store';
-import { useAppSelector } from 'pc/store/react-redux';
+import { Modal } from 'pc/components/common';
+import { changeView, useResponsive } from 'pc/hooks';
 import { stopPropagation } from 'pc/utils';
 import { getEnvVariables } from 'pc/utils/env';
-import { useViewAction } from './action';
-import { ViewFilter } from './view_filter';
+import * as React from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { DragDropContext, Draggable, Droppable, DropResult } from 'react-beautiful-dnd';
+import { useSelector } from 'react-redux';
+import styles from './style.module.less';
 import { ViewIcon } from './view_icon';
 import { ViewItem } from './view_item';
-import styles from './style.module.less';
+import { ViewFilter } from './view_filter';
+import classNames from 'classnames';
+import { LineSearchInput } from 'pc/components/list/common_list/line_search_input';
+import { useViewAction } from './action';
+import { ScreenSize } from 'pc/components/common/component_display';
+import { Alert, Button, useThemeColors, IUseListenTriggerInfo, useListenVisualHeight } from '@apitable/components';
+import { useUnmount } from 'ahooks';
+import { AddOutlined } from '@apitable/icons';
 
 interface IViewSwitcherProperty {
   close: (e: React.MouseEvent) => void;
@@ -70,7 +70,7 @@ export const useVerifyOperateItemTitle = (list: any, keyPressEnterCb?: (id: stri
     // Determine if the length is between 1 and 30.
     if (value.length < 1 || value.length > Number(getEnvVariables().VIEW_NAME_MAX_COUNT)) {
       errorMsg = t(Strings.view_name_length_err, {
-        maxCount: getEnvVariables().VIEW_NAME_MAX_COUNT,
+        maxCount: getEnvVariables().VIEW_NAME_MAX_COUNT
       });
     }
     setErrMsg(errorMsg);
@@ -107,7 +107,7 @@ export const useVerifyOperateItemTitle = (list: any, keyPressEnterCb?: (id: stri
       errorMsg = t(Strings.name_repeat);
     } else if (!editingValue || editingValue.length > Number(getEnvVariables().VIEW_NAME_MAX_COUNT)) {
       errorMsg = t(Strings.view_name_length_err, {
-        maxCount: getEnvVariables().VIEW_NAME_MAX_COUNT,
+        maxCount: getEnvVariables().VIEW_NAME_MAX_COUNT
       }); // Name requirement within 1~30 characters.
     }
 
@@ -130,14 +130,12 @@ export const useVerifyOperateItemTitle = (list: any, keyPressEnterCb?: (id: stri
   };
 };
 
-export const AddNewViewList: React.FC<
-  React.PropsWithChildren<{
-    addNewViews(e: React.MouseEvent, viewType: ViewType): void;
-    style?: React.CSSProperties;
-    isMobile?: boolean;
-    isViewCountOverLimit?: boolean;
-  }>
-> = (props) => {
+export const AddNewViewList: React.FC<React.PropsWithChildren<{
+  addNewViews(e: React.MouseEvent, viewType: ViewType): void;
+  style?: React.CSSProperties;
+  isMobile?: boolean;
+  isViewCountOverLimit?: boolean;
+}>> = props => {
   const colors = useThemeColors();
   const { addNewViews, style, isMobile, isViewCountOverLimit } = props;
   const btnStyle = {
@@ -161,7 +159,7 @@ export const AddNewViewList: React.FC<
       <div className={styles.viewTypeContainer}>
         <Button
           className={styles.viewType}
-          onClick={(e) => addNewViews(e as any as React.MouseEvent, ViewType.Grid)}
+          onClick={e => addNewViews((e as any) as React.MouseEvent, ViewType.Grid)}
           style={btnStyle}
           id={DATASHEET_ID.VIEW_LIST_CREATE_GRID_VIEW}
           data-test-id={DATASHEET_ID.VIEW_LIST_CREATE_GRID_VIEW}
@@ -175,7 +173,7 @@ export const AddNewViewList: React.FC<
         </Button>
         <Button
           className={styles.viewType}
-          onClick={(e) => addNewViews(e as any as React.MouseEvent, ViewType.Gallery)}
+          onClick={e => addNewViews((e as any) as React.MouseEvent, ViewType.Gallery)}
           style={btnStyle}
           id={DATASHEET_ID.VIEW_LIST_CREATE_GALLERY_VIEW}
           data-test-id={DATASHEET_ID.VIEW_LIST_CREATE_GALLERY_VIEW}
@@ -190,7 +188,7 @@ export const AddNewViewList: React.FC<
         {!isMobile && (
           <Button
             className={styles.viewType}
-            onClick={(e) => addNewViews(e as any as React.MouseEvent, ViewType.Kanban)}
+            onClick={e => addNewViews((e as any) as React.MouseEvent, ViewType.Kanban)}
             style={btnStyle}
             id={DATASHEET_ID.VIEW_LIST_CREATE_KANBAN_VIEW}
             data-test-id={DATASHEET_ID.VIEW_LIST_CREATE_KANBAN_VIEW}
@@ -206,7 +204,7 @@ export const AddNewViewList: React.FC<
         {!isMobile && (
           <Button
             className={styles.viewType}
-            onClick={(e) => addNewViews(e as any as React.MouseEvent, ViewType.Gantt)}
+            onClick={e => addNewViews((e as any) as React.MouseEvent, ViewType.Gantt)}
             style={btnStyle}
             id={DATASHEET_ID.VIEW_LIST_CREATE_GANTT_VIEW}
             data-test-id={DATASHEET_ID.VIEW_LIST_CREATE_GANTT_VIEW}
@@ -222,7 +220,7 @@ export const AddNewViewList: React.FC<
         {!isMobile && (
           <Button
             className={styles.viewType}
-            onClick={(e) => addNewViews(e as any as React.MouseEvent, ViewType.Calendar)}
+            onClick={e => addNewViews((e as any) as React.MouseEvent, ViewType.Calendar)}
             style={btnStyle}
             id={DATASHEET_ID.CREATE_CALENDAR_IN_VIEW_LIST}
             data-test-id={DATASHEET_ID.CREATE_CALENDAR_IN_VIEW_LIST}
@@ -238,7 +236,7 @@ export const AddNewViewList: React.FC<
         {!isMobile && (
           <Button
             className={styles.viewType}
-            onClick={(e) => addNewViews(e as any as React.MouseEvent, ViewType.OrgChart)}
+            onClick={e => addNewViews((e as any) as React.MouseEvent, ViewType.OrgChart)}
             style={btnStyle}
             id={DATASHEET_ID.CREATE_ORG_IN_VIEW_LIST}
             data-test-id={DATASHEET_ID.CREATE_ORG_IN_VIEW_LIST}
@@ -258,10 +256,10 @@ export const AddNewViewList: React.FC<
 
 const MIN_HEIGHT = 60;
 const MAX_HEIGHT = 340;
-export const ViewSwitcher: React.FC<React.PropsWithChildren<IViewSwitcherProperty>> = (props) => {
+export const ViewSwitcher: React.FC<React.PropsWithChildren<IViewSwitcherProperty>> = props => {
   const { close, triggerInfo } = props;
-  const activityViewId = useAppSelector((state) => state.pageParams.viewId);
-  const { viewCreatable, viewRenamable, viewMovable, viewRemovable, views, datasheetId } = useAppSelector((state) => {
+  const activityViewId = useSelector(state => state.pageParams.viewId);
+  const { viewCreatable, viewRenamable, viewMovable, viewRemovable, views, datasheetId } = useSelector(state => {
     const { viewCreatable, viewRenamable, viewMovable, viewRemovable } = Selectors.getPermissions(state);
 
     return {
@@ -315,7 +313,7 @@ export const ViewSwitcher: React.FC<React.PropsWithChildren<IViewSwitcherPropert
     if (!viewRenamable) {
       return;
     }
-    if (editingViewName === views.filter((item) => item.id === editingViewId)[0].name) {
+    if (editingViewName === views.filter(item => item.id === editingViewId)[0].name) {
       return;
     }
     ViewAction.modifyView(editingViewId, editingViewName);
@@ -348,7 +346,7 @@ export const ViewSwitcher: React.FC<React.PropsWithChildren<IViewSwitcherPropert
     }
     if (currentViewId === activityViewId) {
       // If the deleted view is the currently displayed view, switch the active view to another view in the view list.
-      if (views.findIndex((item) => item.id === currentViewId) === 0) {
+      if (views.findIndex(item => item.id === currentViewId) === 0) {
         // The deleted view is the current first view, then switch to the second.
         switchView(e, views[1]['id']);
       } else {
@@ -372,13 +370,13 @@ export const ViewSwitcher: React.FC<React.PropsWithChildren<IViewSwitcherPropert
   };
 
   const searchedViews = useMemo(() => {
-    return views.filter((view) => view.name.toLocaleLowerCase().includes(query.toLocaleLowerCase()));
+    return views.filter(view => view.name.toLocaleLowerCase().includes(query.toLocaleLowerCase()));
   }, [views, query]);
 
   const viewLength = views.length;
 
-  const deleteView = async (e: React.MouseEvent, id: string) => {
-    const view = views.find((view) => view.id === id)!;
+  const deleteView = async(e: React.MouseEvent, id: string) => {
+    const view = views.find(view => view.id === id)!;
     let content = t(Strings.del_view_content, {
       view_name: view.name,
     });
@@ -465,7 +463,7 @@ export const ViewSwitcher: React.FC<React.PropsWithChildren<IViewSwitcherPropert
           value={query}
           allowClear
           onClear={() => setQuery('')}
-          onChange={(e) => {
+          onChange={e => {
             setQuery(e.target.value);
           }}
           placeholder={t(Strings.view_find)}
@@ -480,11 +478,11 @@ export const ViewSwitcher: React.FC<React.PropsWithChildren<IViewSwitcherPropert
         {!query && (
           <DragDropContext onDragEnd={onDragEnd}>
             <Droppable droppableId="view-switcher" direction="vertical">
-              {(provided) => {
+              {provided => {
                 return (
                   <div
                     className={styles.droppable}
-                    ref={(element) => {
+                    ref={element => {
                       provided.innerRef(element);
                       scrollRef.current = element;
                     }}
@@ -493,7 +491,7 @@ export const ViewSwitcher: React.FC<React.PropsWithChildren<IViewSwitcherPropert
                     {views.map((item: IViewProperty, index: number) => {
                       return (
                         <Draggable draggableId={item.id} index={index} key={item.id} isDragDisabled={!viewMovable}>
-                          {(providedChild) => (
+                          {providedChild => (
                             <div
                               className={styles.draggable}
                               ref={providedChild.innerRef}

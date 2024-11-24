@@ -37,24 +37,22 @@ export const getCopyField = (field: IField, fieldMap: IFieldMap, viewId?: string
       cmd: CollaCommandName.AddFields,
       copyCell: true,
       fieldId: field.id,
-      data: [
-        {
-          data: {
-            name: getUniqName(
-              field.name + t(Strings.copy),
-              Object.keys(fieldMap).map((id) => fieldMap[id].name),
-            ),
-            type: field.type,
-            property: field.property,
-          },
-          viewId: viewId,
-          index: index,
-          fieldId,
-          offset,
-          hiddenColumn,
+      data: [{
+        data: {
+          name: getUniqName(
+            field.name + t(Strings.copy),
+            Object.keys(fieldMap).map(id => fieldMap[id].name),
+          ),
+          type: field.type,
+          property: field.property,
         },
-      ],
-      datasheetId,
+        viewId: viewId,
+        index: index,
+        fieldId,
+        offset,
+        hiddenColumn,
+      }],
+      datasheetId
     });
 
     if (ExecuteResult.Success === result.result) {

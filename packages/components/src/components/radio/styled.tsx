@@ -34,19 +34,19 @@ export const RadioLabelStyled = styled.label.attrs(applyDefaultTheme)`
     transition: background 0.2s ease 0s;
     border-radius: 4px;
     ${(props) => {
-    const { color } = props.theme;
-    const hoverBg = color.bgControlsHoverSolid;
-    const activeBg = color.bgControlsActiveSolid;
+    const { color, palette } = props.theme;
+    const hoverBg = convertHexToRGB(palette.action.hover, palette.action.hoverOpacity);
+    const activeBg = convertHexToRGB(palette.action.active, palette.action.activatedOpacity);
     return css`
         color: ${color.fc1};
         &:not(.radio-label-btn-checked) {
-          background-color: ${color.bgControlsDefaultSolid};
+          background-color: ${palette.background.input};
         }
         &:hover:not(.radio-label-btn-disabled) {
           background-color: ${hoverBg};
         }
         &:active:not(.radio-label-btn-disabled) {
-          background-color: ${activeBg};
+          backgrouund-color: ${activeBg};
         }
       `;
   }}
@@ -59,9 +59,9 @@ export const RadioLabelStyled = styled.label.attrs(applyDefaultTheme)`
   }
   &.radio-label-btn-checked {
     ${(props) => {
-    const { color } = props.theme;
+    const { color, palette } = props.theme;
     return css`
-        color: ${color.primaryColor};
+        color: ${palette.action.selected};
         background-color: ${color.defaultBg};
       `;
   }}

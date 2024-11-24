@@ -19,8 +19,7 @@
 package com.apitable.workspace.ro;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
-import jakarta.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotEmpty;
 import lombok.Data;
 
 /**
@@ -33,18 +32,15 @@ import lombok.Data;
 public class RemindExtraRo {
 
     @Deprecated
-    @Schema(description = "Record Title", requiredMode = RequiredMode.REQUIRED,
-        example = "First column")
+    @Schema(description = "Record Title", example = "First column", required = true)
     private String recordTitle;
 
-    @Schema(description = "Comments", requiredMode = RequiredMode.REQUIRED,
-        example = "@zoe&nbsp;&nbsp;Comments")
+    @Schema(description = "Comments", example = "@zoe&nbsp;&nbsp;Comments", required = true)
     @NotEmpty(message = "Comments")
     private String content;
 
     @Deprecated
-    @Schema(description = "Comment time", requiredMode = RequiredMode.REQUIRED,
-        example = "2020.11.26 10:30:36")
+    @Schema(description = "Comment time", example = "2020.11.26 10:30:36", required = true)
     @NotEmpty(message = "Comment time")
     private String createdAt;
 

@@ -43,10 +43,10 @@ import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.annotation.Resource;
-import jakarta.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Resource;
+import javax.validation.Valid;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -57,7 +57,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @ApiResource(path = "/internal")
-@Tag(name = "Internal")
+@Tag(name = "Internal service - data table field permission interface")
 public class InternalFieldPermissionController {
 
     @Resource
@@ -79,17 +79,17 @@ public class InternalFieldPermissionController {
      * turn off multiple field permissions.
      */
     @PostResource(path = "/datasheet/{dstId}/field/permission/disable", requiredPermission = false)
-    @Operation(summary = "Disable Field Permissions", description = "Batch disable file permission of a specific datasheet"
+    @Operation(summary = "turn off multiple field permissions", description = "room layer ot "
         + "delete field operation call")
     @Parameters({
-        @Parameter(name = "dstId", description = "table id", required = true,
-            schema = @Schema(type = "string"), in = ParameterIn.PATH, example = "dstGxznHFXf9pvF1LZ"),
+        @Parameter(name = "dstId", description = "table id", required = true, schema =
+            @Schema(type = "String"), in = ParameterIn.PATH, example = "dstGxznHFXf9pvF1LZ"),
         @Parameter(name = "fieldIds", description = "list of field ids", required = true,
             schema = @Schema(type = "string"), in = ParameterIn.QUERY, example = "fldB7uWmwYrQf,"
             + "fldB7uWmwYrQf")
     })
     public ResponseData<Void> disableRoles(@PathVariable("dstId") @NodeMatch String dstId,
-                                           @RequestParam("fieldIds") List<String> fieldIds) {
+        @RequestParam("fieldIds") List<String> fieldIds) {
         ControlId controlId = ControlIdBuilder.fieldIds(dstId, fieldIds);
         // get the existing control unit id
         List<String> existedControlIds =
@@ -110,7 +110,7 @@ public class InternalFieldPermissionController {
      * get field permissions.
      */
     @GetResource(path = "/node/{nodeId}/field/permission", requiredLogin = false)
-    @Operation(summary = "Retrieve Single Node Field Permissions")
+    @Operation(summary = "get field permissions")
     @Parameters({
         @Parameter(name = "nodeId", description = "node id", required = true, schema = @Schema
             (type = "string"), in = ParameterIn.PATH, example = "dstCgcfixAKyeeNsaP"),
@@ -145,7 +145,7 @@ public class InternalFieldPermissionController {
      * get field permission set for multiple nodes.
      */
     @PostResource(path = "/node/field/permission", requiredLogin = false)
-    @Operation(summary = "Retrieve Multi Node Field Permission")
+    @Operation(summary = "get field permission set for multiple nodes")
     public ResponseData<List<FieldPermissionView>> getMultiFieldPermissionViews(
         @RequestBody @Valid InternalPermissionRo data) {
         // Filter non-existing nodes to prevent subsequent exceptions from being thrown

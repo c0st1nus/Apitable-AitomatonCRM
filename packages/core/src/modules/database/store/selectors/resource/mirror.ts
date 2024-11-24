@@ -17,7 +17,7 @@
  */
 
 import { INetworking, IReduxState } from '../../../../../exports/store/interfaces';
-import { getDatasheetParentId } from 'modules/database/store/selectors/resource/datasheet/base';
+import { getDatasheetParentId } from 'modules/database/store/selectors/resource/datasheet';
 
 export const getMirror = (state: IReduxState, mirrorId?: string) => {
   mirrorId = mirrorId || state.pageParams.mirrorId!;

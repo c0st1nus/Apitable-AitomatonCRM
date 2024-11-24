@@ -16,12 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useUpdateEffect } from 'ahooks';
-import classNames from 'classnames';
-import Fuse from 'fuse.js';
-import * as React from 'react';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { useDispatch } from 'react-redux';
 import {
   Api,
   IMember,
@@ -37,21 +31,25 @@ import {
   t,
   UnitItem,
 } from '@apitable/core';
-import { useGetMemberStash } from 'modules/space/member_stash/hooks/use_get_member_stash';
+import { useUpdateEffect } from 'ahooks';
+import { useRequest } from 'pc/hooks';
+import classNames from 'classnames';
+import Fuse from 'fuse.js';
 import { memberStash } from 'modules/space/member_stash/member_stash';
-import { InfoCard } from 'pc/components/common/info_card';
 import { expandInviteModal } from 'pc/components/invite';
 import { CommonList } from 'pc/components/list/common_list';
-import { useRequest } from 'pc/hooks';
-import { useAppSelector } from 'pc/store/react-redux';
 import { getEnvVariables } from 'pc/utils/env';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import * as React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { stopPropagation } from '../../../utils/dom';
 import { expandUnitModal, SelectUnitSource } from '../../catalog/permission_settings/permission/select_unit_modal';
 import { Check } from '../common_list/check';
 import { IMemberOptionListProps } from './member_option_list.interface';
-// @ts-ignore
-import { getSocialWecomUnitName } from 'enterprise/home/social_platform/utils';
 import styles from './styles.module.less';
+import { InfoCard } from 'pc/components/common/info_card';
+// @ts-ignore
+import { getSocialWecomUnitName } from 'enterprise';
 
 const triggerBase = {
   action: ['hover'],
@@ -60,44 +58,25 @@ const triggerBase = {
     points: ['cr', 'cl'],
     offset: [-24, 0],
     overflow: { adjustX: true, adjustY: true },
-  },
+  }
 };
 
-export const MemberOptionList: React.FC<
-  React.PropsWithChildren<
-    IMemberOptionListProps & {
-      inputRef?: React.RefObject<HTMLInputElement>;
-    }
-  >
-> = (props) => {
+export const MemberOptionList: React.FC<React.PropsWithChildren<IMemberOptionListProps & { inputRef?: React.RefObject<HTMLInputElement> }>> = props => {
   const {
-    linkId,
-    unitMap,
-    listData,
-    onClickItem,
-    showSearchInput,
-    showMoreTipButton,
-    multiMode,
-    existValues,
-    uniqId,
-    activeIndex,
-    showInviteTip = true,
-    inputRef,
-    monitorId,
-    className,
-    searchEmail,
+    linkId, unitMap, listData, onClickItem, showSearchInput,
+    showMoreTipButton, multiMode, existValues, uniqId, activeIndex, showInviteTip = true,
+    inputRef, monitorId, className, searchEmail
   } = props;
-  const { loading: memberLoading, memberStashList } = useGetMemberStash();
-  const initList = Array.isArray(listData) ? listData : memberStashList;
+  const initList = Array.isArray(listData) ? listData : memberStash.getMemberStash();
   const [memberList, setMemberList] = useState<(IUnitValue | IUserValue)[]>(() => {
     // Whether or not you want to enable remote search, you need to make a backup of the data, especially the local data passed in by the component
     return initList;
   });
-  const spaceInfo = useAppSelector((state) => state.space.curSpaceInfo);
+  const spaceInfo = useSelector(state => state.space.curSpaceInfo);
   const dispatch = useDispatch();
   const containerRef = useRef<HTMLDivElement>(null);
-  const { formId, embedId } = useAppSelector((state) => state.pageParams);
-  const shareId = useAppSelector((state) => state.pageParams.shareId);
+  const { formId, embedId } = useSelector(state => state.pageParams);
+  const shareId = useSelector(state => state.pageParams.shareId);
 
   const refreshMemberList = useCallback(() => {
     // listData is not passed in, use stash directly
@@ -106,19 +85,19 @@ export const MemberOptionList: React.FC<
       return;
     }
     setMemberList(listData);
-  }, [listData, memberLoading]);
+  }, [listData]);
 
   useEffect(() => {
     refreshMemberList();
   }, [refreshMemberList]);
 
-  const loadOrSearchMember = async (keyword?: string) => {
+  const loadOrSearchMember = async(keyword?: string) => {
     if (!showSearchInput && listData != null) {
       // If remote search is not enabled, the raw data needs to be read from the external incoming complete data,
       // not the data cached within the component
       const fuse = new Fuse(listData, { keys: ['name'] });
       if (keyword) {
-        return fuse.search(keyword).map((item) => (item as any).item); // FIXME:TYPE
+        return fuse.search(keyword).map(item => (item as any).item); // FIXME:TYPE
       }
       return listData;
     }
@@ -133,7 +112,7 @@ export const MemberOptionList: React.FC<
     }
     const data: IUnitValue[] = res.data.data;
     if (uniqId === 'userId') {
-      return data.filter((unitValue) => unitValue.type === MemberType.Member && Boolean(unitValue.userId));
+      return data.filter(unitValue => unitValue.type === MemberType.Member && Boolean(unitValue.userId));
     }
     return data;
   };
@@ -173,7 +152,7 @@ export const MemberOptionList: React.FC<
   }
 
   function handleSubmit(values: UnitItem[]) {
-    const newValues = values.map((value) => {
+    const newValues = values.map(value => {
       if ('roleId' in value) {
         const result = {
           type: MemberType.Team,
@@ -209,7 +188,7 @@ export const MemberOptionList: React.FC<
       updateMemberInfo(result);
       return result;
     });
-    onClickItem(newValues.map((item) => item.unitId));
+    onClickItem(newValues.map(item => item.unitId));
   }
 
   function standardStructure(cv: IUnitIds | IUuids | null) {
@@ -217,10 +196,10 @@ export const MemberOptionList: React.FC<
       return [];
     }
     return cv
-      .filter((item) => {
+      .filter(item => {
         return unitMap[item];
       })
-      .map((item) => {
+      .map(item => {
         const info = unitMap[item];
         return {
           avatar: info.avatar,
@@ -246,7 +225,7 @@ export const MemberOptionList: React.FC<
     const hasChecked = Boolean(existValues && existValues.includes(unitId!));
     if (multiMode) {
       if (hasChecked) {
-        return onClickItem((existValues as IUnitIds).filter((item) => item !== unitId));
+        return onClickItem((existValues as IUnitIds).filter(item => item !== unitId));
       }
       return onClickItem([...(existValues ? (existValues as IUnitIds) : []), unitId!]);
     }
@@ -254,7 +233,11 @@ export const MemberOptionList: React.FC<
   }
 
   return (
-    <div className={classNames('memberOptionList', styles.memberOptionList, className)} tabIndex={0} ref={containerRef}>
+    <div
+      className={classNames('memberOptionList', styles.memberOptionList, className)}
+      tabIndex={0}
+      ref={containerRef}
+    >
       <CommonList
         monitorId={monitorId}
         inputRef={inputRef}
@@ -264,93 +247,90 @@ export const MemberOptionList: React.FC<
         activeIndex={activeIndex}
         inputStyle={{ padding: 8 }}
         onInputClear={() => setMemberList(initList)}
-        isLoadingData={memberLoading}
-        noSearchResult={() => {
-          return (
-            <span className={styles.noResult}>
+        noSearchResult={
+          () => {
+            return <span className={styles.noResult}>
               {uniqId == 'unitId' ? t(Strings.cell_not_find_member_or_team) : t(Strings.cell_not_find_member)}
-              {showInviteTip && !formId && !shareId && !embedId && (
+              {
+                (showInviteTip && !formId && !shareId && !embedId) &&
                 <span className={styles.inviteMember} onClick={() => expandInviteModal()}>
                   {t(Strings.invite_member)}
                 </span>
-              )}
-            </span>
-          );
-        }}
+              }
+            </span>;
+          }
+        }
         onSearchChange={(_e, keyword) => {
           run(keyword);
         }}
         // The share page is not allowed to appear View More, the organization in the space station will be leaked
-        footerComponent={
-          showMoreTipButton && !shareId && !embedId
-            ? () => {
-              return (
-                <div
-                  className={styles.seeMore}
-                  onMouseUp={() => {
-                    expandUnitModal({
-                      source: SelectUnitSource.Member,
-                      onSubmit: (values) => handleSubmit(values),
-                      isSingleSelect: !multiMode,
-                      checkedList: standardStructure(existValues),
-                      onClose: () => refreshMemberList(),
-                      showTab: true,
-                    });
-                  }}
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                  }}
-                >
-                  {t(Strings.see_more)}
-                </div>
-              );
-            }
-            : undefined
-        }
+        footerComponent={showMoreTipButton && !shareId && !embedId ? () => {
+          return <div
+            className={styles.seeMore}
+            onMouseUp={() => {
+              expandUnitModal({
+                source: SelectUnitSource.Member,
+                onSubmit: values => handleSubmit(values),
+                isSingleSelect: !multiMode,
+                checkedList: standardStructure(existValues),
+                onClose: () => refreshMemberList(),
+                showTab: true,
+              });
+            }}
+            onMouseDown={e => {
+              e.preventDefault();
+            }}
+          >
+            {t(Strings.see_more)}
+          </div>;
+        } : undefined}
       >
-        {memberList.map((item, index) => {
-          const { userId, uuid, name, nickName, isMemberNameModified, teamData, avatar, avatarColor, unitRefId, type, isDeleted, isActive, desc } =
-            item;
-          const unitId = uniqId === 'unitId' ? item.unitId : userId;
-          const title =
-            getSocialWecomUnitName?.({
+        {
+          memberList.map((item, index) => {
+            const {
+              userId, uuid, name, nickName, isMemberNameModified, teamData, avatar, avatarColor,
+              unitRefId, type, isDeleted, isActive, desc,
+            } = item;
+            const unitId = uniqId === 'unitId' ? item.unitId : userId;
+            const title = getSocialWecomUnitName?.({
               name,
               isModified: isMemberNameModified,
               spaceInfo,
             }) || name;
-          return (
-            <CommonList.Option
-              key={item[uniqId] || index}
-              currentIndex={index}
-              id={item[uniqId] || ''}
-              onMouseDown={(e: React.MouseEvent) => {
-                e.preventDefault();
-              }}
-              className={styles.memberOptionItemWrapper}
-            >
-              <InfoCard
-                title={title}
-                description={teamData && getEnvVariables().UNIT_LIST_TEAM_INFO_VISIBLE ? teamData[0]?.fullHierarchyTeamName : ''}
-                avatarProps={{
-                  id: unitId || '',
-                  title: nickName || name,
-                  src: avatar,
-                  avatarColor,
+            return (
+              <CommonList.Option
+                key={item[uniqId] || index}
+                currentIndex={index}
+                id={item[uniqId] || ''}
+                onMouseDown={(e: React.MouseEvent) => {
+                  e.preventDefault();
                 }}
-                userId={userId || uuid}
-                memberId={unitRefId}
-                triggerBase={triggerBase}
-                className={styles.memberInfoCard}
-                isDeleted={isDeleted}
-                memberType={type}
-                isActive={isActive}
-                desc={desc}
-                isMemberOptionList
-              />
-              <Check isChecked={Boolean(existValues && existValues.includes(unitId!))} />
-            </CommonList.Option>
-          );
-        })}
+                className={styles.memberOptionItemWrapper}
+              >
+                <InfoCard
+                  title={title}
+                  description={(teamData && getEnvVariables().UNIT_LIST_TEAM_INFO_VISIBLE) ? teamData[0]?.fullHierarchyTeamName : ''}
+                  avatarProps={{
+                    id: unitId || '',
+                    title: nickName || name,
+                    src: avatar,
+                    avatarColor
+                  }}
+                  userId={userId || uuid}
+                  memberId={unitRefId}
+                  triggerBase={triggerBase}
+                  className={styles.memberInfoCard}
+                  isDeleted={isDeleted}
+                  memberType={type}
+                  isActive={isActive}
+                  desc={desc}
+                  isMemberOptionList
+                />
+                <Check isChecked={Boolean(existValues && existValues.includes(unitId!))} />
+              </CommonList.Option>
+            );
+          })
+        }
       </CommonList>
     </div>
   );

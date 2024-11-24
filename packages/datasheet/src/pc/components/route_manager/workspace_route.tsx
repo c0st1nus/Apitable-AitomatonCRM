@@ -16,55 +16,48 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { Events, IReduxState, Player, Selectors } from '@apitable/core';
 import { useMount } from 'ahooks';
+import { MirrorRoute } from 'pc/components/mirror/mirror_route';
 import * as React from 'react';
 import { FC } from 'react';
-import { Events, IReduxState, Player, Selectors } from '@apitable/core';
-import { AutomationPanelWrapper } from 'pc/components/automation/modal/automation_panel_wrapper';
-import { MirrorRoute } from 'pc/components/mirror/mirror_route';
-import { useAppSelector } from 'pc/store/react-redux';
-import { CustomPage } from '../custom_page/custom_page';
+import { shallowEqual, useSelector } from 'react-redux';
 import { DashboardPanel } from '../dashboard_panel';
 import { DataSheetPane } from '../datasheet_pane';
 import { FolderShowcase } from '../folder_showcase';
 import { FormPanel } from '../form_panel';
 import { NoPermission } from '../no_permission';
 import { Welcome } from '../workspace/welcome';
-// @ts-ignore
-import { ChatPage } from 'enterprise/chat/chat_page';
 
 const WorkspaceRoute: FC<React.PropsWithChildren<unknown>> = () => {
-  const nodeId = useAppSelector((state) => Selectors.getNodeId(state));
-  const activeNodePrivate = useAppSelector((state) =>
-    state.catalogTree.treeNodesMap[nodeId]?.nodePrivate || state.catalogTree.privateTreeNodesMap[nodeId]?.nodePrivate
-  );
-
-  const activeNodeError = useAppSelector((state) => state.catalogTree.activeNodeError);
-  const { datasheetId, folderId, automationId, formId, dashboardId, mirrorId, aiId, customPageId } = useAppSelector(
-    (state: IReduxState) => state.pageParams,
-  );
-  const nodesMap = useAppSelector((state: IReduxState) => state.catalogTree[activeNodePrivate ? 'privateTreeNodesMap' : 'treeNodesMap']);
+  const nodeId = useSelector(state => Selectors.getNodeId(state));
+  const activeNodeError = useSelector(state => state.catalogTree.activeNodeError);
+  const { datasheetId, folderId, formId, dashboardId, mirrorId } = useSelector((state: IReduxState) => {
+    return {
+      datasheetId: state.pageParams.datasheetId,
+      folderId: state.pageParams.folderId,
+      formId: state.pageParams.formId,
+      dashboardId: state.pageParams.dashboardId,
+      mirrorId: state.pageParams.mirrorId,
+    };
+  }, shallowEqual);
+  const treeNodesMap = useSelector((state: IReduxState) => state.catalogTree.treeNodesMap);
 
   useMount(() => {
+    Player.doTrigger(Events.questionnaire_shown_after_sign);
     Player.doTrigger(Events.questionnaire_shown);
   });
 
   const getChildList = (folderId: string) => {
-    const parentNode = nodesMap[folderId];
+    const parentNode = treeNodesMap[folderId];
     let childNodes: any[] = [];
-    if (parentNode && nodesMap[parentNode.nodeId].hasChildren && parentNode.children.length) {
-      childNodes = parentNode.children.map((nodeId) => nodesMap[nodeId]);
+    if (parentNode && treeNodesMap[parentNode.nodeId].hasChildren && parentNode.children.length) {
+      childNodes = parentNode.children.map(nodeId => treeNodesMap[nodeId]);
     }
     return childNodes;
   };
 
   const MainComponent = (): React.ReactElement => {
-    if (customPageId) {
-      return <CustomPage key={customPageId} />;
-    }
-    if (automationId) {
-      return <AutomationPanelWrapper automationId={automationId} />;
-    }
     if (activeNodeError) {
       return <NoPermission />;
     }
@@ -82,11 +75,11 @@ const WorkspaceRoute: FC<React.PropsWithChildren<unknown>> = () => {
         <FolderShowcase
           nodeInfo={{
             id: nodeId!,
-            name: nodesMap[nodeId!] ? nodesMap[nodeId!].nodeName : '',
-            icon: nodesMap[nodeId!] ? nodesMap[nodeId!].icon : '',
-            role: nodesMap[nodeId!] ? nodesMap[nodeId!].role : '',
-            nodeFavorite: nodesMap[nodeId!] && nodesMap[nodeId!].nodeFavorite,
-            permissions: nodesMap[nodeId!] && nodesMap[nodeId!].permissions,
+            name: treeNodesMap[nodeId!] ? treeNodesMap[nodeId!].nodeName : '',
+            icon: treeNodesMap[nodeId!] ? treeNodesMap[nodeId!].icon : '',
+            role: treeNodesMap[nodeId!] ? treeNodesMap[nodeId!].role : '',
+            nodeFavorite: treeNodesMap[nodeId!] && treeNodesMap[nodeId!].nodeFavorite,
+            permissions: treeNodesMap[nodeId!] && treeNodesMap[nodeId!].permissions,
           }}
           childNodes={getChildList(folderId)}
         />
@@ -94,10 +87,6 @@ const WorkspaceRoute: FC<React.PropsWithChildren<unknown>> = () => {
     }
     if (dashboardId) {
       return <DashboardPanel />;
-    }
-
-    if (aiId && ChatPage) {
-      return <ChatPage />;
     }
     return <Welcome />;
   };

@@ -18,8 +18,7 @@
 
 import type { APIMetaFieldPropertyFormatEnums, APIMetaMemberType, TSymbolAlign } from '../field_api_enums';
 import type { IFormat } from '../field_api_property_types';
-import type { BasicValueType, CollectType, ILookUpSortInfo, IMultiSelectedIds, LookUpLimitType, RollUpFuncType } from '../field_types';
-import { IOpenLookUpFilterInfo } from './open_lookup_types';
+import type { BasicValueType, CollectType, IMultiSelectedIds, RollUpFuncType } from '../field_types';
 export interface IOpenField {
   /** fieldId */
   id: string;
@@ -54,7 +53,6 @@ export type IOpenFieldProperty = IOpenTextFieldProperty
   | IOpenMemberFieldProperty
   | IOpenDateTimeFieldProperty
   | IOpenAttachmentFieldProperty
-  | IOpenOneWayLinkFieldProperty
   | IOpenMagicLinkFieldProperty
   | IOpenMagicLookUpFieldProperty
   | IOpenFormulaFieldProperty
@@ -156,17 +154,6 @@ export interface IOpenDateTimeFieldProperty {
 
 export type IOpenAttachmentFieldProperty = null;
 
-export interface IOpenOneWayLinkFieldProperty {
-  /** Association table ID */
-  foreignDatasheetId: string;
-  /** The associated field ID of the associated table */
-  brotherFieldId?: string;
-  /** Specify view ID to filter records */
-  limitToViewId?: string;
-  /** Whether to limit the selection to only a single record */
-  limitSingleRecord?: boolean;
-}
-
 export interface IOpenMagicLinkFieldProperty {
   /** Association table ID */
   foreignDatasheetId: string;
@@ -201,10 +188,6 @@ export interface IOpenMagicLookUpFieldProperty {
   valueType?: 'String' | 'Boolean' | 'Number' | 'DateTime' | 'Array';
   /** Format, because the reference field is different, the format is different (number, percentage, date, currency) */
   format?: IOpenComputedFormat;
-  enableFilterSort?: boolean;
-  filterInfo?: IOpenLookUpFilterInfo;
-  sortInfo?: ILookUpSortInfo;
-  lookUpLimit?: LookUpLimitType;
 }
 export interface IOpenFormulaFieldProperty {
   /** formula expression */

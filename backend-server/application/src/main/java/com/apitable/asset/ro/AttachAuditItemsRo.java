@@ -19,8 +19,7 @@
 package com.apitable.asset.ro;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
-import jakarta.validation.constraints.NotNull;
+import javax.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
@@ -33,23 +32,21 @@ import lombok.Data;
 public class AttachAuditItemsRo {
 
 
-    @Schema(description = "Operation instructions for processing file results",
-        requiredMode = RequiredMode.REQUIRED)
+    @Schema(description = "Operation instructions for processing file results", required = true)
     @NotNull(message = "Operation instructions for processing file results")
     private String cmd;
 
-    @Schema(description = "Operation status code of processing file results",
-        requiredMode = RequiredMode.REQUIRED)
+    @Schema(description = "Operation status code of processing file results", required = true)
     @NotNull(message = "Operation status code of processing file results")
     private String code;
 
-    @Schema(description = "Operation description of processing file results",
-        requiredMode = RequiredMode.REQUIRED)
+    @Schema(description = "Operation description of processing file results", required = true)
     @NotNull(message = "Operation description of processing file results")
     private String desc;
 
-    @Schema(description = "Results of processing files", requiredMode = RequiredMode.REQUIRED)
+    @Schema(description = "Results of processing files", required = true)
     @NotNull(message = "Results of processing files")
     private AttachAuditResultDisableRo result;
+
 
 }

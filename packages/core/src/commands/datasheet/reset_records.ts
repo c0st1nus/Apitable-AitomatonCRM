@@ -17,12 +17,8 @@
  */
 
 import { ExecuteResult, ICollaCommandDef } from 'command_manager';
-import { CollaCommandName } from 'commands/enum';
-import { IRecordMap, IReduxState } from '../../exports/store/interfaces';
-import {
-  getActiveDatasheetId,
-  getSnapshot,
-} from 'modules/database/store/selectors/resource/datasheet/base';
+import { CollaCommandName } from 'commands';
+import { IRecordMap, IReduxState, Selectors } from '../../exports/store';
 import { ResourceType } from 'types';
 import { Store } from 'redux';
 import { IJOTAction, OTActionName } from 'engine';
@@ -38,10 +34,10 @@ export const resetRecords: ICollaCommandDef<IResetRecordsOptions> = {
   undoable: true,
 
   execute: (context, options) => {
-    const { state: state, fieldMapSnapshot } = context;
+    const { model: state, fieldMapSnapshot } = context;
     const { data: _data } = options;
-    const datasheetId = options.datasheetId || getActiveDatasheetId(state)!;
-    const snapshot = getSnapshot(state, datasheetId);
+    const datasheetId = options.datasheetId || Selectors.getActiveDatasheetId(state)!;
+    const snapshot = Selectors.getSnapshot(state, datasheetId);
 
     if (!snapshot) {
       return null;

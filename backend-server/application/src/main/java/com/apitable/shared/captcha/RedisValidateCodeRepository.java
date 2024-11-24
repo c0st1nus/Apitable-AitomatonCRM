@@ -18,17 +18,21 @@
 
 package com.apitable.shared.captcha;
 
-import cn.hutool.json.JSONUtil;
-import com.apitable.core.constants.RedisConstants;
-import jakarta.annotation.Resource;
 import java.util.concurrent.TimeUnit;
+
+import javax.annotation.Resource;
+
+import cn.hutool.json.JSONUtil;
 import lombok.extern.slf4j.Slf4j;
+
+import com.apitable.core.constants.RedisConstants;
+
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 /**
  * <p>
- * The verification code accessor based on Redis storage avoids the problem that the verification code cannot be accessed due to no session.
+ * The verification code accessor based on Redis storage avoids the problem that the verification code cannot be accessed due to no session
  * </p>
  *
  * @author Shawn Deng
@@ -43,8 +47,7 @@ public class RedisValidateCodeRepository implements ValidateCodeRepository {
     @Override
     public void save(String type, ValidateCode code, String target, int effectiveTime) {
         String key = getSaveKey(type, code.getScope(), target);
-        redisTemplate.opsForValue()
-            .set(key, JSONUtil.toJsonStr(code), effectiveTime, TimeUnit.MINUTES);
+        redisTemplate.opsForValue().set(key, JSONUtil.toJsonStr(code), effectiveTime, TimeUnit.MINUTES);
     }
 
     @Override

@@ -16,27 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import classNames from 'classnames';
-import produce from 'immer';
-import * as React from 'react';
-import { useContext, useMemo } from 'react';
-// eslint-disable-next-line no-restricted-imports
 import { IOption, Select, useThemeColors } from '@apitable/components';
 import {
-  BasicValueType,
-  checkTypeSwitch,
-  Field,
-  FieldType,
-  FilterDuration,
-  IFieldMap,
-  IFilterCondition,
-  IViewColumn,
-  Selectors,
-  Strings,
-  t,
+  BasicValueType, checkTypeSwitch, Field, FieldType, FilterDuration, IFieldMap, IFilterCondition, IViewColumn, Selectors, Strings, t,
 } from '@apitable/core';
 import { ChevronDownOutlined, WarnCircleFilled } from '@apitable/icons';
-// eslint-disable-next-line no-restricted-imports
+import classNames from 'classnames';
+import produce from 'immer';
 import { MobileSelect, Tooltip } from 'pc/components/common';
 import { ScreenSize } from 'pc/components/common/component_display';
 import { FieldPermissionLock } from 'pc/components/field_permission';
@@ -44,7 +30,9 @@ import { getFieldTypeIcon } from 'pc/components/multi_grid/field_setting';
 import { renderComputeFieldError } from 'pc/components/multi_grid/header';
 import { ViewFilterContext } from 'pc/components/tool_bar/view_filter/view_filter_context';
 import { useResponsive } from 'pc/hooks';
-import { useAppSelector } from 'pc/store/react-redux';
+import * as React from 'react';
+import { useContext, useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import { ExecuteFilterFn } from '../interface';
 import styles from './style.module.less';
 
@@ -60,10 +48,10 @@ interface IFilterFieldListProps {
   warnTextObj?: { string?: string };
 }
 
-const FilterFieldListBase: React.FC<React.PropsWithChildren<IFilterFieldListProps>> = (props) => {
+const FilterFieldListBase: React.FC<React.PropsWithChildren<IFilterFieldListProps>> = props => {
   const { conditionIndex, changeFilter, condition, fieldMap, columns, warnTextObj, isCryptoField, fieldNotFound } = props;
   const colors = useThemeColors();
-  const fieldPermissionMap = useAppSelector(Selectors.getFieldPermissionMap);
+  const fieldPermissionMap = useSelector(Selectors.getFieldPermissionMap);
   const { isViewLock } = useContext(ViewFilterContext);
   const { screenIsAtMost } = useResponsive();
   const isMobile = screenIsAtMost(ScreenSize.md);
@@ -80,8 +68,8 @@ const FilterFieldListBase: React.FC<React.PropsWithChildren<IFilterFieldListProp
   }
 
   function onChange(selectValue: string) {
-    changeFilter((value) => {
-      return produce(value, (draft) => {
+    changeFilter(value => {
+      return produce(value, draft => {
         const field = fieldMap[selectValue];
         const condition = draft.conditions[conditionIndex];
         const { valueType } = Field.bindModel(field);
@@ -104,14 +92,13 @@ const FilterFieldListBase: React.FC<React.PropsWithChildren<IFilterFieldListProp
     return renderComputeFieldError(fieldMap[fieldId], t(Strings.error_configuration_and_invalid_filter_option), isMobile, warnText);
   };
 
-  const options: IOption[] = columns.map((item) => {
+  const options: IOption[] = columns.map(item => {
     const field = fieldMap[item.fieldId];
     const warnText = warnTextObj && warnTextObj[item.fieldId];
     const hasError = Field.bindModel(field).hasError;
-    const canFiltered = Field.bindModel(field).canFilter;
     return {
       label: field.name,
-      disabled: Boolean(hasError || warnText || !canFiltered),
+      disabled: Boolean(hasError || warnText),
       value: item.fieldId,
       prefixIcon: getFieldTypeIcon(field.type!),
       suffixIcon: getSuffixIcon(item.fieldId, warnText),
@@ -152,7 +139,7 @@ const FilterFieldListBase: React.FC<React.PropsWithChildren<IFilterFieldListProp
               [styles.error]: isCryptoField || fieldNotFound ? false : Field.bindModel(fieldMap[condition.fieldId]).hasError,
             })}
           >
-            <span>{options.filter((option) => option.value === condition.fieldId)[0]?.label}</span>
+            <span>{options.filter(option => option.value === condition.fieldId)[0]?.label}</span>
             {renderComputeFieldError(fieldMap[condition.fieldId], t(Strings.error_configuration_and_invalid_filter_option))}
             <ChevronDownOutlined className={styles.arrow} size={16} color={colors.fourthLevelText} />
           </div>
@@ -165,7 +152,7 @@ const FilterFieldListBase: React.FC<React.PropsWithChildren<IFilterFieldListProp
     <Select
       options={options}
       value={condition.fieldId}
-      onSelected={(option) => {
+      onSelected={option => {
         onChange(option.value as string);
       }}
       triggerCls={classNames(styles.field, 'filterField')}
@@ -174,7 +161,7 @@ const FilterFieldListBase: React.FC<React.PropsWithChildren<IFilterFieldListProp
       openSearch
       searchPlaceholder={t(Strings.search)}
       popupStyle={{
-        zIndex: 1000,
+        zIndex: 1000
       }}
       disabled={isViewLock}
       disabledTip={t(Strings.view_lock_setting_desc)}

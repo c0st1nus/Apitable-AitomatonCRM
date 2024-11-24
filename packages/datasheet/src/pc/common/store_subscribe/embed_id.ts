@@ -33,12 +33,16 @@ store.subscribe(function embedIdChange() {
   }
   console.log('init embedId: ', embedId);
 
-  Api.getEmbedLinkInfo(embedId).then((res) => {
+  Api.getEmbedLinkInfo(embedId).then(res => {
     const { success, data } = res.data;
     if (success) {
       // dispatch(StoreActions.setLoading(false));
-      const { embedInfo, spaceId } = data;
-      const { payload: embedSetting } = embedInfo;
+      const {
+        embedInfo, spaceId
+      } = data;
+      const {
+        payload: embedSetting,
+      } = embedInfo;
       store.dispatch(StoreActions.setEmbedInfo({ ...embedSetting, spaceId }));
     } else {
       resourceService.instance!.destroy();

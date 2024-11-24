@@ -93,7 +93,6 @@ import com.apitable.workspace.service.INodeService;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.extension.toolkit.SqlHelper;
-import jakarta.annotation.Resource;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -106,6 +105,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.cursor.Cursor;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -183,10 +183,6 @@ public class PlayerNotificationServiceImpl
             return;
         }
         NotificationToTag toTag = NotificationToTag.getValue(template.getToTag());
-        if (toTag == null) {
-            log.error("fail to get tag:{}", template.getToTag());
-            return;
-        }
         ExceptionUtil.isNotNull(toTag, NotificationException.TMPL_TO_TAG_ERROR);
         if (NotificationToTag.toUserTag(toTag)) {
             createUserNotify(template, ro);
@@ -222,7 +218,7 @@ public class PlayerNotificationServiceImpl
             if (CollUtil.isNotEmpty(ro.getToMemberId())) {
                 toMemberIds.addAll(
                     CollUtil.removeBlank(CollUtil.distinct(ro.getToMemberId())).stream()
-                        .map(Long::valueOf).toList());
+                        .map(Long::valueOf).collect(Collectors.toList()));
             }
             if (CollUtil.isNotEmpty(ro.getToUnitId())) {
                 List<Long> unitIds =
@@ -281,8 +277,8 @@ public class PlayerNotificationServiceImpl
     }
 
     @Override
-    public void createNotifyWithoutVerify(List<Long> userIds,
-                                          NotificationTemplate template, NotificationCreateRo ro) {
+    public boolean createNotifyWithoutVerify(List<Long> userIds, NotificationTemplate template,
+                                             NotificationCreateRo ro) {
         // todo message middle key
         List<PlayerNotificationEntity> creatEntities = new ArrayList<>();
         List<PlayerNotificationEntity> notifyEntities = new ArrayList<>();
@@ -313,7 +309,7 @@ public class PlayerNotificationServiceImpl
             TaskManager.me()
                 .execute(() -> sendMailNotifyBatch(template, mailUserIds, formatEmailDetailVo(ro)));
         }
-        createBatch(notifyEntities, creatEntities);
+        return createBatch(notifyEntities, creatEntities);
     }
 
     @Override
@@ -383,7 +379,7 @@ public class PlayerNotificationServiceImpl
             return notificationRecordList;
         }
         dtos = dtos.stream().filter(dto -> {
-            if (Boolean.TRUE.equals(ro.getIsRead())) {
+            if (ro.getIsRead() == 1) {
                 return true;
             }
             // check expired
@@ -404,7 +400,7 @@ public class PlayerNotificationServiceImpl
 
     @Override
     public List<NotificationModelDTO> getUserNotificationByTypeAndIsRead(Long toUser,
-                                                                         Boolean isRead) {
+                                                                         Integer isRead) {
         return baseMapper.selectDtoByTypeAndIsRead(toUser, isRead);
     }
 
@@ -466,7 +462,8 @@ public class PlayerNotificationServiceImpl
         List<UserLangDTO> users = iUserService.getLangAndEmailByIds(userIds,
             LocaleContextHolder.getLocale().toLanguageTag());
         // timestamp transform
-        List<String> dateKeys = dict.keySet().stream().filter(i -> i.endsWith("AT")).toList();
+        List<String> dateKeys = dict.keySet().stream().filter(i -> i.endsWith("AT")).collect(
+            Collectors.toList());
         if (dateKeys.isEmpty()) {
             List<MailWithLang> tos = users.stream()
                 .filter(i -> StrUtil.isNotBlank(i.getEmail()))
@@ -503,7 +500,7 @@ public class PlayerNotificationServiceImpl
         notificationModelDTOList.forEach(dto -> {
             NotificationDetailVo detailVo =
                 NotificationDetailVo.builder().id(dto.getId().toString())
-                    .rowNo(dto.getRowNo()).toUuid(uuid).createdAt(dto.getCreatedAt())
+                    .rowNo(dto.getRowNo()).toUserId(uuid).toUuid(uuid).createdAt(dto.getCreatedAt())
                     .updatedAt(dto.getUpdatedAt()).isRead(dto.getIsRead())
                     .notifyType(dto.getNotifyType())
                     .templateId(dto.getTemplateId())
@@ -518,7 +515,7 @@ public class PlayerNotificationServiceImpl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public boolean setNotificationIsRead(String[] ids, Boolean isAll) {
+    public boolean setNotificationIsRead(String[] ids, Integer isAll) {
         Long userId = SessionContext.getUserId();
         if (ArrayUtil.isNotEmpty(ids)) {
             // It may be jumped by mail, you need to find the specific ID in redis, and then mark it as read
@@ -533,7 +530,7 @@ public class PlayerNotificationServiceImpl
             if (NumberUtil.isLong(ids[0])) {
                 return baseMapper.updateReadIsTrueByIds(ids);
             }
-        } else if (Boolean.TRUE.equals(isAll)) {
+        } else if (isAll != 0) {
             return baseMapper.updateReadIsTrueByUserId(userId);
         }
         return true;
@@ -587,9 +584,8 @@ public class PlayerNotificationServiceImpl
                 spaceRoleService.getSpaceAdminsWithWorkbenchManage(spaceId), spaceId);
         }
         if (toTag.equals(NotificationToTag.SPACE_MEMBER_ADMINS)) {
-            List<Long> memberAdminIds =
-                spaceMemberRoleRelService.getMemberIdListByResourceGroupCodes(spaceId,
-                    ListUtil.toList(NotificationConstants.TO_MANAGE_MEMBER_RESOURCE_CODE));
+            List<Long> memberAdminIds = spaceMemberRoleRelService.getMemberId(spaceId,
+                ListUtil.toList(NotificationConstants.TO_MANAGE_MEMBER_RESOURCE_CODE));
             memberAdminIds.add(notificationFactory.getSpaceSuperAdmin(spaceId));
             if (CollUtil.isNotEmpty(memberAdminIds)) {
                 return notificationFactory.getMemberUserIdExcludeDeleted(memberAdminIds);
@@ -681,12 +677,13 @@ public class PlayerNotificationServiceImpl
             dict.set(EMAIL_SPACE_NAME,
                 StrUtil.blankToDefault(iSpaceService.getNameBySpaceId(ro.getSpaceId()), ""));
         }
-        String memberName = null != ro.getFromUserId()
-            ? StrUtil.blankToDefault(
-            iMemberService.getMemberNameByUserIdAndSpaceId(Long.parseLong(ro.getFromUserId()),
-                ro.getSpaceId()), I18nStringsUtil.t("unnamed"))
-            : I18nStringsUtil.t("unnamed");
-        dict.set(EMAIL_MEMBER_NAME, memberName);
+        long fromUserId = Long.parseLong(ro.getFromUserId());
+        if (fromUserId > 0) {
+            String memberName =
+                StrUtil.blankToDefault(iMemberService.getMemberNameByUserIdAndSpaceId(fromUserId,
+                    ro.getSpaceId()), I18nStringsUtil.t("unnamed"));
+            dict.set(EMAIL_MEMBER_NAME, memberName);
+        }
         if (ObjectUtil.isNotNull(ro.getBody())) {
             JSONObject extras = NotificationHelper.getExtrasFromNotifyBody(ro.getBody());
             if (extras != null) {
@@ -726,16 +723,11 @@ public class PlayerNotificationServiceImpl
                     dict.set(EMAIL_CREATED_AT,
                         ClockManager.me().getUtcNow().toInstant().toEpochMilli());
                 } else {
-                    notifyUr.append(notifyPath.build(CharsetUtil.CHARSET_UTF_8));
                     dict.set(EMAIL_DATASHEET_URL, notifyUr.toString());
-                    dict.set(EMAIL_URL, notifyUr.toString());
-                    dict.set(EMAIL_CREATED_AT,
-                        ClockManager.me().getUtcNow().toInstant().toEpochMilli());
                 }
             }
         } else {
-            String url = template.getUrl() == null ? constProperties.getServerDomain()
-                : constProperties.getServerDomain() + template.getUrl();
+            String url = constProperties.getServerDomain() + template.getUrl();
             dict.set(EMAIL_URL, url);
         }
         return dict;

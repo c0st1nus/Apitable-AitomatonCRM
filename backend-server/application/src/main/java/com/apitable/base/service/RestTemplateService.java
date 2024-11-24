@@ -18,26 +18,27 @@
 
 package com.apitable.base.service;
 
-import com.apitable.workspace.ro.FieldPermissionChangeNotifyRo;
-import com.apitable.workspace.ro.NodeShareDisableNotifyRo;
 import java.util.List;
 
+import com.apitable.workspace.ro.FieldPermissionChangeNotifyRo;
+import com.apitable.workspace.ro.NodeShareDisableNotifyRo;
+
 /**
- * RestTemplate service.
+ * RestTemplate service
  */
 public interface RestTemplateService {
 
     /**
-     * turn off node sharing notifications.
+     * turn off node sharing notifications
      *
      * @param message request message
      */
     void disableNodeShareNotify(List<NodeShareDisableNotifyRo> message);
 
     /**
-     * field permission change notification.
+     * field permission change notification
      *
-     * @param message request message
+     * @param  message request message
      */
     void fieldPermissionChangeNotify(FieldPermissionChangeNotifyRo message);
 }

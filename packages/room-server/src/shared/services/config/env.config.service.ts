@@ -45,7 +45,6 @@ export class EnvConfigService implements OnApplicationShutdown {
     const oss: IOssConfig = {
       host: process.env.OSS_HOST!,
       bucket: process.env.OSS_BUCKET!,
-      ossSignatureEnabled: process.env.OSS_SIGNATURE_ENABLED === 'true',
     };
     this.configStore.set(EnvConfigKey.OSS, oss);
 

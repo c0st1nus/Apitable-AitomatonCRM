@@ -18,22 +18,23 @@
 
 package com.apitable.shared.cache.service;
 
-import com.apitable.shared.cache.bean.SpaceMenuResourceGroupDto;
 import java.util.List;
+
+import com.apitable.shared.cache.bean.SpaceMenuResourceGroupDto;
 
 /**
  * <p>
- * space resource service.
+ * space resource service
  * </p>
  *
  * @author Shawn Deng
  */
 public interface SpaceResourceCacheService {
 
-    /**
-     * resource structured data.
-     *
-     * @return space menu resource group
-     */
-    List<SpaceMenuResourceGroupDto> getMenuResourceGroup();
+	/**
+	 * resource structured data
+	 *
+	 * @return space menu resource group
+	 */
+	List<SpaceMenuResourceGroupDto> getMenuResourceGroup();
 }

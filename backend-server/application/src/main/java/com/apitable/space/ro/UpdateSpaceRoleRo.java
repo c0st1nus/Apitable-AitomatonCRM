@@ -21,10 +21,9 @@ package com.apitable.space.ro;
 import com.apitable.core.support.deserializer.StringToLongDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import java.util.List;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
@@ -37,20 +36,18 @@ import lombok.Data;
 public class UpdateSpaceRoleRo {
 
     @NotNull(message = "ID cannot be empty")
-    @Schema(description = "Role ID", requiredMode = RequiredMode.REQUIRED,
-        type = "java.lang.String", example = "1")
+    @Schema(description = "Role ID", type = "java.lang.String", example = "1", required = true)
     @JsonDeserialize(using = StringToLongDeserializer.class)
     private Long id;
 
     @NotNull(message = "The selected member cannot be empty")
-    @Schema(description = "Select Member ID", requiredMode = RequiredMode.REQUIRED,
-        type = "java.lang.String", example = "1")
+    @Schema(description = "Select Member ID", type = "java.lang.String", example = "1", required
+        = true)
     @JsonDeserialize(using = StringToLongDeserializer.class)
     private Long memberId;
 
     @NotEmpty(message = "The assignment permission cannot be empty")
-    @Schema(description = "Operation resource set, no sorting, automatic verification",
-        requiredMode = RequiredMode.REQUIRED, type = "List",
-        example = "[\"MANAGE_TEAM\",\"MANAGE_MEMBER\"]")
+    @Schema(description = "Operation resource set, no sorting, automatic verification", type =
+        "List", required = true, example = "[\"MANAGE_TEAM\",\"MANAGE_MEMBER\"]")
     private List<String> resourceCodes;
 }

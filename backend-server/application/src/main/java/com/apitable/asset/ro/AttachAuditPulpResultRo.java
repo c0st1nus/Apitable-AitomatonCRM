@@ -19,8 +19,7 @@
 package com.apitable.asset.ro;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
-import jakarta.validation.constraints.NotNull;
+import javax.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
@@ -33,7 +32,7 @@ import lombok.Data;
 public class AttachAuditPulpResultRo {
 
     @Schema(description = "Suggestion is the corresponding control suggestion of various audit "
-        + "types, Values include:[“block”,”review”,”pass”]", requiredMode = RequiredMode.REQUIRED)
+        + "types, Values include:[“block”,”review”,”pass”]", required = true)
     @NotNull(message = "Suggestion is the corresponding control suggestion of various audit "
         + "types, Values include:[“block”,”review”,”pass”]")
     private String suggestion;

@@ -25,7 +25,8 @@ import com.apitable.space.service.ILabsFeatureService;
 import com.apitable.space.vo.UserSpaceLabsFeatureVo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.annotation.Resource;
+import javax.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -34,6 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @Tag(name = "Laboratory module_ Experimental function interface")
 @ApiResource(path = "/labs")
+@Slf4j
 public class LabsFeatureController {
 
     @Resource
@@ -42,7 +44,7 @@ public class LabsFeatureController {
     /**
      * Get Lab Function List.
      */
-    @GetResource(path = "/features", requiredPermission = false)
+    @GetResource(name = "Get Lab Function List", path = "/features", requiredPermission = false)
     @Operation(summary = "Get Lab Function List")
     public ResponseData<UserSpaceLabsFeatureVo> showAvailableLabsFeatures() {
         // Get a list of available experiments

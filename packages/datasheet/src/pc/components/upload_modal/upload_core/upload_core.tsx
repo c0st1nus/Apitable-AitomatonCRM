@@ -16,25 +16,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { IAttachmentValue, moveArrayElement, RowHeightLevel, IAttacheField } from '@apitable/core';
 import classNames from 'classnames';
 import type { Identifier } from 'dnd-core';
 import produce from 'immer';
+import { ItemTypes } from 'pc/components/gallery_view/constant';
+import { IDragItem } from 'pc/components/gallery_view/interface';
+import { resourceService } from 'pc/resource_service';
+import { isTouchDevice, UploadManager } from 'pc/utils';
 import * as React from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { DndProvider, DropTargetMonitor, useDrag, useDrop } from 'react-dnd';
-import { IAttacheField, IAttachmentValue, moveArrayElement, RowHeightLevel } from '@apitable/core';
-import { ItemTypes } from 'pc/components/gallery_view/constant';
-import { IDragItem } from 'pc/components/gallery_view/interface';
-import withScrolling from 'pc/components/react-dnd-scrolling';
-import { resourceService } from 'pc/resource_service';
-import { isTouchDevice, UploadManager } from 'pc/utils';
-import { dndH5Manager, dndTouchManager } from 'pc/utils/dnd_manager';
 import { stopPropagation } from '../../../utils/dom';
 import { PreviewItem } from '../preview_item/preview_item';
 import { UploadItem } from '../upload_item';
 import { UploadTab } from '../upload_tab';
-import { IUploadFileList } from './upload_core.interface';
 import styles from './styles.module.less';
+import { IUploadFileList } from './upload_core.interface';
+import withScrolling from 'pc/components/react-dnd-scrolling';
+import { dndH5Manager, dndTouchManager } from 'pc/utils/dnd_manager';
 
 const ScrollingComponent = withScrolling('div');
 
@@ -49,7 +49,7 @@ interface IUploadCoreProps {
   size?: UploadCoreSize;
   rowHeightLevel?: RowHeightLevel;
   onSave?: (cellValue: IAttachmentValue[]) => void;
-  getCellValueFn?: (datasheetId: string | undefined, recordId: string, fieldId: string) => IAttachmentValue[];
+  getCellValueFn?: (datasheetId: string | undefined, recordId: string, fieldId: string) => IAttachmentValue[],
   className?: string;
 }
 
@@ -72,7 +72,7 @@ interface ISortableList {
   deleteUploadItem: (fileId: string) => void;
   onSave?: (cellValue: IAttachmentValue[]) => void;
   getCellValueFn?: (datasheetId: string | undefined, recordId: string, fieldId: string) => IAttachmentValue[];
-  onMove: ({ oldIndex, newIndex }: { oldIndex: number; newIndex: number }) => void;
+  onMove: ({ oldIndex, newIndex }: { oldIndex: number, newIndex: number }) => void;
 }
 
 interface ISortableItem {
@@ -86,52 +86,59 @@ interface ISortableItem {
   onSave?: (cellValue: IAttachmentValue[]) => void;
   datasheetId: string;
   onSortEnd: () => void;
-  onMove: ({ oldIndex, newIndex }: { oldIndex: number; newIndex: number }) => void;
+  onMove: ({ oldIndex, newIndex }: { oldIndex: number, newIndex: number }) => void;
 }
 
-const SortableItem = ({ item, id, idx, cellValue, recordId, field, readonly, onSave, datasheetId, onSortEnd, onMove }: ISortableItem) => {
+const SortableItem = (
+  {
+    item,
+    id,
+    idx,
+    cellValue,
+    recordId,
+    field,
+    readonly,
+    onSave,
+    datasheetId,
+    onSortEnd,
+    onMove
+  }: ISortableItem
+) => {
   const ref = useRef<HTMLDivElement>(null);
-  const [, drop] = useDrop<
-    IDragItem,
-    void,
+  const [, drop] = useDrop<IDragItem, void, { handlerId: Identifier | null }>(
     {
-      handlerId: Identifier | null;
-    }
-  >({
-    accept: ItemTypes.CARD,
-    drop() {
-      onSortEnd();
-    },
-    hover(item: IDragItem, monitor: DropTargetMonitor) {
-      if (!ref.current) {
-        return;
-      }
-      const dragIndex = item.index;
-      const hoverIndex = idx;
+      accept: ItemTypes.CARD,
+      drop() {
+        onSortEnd();
+      },
+      hover(item: IDragItem, monitor: DropTargetMonitor) {
+        if (!ref.current) {
+          return;
+        }
+        const dragIndex = item.index;
+        const hoverIndex = idx;
 
-      // Don't replace items with themselves
-      if (dragIndex === hoverIndex) {
-        return;
-      }
-      const dragItemRect = monitor.getClientOffset()!;
-      const dropItemRect = ref.current?.getBoundingClientRect();
-      if (
-        !(
-          dragItemRect.x > dropItemRect.x &&
-          dragItemRect.x < dropItemRect.x + dropItemRect.width &&
-          dragItemRect.y > dropItemRect.y &&
-          dragItemRect.y < dropItemRect.y + dropItemRect.height
-        )
-      ) {
-        return;
-      }
-      if (item.id === id) {
-        return;
-      }
-      onMove({ oldIndex: dragIndex, newIndex: hoverIndex });
-      item.index = hoverIndex;
-    },
-  });
+        // Don't replace items with themselves
+        if (dragIndex === hoverIndex) {
+          return;
+        }
+        const dragItemRect = monitor.getClientOffset()!;
+        const dropItemRect = ref.current?.getBoundingClientRect();
+        if (!(
+          dragItemRect.x > dropItemRect.x && dragItemRect.x < dropItemRect.x + dropItemRect.width &&
+          dragItemRect.y > dropItemRect.y && dragItemRect.y < dropItemRect.y + dropItemRect.height
+        )) {
+          return;
+        }
+        if (item.id === id) {
+          return;
+        }
+        onMove({ oldIndex: dragIndex, newIndex: hoverIndex });
+        item.index = hoverIndex;
+
+      },
+    }
+  );
 
   const [, drag] = useDrag({
     type: ItemTypes.CARD,
@@ -141,7 +148,6 @@ const SortableItem = ({ item, id, idx, cellValue, recordId, field, readonly, onS
     collect: (monitor: any) => ({
       isDragging: monitor.isDragging(),
     }),
-    canDrag: () => !readonly,
   });
 
   drag(drop(ref));
@@ -160,27 +166,30 @@ const SortableItem = ({ item, id, idx, cellValue, recordId, field, readonly, onS
         onSave={onSave}
       />
     </div>
+
   );
 };
 
-const SortableList = ({
-  cellValue,
-  datasheetId,
-  recordId,
-  rowHeightLevel,
-  field,
-  uploadList,
-  readonly,
-  deleteUploadItem,
-  onSave,
-  getCellValueFn,
-  onSortEnd,
-  onMove,
-}: ISortableList) => {
+const SortableList = (
+  {
+    cellValue,
+    datasheetId,
+    recordId,
+    rowHeightLevel,
+    field,
+    uploadList,
+    readonly,
+    deleteUploadItem,
+    onSave,
+    getCellValueFn,
+    onSortEnd,
+    onMove
+  }: ISortableList
+) => {
   return (
     <div className={styles.sortContainer}>
-      {cellValue &&
-        cellValue.map((value: IAttachmentValue, index: number) => {
+      {
+        cellValue && cellValue.map((value: IAttachmentValue, index: number) => {
           return (
             <SortableItem
               key={value.id}
@@ -197,12 +206,13 @@ const SortableList = ({
               onMove={onMove}
             />
           );
-        })}
-      {uploadList &&
-        uploadList.map((item) => {
+        })
+      }
+      {
+        uploadList && uploadList.map((item) => {
           return (
             <UploadItem
-              key={item.fileId}
+              key={(item.fileId)}
               fileUrl={item.fileUrl}
               recordId={recordId}
               field={field}
@@ -216,12 +226,13 @@ const SortableList = ({
               getCellValueFn={getCellValueFn}
             />
           );
-        })}
+        })
+      }
     </div>
   );
 };
 
-export const UploadCore: React.FC<React.PropsWithChildren<IUploadCoreProps>> = (props) => {
+export const UploadCore: React.FC<React.PropsWithChildren<IUploadCoreProps>> = props => {
   const {
     recordId,
     field,
@@ -235,10 +246,12 @@ export const UploadCore: React.FC<React.PropsWithChildren<IUploadCoreProps>> = (
     getCellValueFn,
   } = props;
   const uploadManager = resourceService.instance!.uploadManager;
-  const [uploadList, setUploadList] = useState<IUploadFileList>(() => {
-    const cellId = UploadManager.getCellId(recordId, field.id);
-    return uploadManager.get(cellId);
-  });
+  const [uploadList, setUploadList] = useState<IUploadFileList>(
+    () => {
+      const cellId = UploadManager.getCellId(recordId, field.id);
+      return uploadManager.get(cellId);
+    },
+  );
 
   const [cellValue, setCellValue] = useState(() => {
     return (_cellValue || []).flat();
@@ -246,7 +259,7 @@ export const UploadCore: React.FC<React.PropsWithChildren<IUploadCoreProps>> = (
 
   useEffect(() => {
     setCellValue(_cellValue);
-  }, [JSON.stringify(_cellValue)]);
+  }, [_cellValue]);
 
   const uploadCoreSize = useMemo(() => {
     if (propsSize) {
@@ -260,16 +273,16 @@ export const UploadCore: React.FC<React.PropsWithChildren<IUploadCoreProps>> = (
     if (!cellValue || uploadList.length === 0) {
       return;
     }
-    const cvIds = cellValue.map((item) => item.id);
-    setUploadList((state) => {
-      return state.filter((item) => !cvIds.includes(item.fileId));
+    const cvIds = cellValue.map(item => item.id);
+    setUploadList(state => {
+      return state.filter(item => !cvIds.includes(item.fileId));
     });
     // eslint-disable-next-line
-  }, [JSON.stringify(cellValue)]);
+  }, [cellValue]);
 
   function deleteUploadItem(fileId: string) {
-    setUploadList((state) => {
-      return state.filter((item) => item.fileId !== fileId);
+    setUploadList(state => {
+      return state.filter(item => item.fileId !== fileId);
     });
   }
 
@@ -277,8 +290,8 @@ export const UploadCore: React.FC<React.PropsWithChildren<IUploadCoreProps>> = (
     onSave && onSave(cellValue);
   };
 
-  const onMove = ({ oldIndex, newIndex }: { oldIndex: number; newIndex: number }) => {
-    const produceCellValue = produce(cellValue, (draft) => {
+  const onMove = ({ oldIndex, newIndex }: { oldIndex: number, newIndex: number }) => {
+    const produceCellValue = produce(cellValue, draft => {
       moveArrayElement(draft, oldIndex, newIndex);
       return draft;
     });
@@ -286,8 +299,12 @@ export const UploadCore: React.FC<React.PropsWithChildren<IUploadCoreProps>> = (
   };
 
   return (
-    <div onWheel={stopPropagation} className={classNames(styles.uploadTabWrapper, props.className)}>
-      {!readonly && (
+    <div
+      onWheel={stopPropagation}
+      className={classNames(styles.uploadTabWrapper, props.className)}
+    >
+      {
+        !readonly &&
         <UploadTab
           recordId={recordId}
           fieldId={field.id}
@@ -299,7 +316,7 @@ export const UploadCore: React.FC<React.PropsWithChildren<IUploadCoreProps>> = (
             [styles.normalSize]: uploadCoreSize === UploadCoreSize.Normal,
           })}
         />
-      )}
+      }
 
       <div
         className={classNames({
@@ -307,12 +324,7 @@ export const UploadCore: React.FC<React.PropsWithChildren<IUploadCoreProps>> = (
           [styles[`columnCount${columnCount}`]]: true,
         })}
       >
-        <DndProvider
-          manager={isTouchDevice() ? dndTouchManager : dndH5Manager}
-          options={{
-            delayTouchStart: 300,
-          }}
-        >
+        <DndProvider manager={isTouchDevice() ? dndTouchManager : dndH5Manager}>
           <ScrollingComponent className={styles.scrollBox}>
             <SortableList
               cellValue={cellValue}
@@ -334,3 +346,4 @@ export const UploadCore: React.FC<React.PropsWithChildren<IUploadCoreProps>> = (
     </div>
   );
 };
+

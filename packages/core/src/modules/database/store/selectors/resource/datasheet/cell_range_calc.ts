@@ -1,9 +1,7 @@
 import { IReduxState, ISnapshot, IStandardValueTable, IViewColumn, IViewRow } from 'exports/store/interfaces';
 import { isObject } from 'lodash';
-import { Field } from 'model/field';
-import { ICell, IRange } from 'model/view';
-import { Group } from 'model/view/group';
-import { Range } from 'model/view/range';
+import { Field } from 'model';
+import { Group, ICell, IRange, Range } from 'model/view';
 import { CellType } from 'modules/shared/store/constants';
 import { createSelector, createSelectorCreator, defaultMemoize } from 'reselect';
 import { IStandardValue } from 'types';

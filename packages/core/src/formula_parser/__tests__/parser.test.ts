@@ -1,5 +1,5 @@
 import { Strings, t } from 'exports/i18n';
-import { IReduxState } from 'exports/store/interfaces';
+import { IReduxState } from 'exports/store';
 import { FormulaExprLexer } from 'formula_parser/lexer';
 import { AstNode, FormulaExprParser } from 'formula_parser/parser';
 import { DateFormat, FieldType, TimeFormat } from 'types';

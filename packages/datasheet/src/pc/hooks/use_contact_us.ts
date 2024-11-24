@@ -16,13 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useCallback } from 'react';
 import { ConfigConstant } from '@apitable/core';
+// @ts-ignore
+import { clearWizardsData } from 'enterprise';
 import { TriggerCommands } from 'modules/shared/apphook/trigger_commands';
 import { navigationToUrl } from 'pc/components/route_manager/navigation_to_url';
 import { getEnvVariables } from 'pc/utils/env';
-// @ts-ignore
-import { clearWizardsData } from 'enterprise/guide/utils';
+import { useCallback } from 'react';
 
 export const useContactUs = () => {
   return useCallback(() => {

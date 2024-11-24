@@ -16,22 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {
-  databus, FieldType,
-  IBaseDatasheetPack,
-  IResourceOpsCollect,
-  IServerDatasheetPack,
-  IUnitValue,
-  IUserValue
-} from '@apitable/core';
+import { databus, IBaseDatasheetPack, IResourceOpsCollect, IServerDatasheetPack } from '@apitable/core';
 import { DatasheetService } from 'database/datasheet/services/datasheet.service';
-import { UnitService } from 'unit/services/unit.service';
 
 export class CascaderDataStorageProvider implements databus.IDataStorageProvider {
-  constructor(
-    private readonly datasheetService: DatasheetService,
-    private readonly unitService: UnitService,
-  ) {}
+  constructor(private readonly datasheetService: DatasheetService) {}
 
   public async loadDatasheetPack(dstId: string, _options: databus.ILoadDatasheetPackOptions): Promise<IServerDatasheetPack | null> {
     const dstIds = [dstId];
@@ -39,7 +28,7 @@ export class CascaderDataStorageProvider implements databus.IDataStorageProvider
     for (const dstId of dstIds) {
       const basePack = await this.datasheetService.getBasePacks(dstId, {
         // if all linked datasheet is included. Default to true
-        includeLink: true,
+        includeLink: false,
       });
       packs.push(...basePack);
     }
@@ -49,24 +38,8 @@ export class CascaderDataStorageProvider implements databus.IDataStorageProvider
     }
     // NOTE the first data pack of `packs` is always the datasheet specified by `dstId`.
     delete foreignDatasheetMap[packs[0]!.datasheet.id];
-    const combine: (IUnitValue | IUserValue)[] = [];
-    // Batch query member info
-    const datasheetBaseInfo = await this.datasheetService.getDatasheet(dstId);
-    const spaceId = datasheetBaseInfo?.spaceId;
-    const fieldMap = packs[0]!.snapshot.meta.fieldMap;
-    for (const fieldId in fieldMap) {
-      const field = fieldMap[fieldId]!;
-      if (field.type === FieldType.Member && spaceId) {
-        const unitIds = field.property.unitIds;
-        if (unitIds && unitIds.length > 0) {
-          const unitMap = await this.unitService.getUnitInfo(spaceId, Array.from(unitIds));
-          combine.push(...unitMap);
-        }
-      }
-    }
     return {
       ...packs[0]!,
-      units: combine,
       foreignDatasheetMap,
     };
   }
@@ -77,8 +50,5 @@ export class CascaderDataStorageProvider implements databus.IDataStorageProvider
 
   public saveOps(_ops: IResourceOpsCollect[], _options: databus.ISaveOpsOptions) {
     throw new Error('Method not implemented.');
-  }
-
-  async nestRoomChangeFromRust(_roomId: string, _data: any) {
   }
 }

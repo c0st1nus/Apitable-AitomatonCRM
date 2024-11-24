@@ -16,11 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import _ from 'lodash';
 import { IFieldRanges, StoreActions, ICell, Selectors, DATASHEET_ID, IRange, IViewRow, IViewColumn } from '@apitable/core';
-import { expandRecordIdNavigate } from 'pc/components/expand_record';
-import { useDispatch } from 'pc/hooks';
 import { store } from 'pc/store';
+import _ from 'lodash';
+import { useDispatch } from 'pc/hooks';
+import { expandRecordIdNavigate } from 'pc/components/expand_record';
 import { getParentNodeByClass } from 'pc/utils';
 import { MouseDownType } from '../../multi_grid';
 
@@ -36,7 +36,16 @@ interface IUseAttachEventProps {
 }
 
 export const useAttachEvent = (props: IUseAttachEventProps) => {
-  const { datasheetId, fieldRanges, selectRanges, visibleRows, visibleColumns, activeCell, onViewMouseDown, fieldIndexMap } = props;
+  const {
+    datasheetId,
+    fieldRanges,
+    selectRanges,
+    visibleRows,
+    visibleColumns,
+    activeCell,
+    onViewMouseDown,
+    fieldIndexMap,
+  } = props;
   const dispatch = useDispatch();
 
   function generateFieldRanges(e: MouseEvent, fieldId: string, columnIndex: number): IFieldRanges {
@@ -48,17 +57,24 @@ export const useAttachEvent = (props: IUseAttachEventProps) => {
 
     const originFieldRanges = fieldRanges;
 
-    const fieldIndexes = fieldRanges.map((id) => fieldIndexMap!.get(id)!);
+    const fieldIndexes = fieldRanges.map(id => fieldIndexMap!.get(id)!);
 
     const startIdx = fieldIndexes[0];
     const endIdx = fieldIndexes[fieldRanges.length - 1];
     if (e.shiftKey && !fieldIndexes.includes(columnIndex)) {
       return visibleColumns!
-        .map((column) => column.fieldId)
-        .slice(_.min([startIdx, endIdx, columnIndex]), _.max([startIdx, endIdx, columnIndex])! + 1);
+        .map(column => column.fieldId)
+        .slice(
+          _.min([startIdx, endIdx, columnIndex]),
+          _.max([startIdx, endIdx, columnIndex])! + 1
+        );
     }
 
-    if (!e.shiftKey && columnIndex >= startIdx && columnIndex <= endIdx) {
+    if (
+      !e.shiftKey &&
+      columnIndex >= startIdx &&
+      columnIndex <= endIdx
+    ) {
       return originFieldRanges;
     }
 
@@ -81,39 +97,33 @@ export const useAttachEvent = (props: IUseAttachEventProps) => {
     }
 
     dispatch(StoreActions.setFieldRanges(datasheetId, _fieldRanges));
-    dispatch(
-      StoreActions.setSelection({
-        start: {
-          recordId: firstRecord.recordId,
-          fieldId: _fieldRanges[0],
-        },
-        end: {
-          recordId: lastRecord.recordId,
-          fieldId: _fieldRanges[_fieldRanges.length - 1],
-        },
-      }),
-    );
+    dispatch(StoreActions.setSelection({
+      start: {
+        recordId: firstRecord.recordId,
+        fieldId: _fieldRanges[0],
+      },
+      end: {
+        recordId: lastRecord.recordId,
+        fieldId: _fieldRanges[_fieldRanges.length - 1],
+      },
+    }));
   }
 
   function handleForFillBar() {
     // Fill handler first press
     const selectionRange = selectRanges && selectRanges[0];
     if (!selectionRange) return;
-    dispatch(
-      StoreActions.setFillHandleStatus({
-        isActive: true,
-      }),
-    );
+    dispatch(StoreActions.setFillHandleStatus({
+      isActive: true,
+    }));
   }
 
   // Merge selections by shift key
   function combineRangeByShift(hoverCell: ICell) {
-    dispatch(
-      StoreActions.setSelection({
-        start: activeCell!,
-        end: hoverCell,
-      }),
-    );
+    dispatch(StoreActions.setSelection({
+      start: activeCell!,
+      end: hoverCell,
+    }));
   }
 
   function handleForCell(e: MouseEvent, hoverCell: ICell) {
@@ -173,6 +183,6 @@ export const useAttachEvent = (props: IUseAttachEventProps) => {
     handleForFillBar,
     handleForCell,
     handleForOtherArea,
-    handleForOperateColumn,
+    handleForOperateColumn
   };
 };

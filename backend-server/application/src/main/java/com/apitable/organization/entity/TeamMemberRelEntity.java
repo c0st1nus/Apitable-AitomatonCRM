@@ -18,11 +18,12 @@
 
 package com.apitable.organization.entity;
 
+import java.io.Serializable;
+import java.time.LocalDateTime;
+
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
-import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -32,7 +33,7 @@ import lombok.experimental.Accessors;
 
 /**
  * <p>
- * Organization Structure - Department Member Association Table.
+ * Organization Structure - Department Member Association Table
  * </p>
  *
  * @author Mybatis Generator Tool
@@ -49,23 +50,23 @@ public class TeamMemberRelEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Primary Key.
+     * Primary Key
      */
     @TableId(value = "id", type = IdType.ASSIGN_ID)
     private Long id;
 
     /**
-     * Department ID.
+     * Department ID
      */
     private Long teamId;
 
     /**
-     * Member ID.
+     * Member ID
      */
     private Long memberId;
 
     /**
-     * Create Time.
+     * Create Time
      */
     private LocalDateTime createdAt;
 

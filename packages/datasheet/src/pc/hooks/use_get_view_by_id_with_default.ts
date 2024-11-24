@@ -17,17 +17,16 @@
  */
 
 import { useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import { Selectors } from '@apitable/core';
 
-import { useAppSelector } from 'pc/store/react-redux';
-
 export const useGetViewByIdWithDefault = (datasheetId: string, viewId?: string) => {
-  const snapshot = useAppSelector((state) => {
+  const snapshot = useSelector(state => {
     return Selectors.getSnapshot(state, datasheetId);
   });
-  const mirror = useAppSelector((state) => Selectors.getMirror(state));
+  const mirror = useSelector(state => Selectors.getMirror(state));
 
-  const fieldPermissionMap = useAppSelector((state) => {
+  const fieldPermissionMap = useSelector(state => {
     return Selectors.getFieldPermissionMap(state, datasheetId);
   });
 

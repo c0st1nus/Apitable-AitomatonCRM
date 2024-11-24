@@ -5,7 +5,7 @@ import static net.javacrumbs.shedlock.core.LockAssert.assertLocked;
 import com.apitable.shared.clock.spring.ClockManager;
 import com.apitable.shared.config.properties.ConstProperties;
 import com.apitable.user.service.IUserService;
-import jakarta.annotation.Resource;
+import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -31,7 +31,7 @@ public class UserTasks {
      * cron: 0 0 0 * * ?
      * preview execute desc: ****-03-07 00:00:00, ****-03-08 00:00:00, ****-03-09 00:00:00
      */
-    @Scheduled(cron = "${CLOSE_PAUSED_USER_CRON:0 0 0 * * ?}")
+    @Scheduled(cron = "${const.close-paused-user-cron}")
     @SchedulerLock(name = "closePausedUser", lockAtMostFor = "1h", lockAtLeastFor = "30m")
     public void closePausedUser() {
         assertLocked();

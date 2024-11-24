@@ -1,6 +1,5 @@
 @import "~pc/styles/lib_var.less";
 @import "~pc/styles/lib_mixins.less";
-@import "~pc/styles/lib_screen.less";
 
 .tabBarWrapper {
   height: 50px;
@@ -8,7 +7,7 @@
   display: flex;
   flex-direction: row;
   position: relative;
-  border-bottom: 1px solid var(--borderCommonDefault);
+  border-bottom: 1px solid var(--lowestBg);
   .noSelect();
 }
 
@@ -116,16 +115,6 @@
         margin-left: 4px;
         color: var(--primaryColor);
         cursor: pointer;
-        &.disabled {
-          cursor: not-allowed;
-          color: var(--fourthLevelText);
-          &:hover {
-            color: var(--fourthLevelText);
-          }
-          svg {
-            fill: var(--fourthLevelText);
-          }
-        }
         .viewName {
           max-width: 120px;
           margin-left: 4px;
@@ -152,29 +141,10 @@
     width: 60%;
   }
 
-  .preFillBtn {
-    margin-right: 8px;
-    font-size: 13px;
-    display: flex;
-    align-items: center;
-  }
-
   .tourDesc {
     font-size: 13px;
     & > span {
       font-size: 13px;
-    }
-  }
-}
-
-@media screen and (max-width: @w-lg)  {
-  .left {
-    padding-left: 16px;
-    .container {
-      flex-direction: column;
-      .sourceInfo {
-        margin-left: 0;
-      }
     }
   }
 }

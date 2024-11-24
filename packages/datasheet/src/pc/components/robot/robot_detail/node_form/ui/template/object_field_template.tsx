@@ -16,13 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import cls from 'classnames';
-import { useState } from 'react';
 import { isSumLessThanOrEqualTo100 } from 'pc/components/robot/robot_detail/node_form/ui/template/utils';
+import { useState } from 'react';
 import { utils } from '../../core';
 import { IObjectFieldTemplateProps } from '../../core/interface';
 import { getOptions } from '../utils';
 import styles from './style.module.less';
+import cls from 'classnames';
 
 const { canExpand } = utils;
 
@@ -30,17 +30,18 @@ const ObjectFieldLayout = (props: IObjectFieldTemplateProps) => {
   const { properties, uiSchema } = props;
   const isInline = Boolean(uiSchema['ui:options']?.inline);
   const layout = uiSchema['ui:options']?.layout;
-  const inlineWidths = uiSchema['ui:options']?.inlineWidths as unknown as undefined | string[];
-  const marginRight = 8;
+  const inlineWidths = uiSchema['ui:options']?.inlineWidths as unknown as (undefined | string[]);
+  const marginRight = isInline ? 8 : 4;
   if (layout) {
     return (
       <>
-        {(layout as string[][]).map((rowFieldNames, index) => {
-          const thisRowFields = properties.filter((ele) => rowFieldNames.includes(ele.name));
-          if (thisRowFields.length) {
-            const width = isInline ? `${Math.round(100 / thisRowFields.length)}%` : '100%';
-            return (
-              <div className={cls(styles.inlineObjectChildren, { [styles.inline]: isInline })} key={index}>
+        {
+          (layout as string[][]).map((rowFieldNames, index) => {
+            const thisRowFields = properties.filter(ele => rowFieldNames.includes(ele.name));
+            if (thisRowFields.length) {
+              const width = isInline ? `${Math.round(100 / thisRowFields.length)}%` : '100%';
+              return <div className={cls(styles.inlineObjectChildren, { [styles.inline]: isInline })}
+                key={index}>
                 {thisRowFields.map((element, index: number) => (
                   <div
                     key={index} // FIXME: better key
@@ -49,11 +50,11 @@ const ObjectFieldLayout = (props: IObjectFieldTemplateProps) => {
                     {element.content}
                   </div>
                 ))}
-              </div>
-            );
-          }
-          return null;
-        })}
+              </div>;
+            }
+            return null;
+          })
+        }
       </>
     );
   }
@@ -82,7 +83,18 @@ const ObjectFieldLayout = (props: IObjectFieldTemplateProps) => {
 };
 
 export const ObjectFieldTemplate = (props: IObjectFieldTemplateProps) => {
-  const { title, required, disabled, readonly, uiSchema, idSchema, schema, formData, onAddClick, description } = props;
+  const {
+    title,
+    required,
+    disabled,
+    readonly,
+    uiSchema,
+    idSchema,
+    schema,
+    formData,
+    onAddClick,
+    description
+  } = props;
 
   const DescriptionField = props.registry.fields.DescriptionField as any;
   const TitleField = props.registry.fields.TitleField as any;
@@ -96,8 +108,8 @@ export const ObjectFieldTemplate = (props: IObjectFieldTemplateProps) => {
 
   return (
     <div className={styles.objectFieldTemplateWrapper}>
-      {(uiSchema['ui:title'] || title) && showTitle && (
-        <TitleField
+      {(uiSchema['ui:title'] || title) && (
+        showTitle && <TitleField
           id={idSchema.$id}
           title={title}
           required={required}
@@ -108,13 +120,25 @@ export const ObjectFieldTemplate = (props: IObjectFieldTemplateProps) => {
           style={{ fontSize: 14, fontWeight: 'bold', color: '#636363', paddingTop: 16 }}
         />
       )}
-      {description && <DescriptionField id={`${idSchema.$id}-description`} description={description} />}
-      {!collapse && (
-        <div>
-          <ObjectFieldLayout {...props} />
-          {canExpand(schema, uiSchema, formData) && <button onClick={onAddClick(schema)} disabled={disabled || readonly} />}
-        </div>
+      {description && (
+        <DescriptionField
+          id={`${idSchema.$id}-description`}
+          description={description}
+        />
       )}
+      {
+        !collapse && <div>
+          <ObjectFieldLayout {...props} />
+          {canExpand(schema, uiSchema, formData) && (
+
+            <button
+              onClick={onAddClick(schema)}
+              disabled={disabled || readonly}
+            />
+          )}
+        </div>
+      }
+
     </div>
   );
 };

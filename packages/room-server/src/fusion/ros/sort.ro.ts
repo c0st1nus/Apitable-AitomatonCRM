@@ -29,7 +29,7 @@ export class SortRo implements ISortRo {
     example: 'fldAj8ZBpzj1X',
     description: 'Specify the field to sort',
   })
-  @IsDefined({ message: ApiTipConstant.api_param_sort_missing_field })
+  @IsDefined({ message: ApiTipConstant.api_param_sort_field_not_exists })
   @IsString()
   field!: string;
 

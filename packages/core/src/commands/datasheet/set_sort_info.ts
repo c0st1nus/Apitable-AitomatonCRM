@@ -17,13 +17,12 @@
  */
 
 import { IJOTAction } from 'engine/ot';
-import { DatasheetActions } from 'commands_actions/datasheet';
+import { DatasheetActions } from 'model';
 import { ISortInfo, ResourceType } from 'types';
-import { getActiveDatasheetId, getDatasheet, getFieldPermissionMap, getFieldRoleByFieldId } from 'modules/database/store/selectors/resource/datasheet/base';
-import { getCurrentView } from 'modules/database/store/selectors/resource/datasheet/calc';
+import { getActiveDatasheetId, getCurrentView, getDatasheet, getFieldPermissionMap, getFieldRoleByFieldId } from '../../exports/store/selectors';
 import { IGridViewProperty } from '../../exports/store/interfaces';
 import { Strings, t } from '../../exports/i18n';
-import { CollaCommandName } from 'commands/enum';
+import { CollaCommandName } from 'commands';
 import { ExecuteResult, ICollaCommandDef } from 'command_manager';
 import { ConfigConstant } from 'config';
 
@@ -38,7 +37,7 @@ export const setSortInfo: ICollaCommandDef<ISetSortInfoOptions> = {
   undoable: true,
 
   execute: (context, options) => {
-    const { state: state } = context;
+    const { model: state } = context;
     const { data, viewId, applySort } = options;
     const datasheetId = getActiveDatasheetId(state)!;
     const datasheet = getDatasheet(state, datasheetId);

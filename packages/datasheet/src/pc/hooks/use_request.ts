@@ -30,9 +30,12 @@ type Result<TData, TParams extends any[]> = {
 
 export function useRequest<TData, TParams extends any[] = any[]>(
   service: Service<TData, TParams>,
-  options?: Options<TData, TParams>,
+  options?: Options<TData, TParams>
 ): Result<TData, TParams> {
-  const { data, runAsync, error, loading, mutate, cancel } = useRequestV3(service, options);
+  const { data, runAsync, error, loading, mutate, cancel } = useRequestV3(
+    service,
+    options
+  );
 
   return {
     data,

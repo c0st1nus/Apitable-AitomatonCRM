@@ -4,7 +4,7 @@ import com.apitable.core.util.SpringContextHolder;
 import com.apitable.shared.constants.ParamsConstants;
 import com.apitable.shared.holder.ClientOriginInfoHolder;
 import com.apitable.shared.util.information.ClientOriginInfo;
-import jakarta.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * ClientOriginInfo context.

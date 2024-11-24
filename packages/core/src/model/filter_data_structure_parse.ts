@@ -1,15 +1,14 @@
-import { FilterConjunction, FOperator, IFilterCondition, IFilterInfo, IFilterSingleSelect } from 'types/view_types';
+import { FilterConjunction, FOperator, IFilterCondition, IFilterInfo } from 'types/view_types';
 import { IOpenFilterCondition, IOpenFilterConditionGroup, IOpenFilterInfo } from 'types/open';
 import { getFieldTypeString } from 'model/utils';
 import { Field } from 'model/field';
 import { getNewId, IDPrefix } from 'utils';
 import Joi from 'joi';
 import { enumToArray } from 'model/field/validate_schema';
-import { APIMetaFieldType, FieldType } from 'types';
-import { IExpression, IExpressionOperand, IOperand, OperandTypeEnums, OperatorEnums } from 'automation_manager/interface';
+import { APIMetaFieldType } from 'types';
+import { IExpression, OperandTypeEnums, IExpressionOperand, IOperand } from 'automation_manager/interface';
 import { isEmpty } from 'lodash';
-import { IReduxState } from 'exports/store/interfaces';
-import { IFieldMap,IMeta } from 'modules/database/store/interfaces/resource/datasheet/datasheet';
+import { IReduxState, IFieldMap, IMeta } from 'exports/store';
 
 const getConjunctionsByGroup = (conditionGroup: IOpenFilterConditionGroup) => {
   const conjunctions = Object.keys(conditionGroup);
@@ -34,7 +33,7 @@ const parseConditionsOrGroupBase = (conditions: any, parseConditionGroup: (...pr
 /**
  * Verify that the openFilter schema conforms to the convention.
  * Only the whole schema is checked for parsing, the value of the corresponding filter is not checked, it is parsed to the value.
- * @param filterInfo
+ * @param filterInfo 
  * @param canGroup Switch to support filter groups.
  */
 export function validateOpenFilter(filterInfo: IOpenFilterInfo, canGroup: boolean = false): Joi.ValidationResult {
@@ -108,9 +107,9 @@ export function validateOpenFilter(filterInfo: IOpenFilterInfo, canGroup: boolea
 
 /**
  * Generate external filter structures.
- * @param meta
- * @param viewId
- * @param state
+ * @param meta 
+ * @param viewId 
+ * @param state 
  */
 export function parseOpenFilter(meta: IMeta, viewId: string, state: IReduxState): IOpenFilterInfo {
   const view = meta.views.find(v => v.id === viewId);
@@ -145,7 +144,7 @@ export function parseOpenFilter(meta: IMeta, viewId: string, state: IReduxState)
     return {
       [conjunction]: conditions.map(item => {
         // TODO If it's a filter group, you only need to determine whether
-        // the item is a filter condition or a filter group, and if it's a filter group,
+        // the item is a filter condition or a filter group, and if it's a filter group, 
         // recursively parseConditionGroup.
         return parseCondition(item);
       }).filter(v => Object.keys(v).length > 0)
@@ -156,8 +155,8 @@ export function parseOpenFilter(meta: IMeta, viewId: string, state: IReduxState)
 
 /**
  * Convert to internal filter structure.
- * @param filterInfo
- * @param context
+ * @param filterInfo 
+ * @param context 
  */
 export function parseInnerFilter(filterInfo: IOpenFilterInfo, context: {
   fieldMap: IFieldMap, state: IReduxState
@@ -179,21 +178,12 @@ export function parseInnerFilter(filterInfo: IOpenFilterInfo, context: {
     }
     const operator = Object.keys(filterValueMap)[0];
     exitIds.push(conditionId);
-    const fieldValue = filterValueMap[operator];
-    const isSingleContains = field.type === FieldType.SingleSelect && operator === FOperator.Contains;
-    let value;
-    if (isSingleContains) {
-      value = Array.isArray(fieldValue) ?
-        fieldValue.map(item => fieldBind.openFilterValueToFilterValue(item)).flat() : fieldBind.openFilterValueToFilterValue(fieldValue);
-    } else {
-      value = fieldBind.openFilterValueToFilterValue(fieldValue);
-    }
     return {
       conditionId,
       fieldId: fieldKey,
       fieldType: field.type,
       operator,
-      value: value
+      value: fieldBind.openFilterValueToFilterValue(filterValueMap[operator])
     } as IFilterCondition;
   };
   const parseConditionGroup = (conditionGroup: IOpenFilterConditionGroup) => {
@@ -207,38 +197,17 @@ export function parseInnerFilter(filterInfo: IOpenFilterInfo, context: {
   return parseConditionGroup(filterInfo);
 }
 
-function openFilterValueToFilterValueInterceptor(fieldModel: Field, fieldValue: IFilterSingleSelect, operator: OperatorEnums, fieldType: FieldType){
-  const ensuredArrayValue = Array.isArray(fieldValue)? fieldValue: [fieldValue];
-  if (fieldType === FieldType.SingleSelect && operator === OperatorEnums.Contains) {
-    return ensuredArrayValue.map(item => fieldModel.openFilterValueToFilterValue(item)).flat();
-  }
-  return fieldModel.openFilterValueToFilterValue(fieldValue);
-}
-
-function filterValueToOpenFilterValueInterceptor(fieldModel: Field, value: IFilterSingleSelect, operator: OperatorEnums, fieldType: FieldType){
-  if(value == null) {
-    return fieldModel.filterValueToOpenFilterValue(value);
-  }
-  const arrayValue: IFilterSingleSelect = Array.isArray(value) ? value : [value];
-  if (operator === OperatorEnums.Contains && fieldType == FieldType.SingleSelect) {
-    return arrayValue.map((option: string) => fieldModel.filterValueToOpenFilterValue([option]))
-      .filter(Boolean);
-  }
-
-  return fieldModel.filterValueToOpenFilterValue(value);
-}
 /**
  * Converting expressions to external structures.
  * Expressions for filter components.
- * @param filterExpress
- * @param context
+ * @param filterExpress 
+ * @param context 
  */
 export function parseOpenFilterByExpress(filterExpress: IExpressionOperand, context: {
-
   meta: IMeta, state: IReduxState
 }) {
   const { meta, state } = context;
-
+  
   const { fieldMap } = meta;
   const parseCondition = (condition: IExpression) => {
     const { operator, operands } = condition;
@@ -250,16 +219,15 @@ export function parseOpenFilterByExpress(filterExpress: IExpressionOperand, cont
       return;
     }
     const fieldModel = Field.bindContext(field, state);
-
+    
     // Check operator, filter for non-existent operators.
     if (!fieldModel.acceptFilterOperators.includes(operator as any)) {
       return {};
     }
-
     return {
       fieldKey: fieldId,
       [getFieldTypeString(field.type)]: {
-        [operator]: filterValueToOpenFilterValueInterceptor(fieldModel, value, operator, field.type)
+        [operator]: fieldModel.filterValueToOpenFilterValue(value)
       }
     } as IOpenFilterCondition;
   };
@@ -282,8 +250,8 @@ export function parseOpenFilterByExpress(filterExpress: IExpressionOperand, cont
 
 /**
  * Converting external structures to expression structures.
- * @param filterInfo
- * @param context
+ * @param filterInfo 
+ * @param context 
  */
 export function parseFilterExpressByOpenFilter(filterInfo: IOpenFilterInfo, context: {
   fieldMap: IFieldMap, state: IReduxState
@@ -301,11 +269,6 @@ export function parseFilterExpressByOpenFilter(filterInfo: IOpenFilterInfo, cont
       return;
     }
     const value = valueMap[fieldType];
-    const fieldValue = value[Object.keys(value)];
-
-    const operator = Object.keys(value)[0];
-    const checkedFieldValue = openFilterValueToFilterValueInterceptor(fieldBind, fieldValue, operator as OperatorEnums, field.type);
-
     return {
       type: OperandTypeEnums.Expression,
       value: {
@@ -317,7 +280,7 @@ export function parseFilterExpressByOpenFilter(filterInfo: IOpenFilterInfo, cont
           },
           {
             type: OperandTypeEnums.Literal,
-            value: checkedFieldValue
+            value: fieldBind.openFilterValueToFilterValue(value[Object.keys(value)])
           }
         ]
       }
@@ -325,7 +288,7 @@ export function parseFilterExpressByOpenFilter(filterInfo: IOpenFilterInfo, cont
   };
   const parseConditionGroup = (conditionGroup: IOpenFilterConditionGroup) => {
     const conjunctions = getConjunctionsByGroup(conditionGroup);
-
+    
     return conjunctions ? {
       type: OperandTypeEnums.Expression,
       value: {
@@ -334,6 +297,6 @@ export function parseFilterExpressByOpenFilter(filterInfo: IOpenFilterInfo, cont
       }
     } as IExpressionOperand : null;
   };
-
+  
   return parseConditionGroup(filterInfo);
 }

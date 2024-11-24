@@ -17,8 +17,8 @@
  */
 
 import { IRobotTaskRuntimeContext, OperatorEnums } from 'automation_manager/interface';
-import type { IReduxState } from 'exports/store/interfaces';
-import { Field } from 'model/field';
+import { Field } from 'model';
+import { IReduxState } from 'exports/store';
 import { FOperator } from 'types/view_types';
 
 /**
@@ -26,10 +26,10 @@ import { FOperator } from 'types/view_types';
  */
 
 export function getNodeOutput(_context: IRobotTaskRuntimeContext, nodeId: string) {
-  if (!_context.executedNodeIds.includes(nodeId) && !_context.executedNodeIds.includes(_context.robot.triggerId)) {
+  if (!_context.executedNodeIds.includes(nodeId)) {
     throw Error(`${nodeId} Does Not Executed!`);
   }
-  return _context.context[nodeId]?.output || _context.context[_context.robot.triggerId]?.output;
+  return _context.context[nodeId]!.output;
 }
 
 // for now we have 3 trigger of apitable, their output will be like this:
@@ -63,11 +63,11 @@ const IMagicOperatorMap = {
 const makeFunction = (operator: OperatorEnums, funcName: string) => {
   const func = (...args: any[]) => {
     const [ctx, fieldId, b] = args;
-    const fieldMap = ctx.state.datasheetMap[ctx.datasheetId].datasheet?.snapshot.meta.fieldMap!;
+    const fieldMap = ctx.fieldMap;
     const field = fieldMap[fieldId];
     // if the field is deleted, the filter should be invalid. return false
     if (!field) return false;
-    return Field.bindContext(field, ctx.state).isMeetFilter(
+    return Field.bindContext(field, { } as IReduxState).isMeetFilter(
       IMagicOperatorMap[operator],
       getFieldValue(ctx, fieldId),
       b

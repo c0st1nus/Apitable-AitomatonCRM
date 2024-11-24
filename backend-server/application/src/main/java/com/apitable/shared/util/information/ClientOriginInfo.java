@@ -18,7 +18,7 @@
 
 package com.apitable.shared.util.information;
 
-import jakarta.servlet.http.Cookie;
+import javax.servlet.http.Cookie;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

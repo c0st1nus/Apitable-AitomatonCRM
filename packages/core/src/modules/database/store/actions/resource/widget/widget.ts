@@ -19,9 +19,7 @@
 import { readInstallationWidgets } from 'modules/widget/api/widget_api';
 import { Events, Player } from 'modules/shared/player';
 import { batchActions } from 'redux-batched-actions';
-import {
-  getLinkId,
-} from 'modules/database/store/selectors/resource/datasheet/base';
+import { Selectors } from 'exports/store';
 import { RECEIVE_INSTALLATIONS_WIDGET, RESET_WIDGET } from 'modules/shared/store/action_constants';
 import { IReduxState, IUnMountWidget, IWidget } from 'exports/store/interfaces';
 
@@ -32,7 +30,7 @@ export const fetchWidgetsByWidgetIds = (
   return (dispatch: any, getState: () => IReduxState) => {
     // dispatch(setWidgetPanelLoading(true));
     const state = getState();
-    const linkId = getLinkId(state);
+    const linkId = Selectors.getLinkId(state);
 
     readInstallationWidgets(widgetIds, linkId).then(res => {
       return Promise.resolve({ responseBody: res.data, dispatch, getState });
@@ -47,7 +45,7 @@ export const fetchWidgetsByWidgetIds = (
       fetchInstallationWidgetSuccess(props);
       successCb?.(props);
     }, e => {
-      console.error('fetchWidgetsByWidgetIds error', e);
+      console.error('fetchWidgetsByWidgetIds error', e)
     });
   };
 };

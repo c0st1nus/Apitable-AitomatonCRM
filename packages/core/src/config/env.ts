@@ -15,8 +15,10 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import process from 'process';
-// import { IDENTIFY_CODE_LOGIN } from './constant';
+
+import { IDENTIFY_CODE_LOGIN } from 'config/constant';
+import * as process from 'process';
+
 export function isPrivateDeployment() {
   return Boolean(process.env.REACT_APP_DEPLOYMENT_MODELS === 'PRIVATE');
 }
@@ -28,9 +30,8 @@ export function isIdassPrivateDeployment() {
 declare let window: any;
 
 export function getCustomConfig() {
-  // There is a bug here. Import IDENTIFY_CODE_LOGIN cannot be used.
   return typeof window === 'object' && window.__initialization_data__.envVars || {
-    LOGIN_DEFAULT_VERIFY_TYPE: 'identify_code_login',
+    LOGIN_DEFAULT_VERIFY_TYPE: IDENTIFY_CODE_LOGIN,
     VIEW_NAME_MAX_COUNT: process.env.VIEW_NAME_MAX_COUNT || 30
   };
 }

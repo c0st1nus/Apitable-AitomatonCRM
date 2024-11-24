@@ -17,14 +17,14 @@
  */
 
 import * as React from 'react';
-import { ContextMenu, useContextMenu, useThemeColors } from '@apitable/components';
 import { KONVA_DATASHEET_ID, t, Strings } from '@apitable/core';
+import { ContextMenu, useContextMenu, useThemeColors } from '@apitable/components';
 import { CopyOutlined } from '@apitable/icons';
 
-import { copy2clipBoard, flatContextData } from 'pc/utils';
 import { stopPropagation } from 'pc/utils/dom';
-import { MouseDownType } from '../../../multi_grid';
 import { IFieldBoundary } from '../stat_menu';
+import { copy2clipBoard, flatContextData } from 'pc/utils';
+import { MouseDownType } from '../../../multi_grid';
 
 interface IStatRightClickMenuProps {
   parentRef: React.RefObject<HTMLDivElement> | undefined;
@@ -35,7 +35,10 @@ interface IStatRightClickMenuProps {
  * The right-click menu of the statistics column
  * An alternative to konva-generated canvas that does not support scratching
  */
-export const StatRightClickMenu = ({ parentRef, getBoundary }: IStatRightClickMenuProps): JSX.Element => {
+export const StatRightClickMenu = ({
+  parentRef,
+  getBoundary,
+}: IStatRightClickMenuProps): JSX.Element => {
   const [statText, setStatText] = React.useState('');
   const colors = useThemeColors();
   const { show } = useContextMenu({ id: KONVA_DATASHEET_ID.GRID_STAT_RIGHT_CLICK_MENU });
@@ -76,22 +79,21 @@ export const StatRightClickMenu = ({ parentRef, getBoundary }: IStatRightClickMe
   });
 
   return (
-    <div onMouseDown={stopPropagation} onWheel={stopPropagation} onContextMenu={(e) => e.preventDefault()}>
+    <div
+      onMouseDown={stopPropagation}
+      onWheel={stopPropagation}
+      onContextMenu={e => e.preventDefault()}
+    >
       <ContextMenu
         menuId={KONVA_DATASHEET_ID.GRID_STAT_RIGHT_CLICK_MENU}
-        overlay={flatContextData(
-          [
-            [
-              {
-                icon: <CopyOutlined color={colors.thirdLevelText} />,
-                text: t(Strings.copy_link),
-                onClick: () => onCopy(),
-                disabled: !statText,
-              },
-            ],
-          ],
-          true,
-        )}
+        overlay={flatContextData([[
+          {
+            icon: <CopyOutlined color={colors.thirdLevelText} />,
+            text: t(Strings.copy_link),
+            onClick: () => onCopy(),
+            disabled: !statText,
+          },
+        ]], true)}
         width={150}
         menuOffset={[0, -35]}
         // style={{

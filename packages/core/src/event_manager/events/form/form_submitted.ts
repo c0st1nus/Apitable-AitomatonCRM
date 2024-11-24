@@ -19,7 +19,7 @@
 import { EventRealTypeEnums } from 'event_manager';
 import { ResourceType } from '../../../types/resource_types';
 import { IAtomEventType } from '../interface';
-import { OPEventNameEnums } from './../../enum';
+import { OPEventNameEnums } from './../../const';
 import { AnyObject, IOPBaseContext } from './../../interface/event.interface';
 
 interface IFormSubmitted {

@@ -20,6 +20,7 @@ package com.apitable.starter.amqp.core;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.amqp.core.ReturnedMessage;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate.ConfirmCallback;
@@ -27,7 +28,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate.ReturnsCallback;
 
 /**
  * <p>
- * rabbitmq Message sender confirmation mechanism.
+ * rabbitmq Message sender confirmation mechanism
  * </p>
  *
  */

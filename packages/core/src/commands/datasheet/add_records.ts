@@ -17,15 +17,14 @@
  */
 
 import { ExecuteResult, ICollaCommandDef } from 'command_manager';
-import { ICellValue } from 'model/record';
-import { DatasheetActions } from 'commands_actions/datasheet';
-import { getDatasheetLoading } from 'modules/database/store/selectors/resource/datasheet/base';
+import { DatasheetActions, ICellValue } from 'model';
+import { getDatasheetLoading } from 'modules/database/store/selectors/resource';
 import { getNewIds, IDPrefix } from 'utils';
 import { IJOTAction } from 'engine';
-import { getActiveDatasheetId,getSnapshot, getFieldPermissionMap,getFieldRoleByFieldId } from 'modules/database/store/selectors/resource/datasheet/base';
+import { Selectors } from '../../exports/store';
 import { FieldType, IField, ILinkField, ResourceType } from 'types';
 import { Strings, t } from '../../exports/i18n';
-import { CollaCommandName } from 'commands/enum';
+import { CollaCommandName } from 'commands';
 import { ConfigConstant } from 'config';
 
 export interface IAddRecordsOptions {
@@ -39,7 +38,6 @@ export interface IAddRecordsOptions {
   // Fill in the new value added to the cell, cellValues.length must be equal to count;
   cellValues?: { [fieldId: string]: ICellValue }[];
   ignoreFieldPermission?: boolean;
-  ignoreFieldLimit?: boolean;
 }
 
 export type IAddRecordsResult = string[];
@@ -49,11 +47,11 @@ export const addRecords: ICollaCommandDef<IAddRecordsOptions, IAddRecordsResult>
   undoable: true,
 
   execute: (context, options) => {
-    const { state: state, ldcMaintainer, memberFieldMaintainer, fieldMapSnapshot } = context;
-    const { viewId, index, count, groupCellValues, cellValues, ignoreFieldPermission, ignoreFieldLimit } = options;
-    const datasheetId = options.datasheetId || getActiveDatasheetId(state)!;
-    const snapshot = getSnapshot(state, datasheetId);
-    const fieldPermissionMap = getFieldPermissionMap(state, datasheetId);
+    const { model: state, ldcMaintainer, memberFieldMaintainer, fieldMapSnapshot } = context;
+    const { viewId, index, count, groupCellValues, cellValues, ignoreFieldPermission } = options;
+    const datasheetId = options.datasheetId || Selectors.getActiveDatasheetId(state)!;
+    const snapshot = Selectors.getSnapshot(state, datasheetId);
+    const fieldPermissionMap = Selectors.getFieldPermissionMap(state, datasheetId);
     const loading = getDatasheetLoading(state, datasheetId);
 
     if(loading){
@@ -132,7 +130,7 @@ export const addRecords: ICollaCommandDef<IAddRecordsOptions, IAddRecordsResult>
       if (fieldPermissionMap && !ignoreFieldPermission) {
         const _data = {};
         for (const fieldId in newRecord.data) {
-          const fieldRole = getFieldRoleByFieldId(fieldPermissionMap, fieldId);
+          const fieldRole = Selectors.getFieldRoleByFieldId(fieldPermissionMap, fieldId);
           if (!fieldRole || fieldRole === ConfigConstant.Role.Editor) {
             _data[fieldId] = newRecord.data[fieldId];
           }
@@ -151,8 +149,7 @@ export const addRecords: ICollaCommandDef<IAddRecordsOptions, IAddRecordsResult>
       if (newRecord.data) {
         const _recordData = {};
         for (const [fieldId, cellValue] of Object.entries(newRecord.data)) {
-          // ignore workdoc field cellValue
-          if (!fieldMap[fieldId] || (fieldMap[fieldId]!.type === FieldType.WorkDoc && !ignoreFieldLimit)) {
+          if (!fieldMap[fieldId]) {
             // Compatible processing for data exceptions, some tables in the template center have dirty data
             continue;
           }
@@ -177,11 +174,11 @@ export const addRecords: ICollaCommandDef<IAddRecordsOptions, IAddRecordsResult>
         }
         newRecord.data = _recordData;
       }
+
       const action = DatasheetActions.addRecord2Action(snapshot, {
         viewId,
         record: newRecord,
         index: index + i,
-        newRecordIndex: i,
       });
 
       if (!action) {
@@ -190,7 +187,7 @@ export const addRecords: ICollaCommandDef<IAddRecordsOptions, IAddRecordsResult>
 
       (linkFieldIds as ILinkField[]).forEach((field: ILinkField) => {
         const value = newRecord.data[field.id] as string[] | null;
-        const linkedSnapshot = getSnapshot(state, field.property.foreignDatasheetId)!;
+        const linkedSnapshot = Selectors.getSnapshot(state, field.property.foreignDatasheetId)!;
 
         // When the associated field cell itself has no value, do nothing
         if (!value) {

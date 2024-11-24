@@ -29,6 +29,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.sql.DataSource;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -90,7 +91,8 @@ public class UnitTestUtil {
                 whereClause);
         }
         List<String> excludeTablesWithTablePrefix =
-            excludeTables.stream().map(excludeTable -> tablePrefix + excludeTable).toList();
+            excludeTables.stream().map(excludeTable -> tablePrefix + excludeTable)
+                .collect(Collectors.toList());
         filterTableNames(tableNames, excludeTablesWithTablePrefix);
         JdbcTestUtils.deleteFromTables(jdbcTemplate, ArrayUtil.toArray(tableNames, String.class));
     }

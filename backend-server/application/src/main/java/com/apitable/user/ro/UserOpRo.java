@@ -19,7 +19,7 @@
 package com.apitable.user.ro;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Size;
+import javax.validation.constraints.Size;
 import lombok.Data;
 
 /**
@@ -56,7 +56,8 @@ public class UserOpRo {
     /**
      * is init.
      */
-    @Schema(description = "Whether it is a registered initialization nickname", example = "true")
+    @Schema(description = "Whether it is a registered initialization "
+        + "nickname", example = "true")
     private Boolean init;
 
     /**

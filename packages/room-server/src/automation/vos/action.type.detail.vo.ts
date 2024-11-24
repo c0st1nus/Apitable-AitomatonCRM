@@ -19,7 +19,7 @@
 import { IJsonSchema } from '@apitable/core';
 import { IUiSchema } from '../actions/interface/base.action';
 
-export interface IActionTypeDetailVo {
+export interface ActionTypeDetailVo {
   actionTypeId: string,
   name: string,
   description: string,

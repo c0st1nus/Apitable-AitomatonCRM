@@ -28,4 +28,5 @@ const InviteInvalidReasonObj = {
 export const getInvalidReason = (code?: number, message?: string) => {
   const finalReason = (code && InviteInvalidReasonObj[code]) || message || t(Strings.link_common_err);
   return finalReason;
-};
+}; 
+

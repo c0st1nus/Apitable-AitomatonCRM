@@ -19,8 +19,7 @@
 package com.apitable.user.ro;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
-import jakarta.validation.constraints.NotBlank;
+import javax.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
@@ -30,12 +29,11 @@ import lombok.Data;
 @Schema(description = "Register operation request parameters")
 public class RegisterOpRo {
 
-    @Schema(description = "Save the token of WeChat union ID and mobile phone number",
-        requiredMode = RequiredMode.REQUIRED, example = "thisistoken")
+    @Schema(description = "Save the token of WeChat union ID and mobile phone number", example =
+        "thisistoken", required = true)
     @NotBlank(message = "Token cannot be empty")
     private String token;
 
-    @Schema(description = "Registration invitation code",
-        requiredMode = RequiredMode.REQUIRED, example = "test")
+    @Schema(description = "Registration invitation code", example = "test", required = true)
     private String inviteCode;
 }

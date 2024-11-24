@@ -27,23 +27,24 @@ import {
   IObjectInsertAction,
   ResourceType,
 } from '@apitable/core';
+import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
+import { Test, TestingModule } from '@nestjs/testing';
+import { AppModule } from 'app.module';
 import { OtService } from 'database/ot/services/ot.service';
 import { IRoomChannelMessage } from '../../interfaces/ot.interface';
-import { Test } from '@nestjs/testing';
-import { AppModule } from 'app.module';
-import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 
 describe('OtService', () => {
   let app: NestFastifyApplication;
   let otService: OtService;
 
   beforeAll(async() => {
-    const moduleFixture = await Test.createTestingModule({
-      imports: [AppModule]
+    jest.setTimeout(60000);
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
     }).compile();
-    app = moduleFixture.createNestApplication<NestFastifyApplication>(new FastifyAdapter());
+    app = module.createNestApplication<NestFastifyApplication>(new FastifyAdapter());
     await app.init();
-    otService = app.get<OtService>(OtService);
+    otService = app.get(OtService);
   });
 
   afterAll(async() => {

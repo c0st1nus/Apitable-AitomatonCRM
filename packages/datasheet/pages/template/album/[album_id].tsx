@@ -23,13 +23,11 @@ const TemplateCentreWithNoSSR = dynamic(() => import('pc/components/template_cen
 const AlbumDetailWithNoSSR = dynamic(() => import('pc/components/template_centre/album/album'), { ssr: false });
 
 const App = () => {
-  return (
-    <>
-      <TemplateCentreWithNoSSR>
-        <AlbumDetailWithNoSSR />
-      </TemplateCentreWithNoSSR>
-    </>
-  );
+  return <>
+    <TemplateCentreWithNoSSR>
+      <AlbumDetailWithNoSSR />
+    </TemplateCentreWithNoSSR>
+  </>;
 };
 
 export default App;

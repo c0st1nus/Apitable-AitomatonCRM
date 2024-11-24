@@ -18,7 +18,6 @@
 
 package com.apitable.widget.controller;
 
-import static com.apitable.base.enums.ParameterException.NO_ARG;
 import static com.apitable.workspace.enums.PermissionException.NODE_OPERATION_DENIED;
 
 import cn.hutool.core.util.StrUtil;
@@ -27,7 +26,6 @@ import com.apitable.control.infrastructure.ControlTemplate;
 import com.apitable.control.infrastructure.permission.NodePermission;
 import com.apitable.core.support.ResponseData;
 import com.apitable.core.util.ExceptionUtil;
-import com.apitable.organization.enums.UnitType;
 import com.apitable.organization.service.IMemberService;
 import com.apitable.shared.cache.service.UserSpaceCacheService;
 import com.apitable.shared.component.scanner.annotation.ApiResource;
@@ -56,11 +54,11 @@ import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.annotation.Resource;
-import jakarta.validation.Valid;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import javax.annotation.Resource;
+import javax.validation.Valid;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -72,7 +70,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @Tag(name = "Widget SDK - Widget Api")
-@ApiResource
+@ApiResource(path = "/")
 public class WidgetController {
 
     @Resource
@@ -131,24 +129,15 @@ public class WidgetController {
             schema = @Schema(type = "string"), in = ParameterIn.PATH,
             example = "spczJrh2i3tLW"),
         @Parameter(name = "count", description = "load quantity",
-            schema = @Schema(type = "integer"), in = ParameterIn.QUERY, example = "10"),
-        @Parameter(name = "unitType", description = "unitType, 3: member(private), 1: team",
-            schema = @Schema(type = "integer"), example = "3", in = ParameterIn.QUERY)
+            schema = @Schema(type = "integer"), in = ParameterIn.QUERY, example = "10")
     })
     public ResponseData<List<WidgetInfo>> findWidgetInfoBySpaceId(
         @PathVariable("spaceId") final String spaceId,
-        @RequestParam(value = "count", required = false, defaultValue = "10") final Integer count,
-        @RequestParam(name = "unitType", required = false) Integer unitType) {
+        @RequestParam(value = "count", required = false, defaultValue = "10") final Integer count) {
         Long userId = SessionContext.getUserId();
         Long memberId = userSpaceCacheService.getMemberId(userId, spaceId);
         List<WidgetInfo> infos = iWidgetService.getWidgetInfoList(spaceId,
             memberId, count);
-        if (UnitType.MEMBER.getType().equals(unitType)) {
-            infos = infos.stream().filter(WidgetInfo::getNodePrivate).toList();
-        }
-        if (UnitType.TEAM.getType().equals(unitType)) {
-            infos = infos.stream().filter(i -> !i.getNodePrivate()).toList();
-        }
         return ResponseData.success(infos);
     }
 
@@ -274,8 +263,6 @@ public class WidgetController {
         controlTemplate.checkNodePermission(memberId, widget.getNodeId(),
             NodePermission.MANAGE_NODE,
             status -> ExceptionUtil.isTrue(status, NODE_OPERATION_DENIED));
-        // Check the number of running installations
-        iSpaceService.checkWidgetOverLimit(spaceId);
         // create widget
         String widgetId = iWidgetService.create(userId, spaceId, widget);
         return ResponseData.success(iWidgetService.getWidgetPack(widgetId));
@@ -287,25 +274,22 @@ public class WidgetController {
     @PostResource(path = "/widget/copy", requiredPermission = false)
     @Operation(summary = "Copy widget",
         description = "Scenario: 1、dashboard import widget"
-            + "2:the widget panel sends applets to the dashboard; 3:copy widget")
+            + " 2、the widget panel sends applets to the dashboard")
     public ResponseData<List<WidgetPack>> copyWidget(
         @RequestBody @Valid final WidgetCopyRo widgetRo) {
         Long userId = SessionContext.getUserId();
-        String nodeId = widgetRo.getNodeId();
-        ExceptionUtil.isNotBlank(nodeId, NO_ARG);
         // The method includes determining whether a node exists.
-        String spaceId = iNodeService.getSpaceIdByNodeId(nodeId);
+        String spaceId = iNodeService.getSpaceIdByNodeId(
+            widgetRo.getDashboardId());
         // The method includes determining whether the user is in this space.
         Long memberId = LoginContext.me().getMemberId(userId, spaceId);
         // check permission
-        controlTemplate.checkNodePermission(memberId, nodeId,
+        controlTemplate.checkNodePermission(memberId, widgetRo.getDashboardId(),
             NodePermission.MANAGE_NODE,
             status -> ExceptionUtil.isTrue(status, NODE_OPERATION_DENIED));
-        // Check the number of running installations
-        iSpaceService.checkWidgetOverLimit(spaceId);
         // copy widget
-        Collection<String> widgetIds = iWidgetService.copyWidget(userId,
-            spaceId, nodeId, widgetRo.getWidgetIds());
+        Collection<String> widgetIds = iWidgetService.copyToDashboard(userId,
+            spaceId, widgetRo.getDashboardId(), widgetRo.getWidgetIds());
         return ResponseData.success(
             iWidgetService.getWidgetPackList(widgetIds));
     }

@@ -16,18 +16,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import type { InputRef } from 'antd';
-import { Input } from 'antd';
-import classNames from 'classnames';
-import { useRef, useState } from 'react';
 import { IconButton, useContextMenu, useThemeColors } from '@apitable/components';
 import { CollaCommandName, ResourceType, Selectors, Strings, t, WidgetReleaseType } from '@apitable/core';
 import { DragOutlined, ExpandOutlined, MoreOutlined, NarrowOutlined } from '@apitable/icons';
-// eslint-disable-next-line no-restricted-imports
+import type { InputRef } from 'antd';
+import { Input } from 'antd';
+import classNames from 'classnames';
 import { Tooltip } from 'pc/components/common';
 import { useCheckInput } from 'pc/hooks';
 import { resourceService } from 'pc/resource_service';
-import { useAppSelector } from 'pc/store/react-redux';
+import { useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { closeWidgetRoute, expandWidgetRoute } from '../../expand_widget';
 import { WIDGET_MENU } from '../widget_list';
 import { IWidgetPropsBase } from './interface';
@@ -41,8 +40,8 @@ interface IWidgetHeaderProps extends IWidgetPropsBase {
   dragging: boolean;
 }
 
-export const WidgetHeaderMobile: React.FC<React.PropsWithChildren<IWidgetHeaderProps>> = (props) => {
-  const { className, widgetId, widgetPanelId, displayMode = 'always', dragging, config = {} } = props;
+export const WidgetHeaderMobile: React.FC<React.PropsWithChildren<IWidgetHeaderProps>> = props => {
+  const { className, widgetId, widgetPanelId, displayMode = 'always', dragging, config = {}} = props;
   const colors = useThemeColors();
   const inputRef = useRef<InputRef>(null);
   const [rename, setRename] = useState(false);
@@ -51,10 +50,10 @@ export const WidgetHeaderMobile: React.FC<React.PropsWithChildren<IWidgetHeaderP
   });
 
   const { show, hideAll } = useContextMenu({ id: WIDGET_MENU });
-  const widget = useAppSelector((state) => {
+  const widget = useSelector(state => {
     return Selectors.getWidget(state, widgetId);
   });
-  const isExpandWidget = useAppSelector((state) => state.pageParams.widgetId === widgetId);
+  const isExpandWidget = useSelector(state => state.pageParams.widgetId === widgetId);
 
   const triggerMenu = (e: React.MouseEvent<HTMLElement>) => {
     show(e, {
@@ -139,7 +138,7 @@ export const WidgetHeaderMobile: React.FC<React.PropsWithChildren<IWidgetHeaderP
               onBlur={saveWidgetName}
               autoFocus
               onChange={onChange}
-              onMouseDown={(e) => {
+              onMouseDown={e => {
                 e.stopPropagation();
               }}
               className={classNames({

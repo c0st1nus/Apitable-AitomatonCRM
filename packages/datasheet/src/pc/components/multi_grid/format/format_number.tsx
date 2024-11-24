@@ -16,13 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Input } from 'antd';
-import { SelectValue } from 'antd/lib/select';
-import debounce from 'lodash/debounce';
 import { SetStateAction, useEffect, useMemo, useRef, Dispatch } from 'react';
 import * as React from 'react';
-// eslint-disable-next-line no-restricted-imports
-import { Select, Switch } from '@apitable/components';
+import { useSelector } from 'react-redux';
+import { IEditor } from 'pc/components/editors/interface';
+import debounce from 'lodash/debounce';
 import {
   IField,
   INumberField,
@@ -36,13 +34,14 @@ import {
   INumberFieldProperty,
   DefaultCommaStyle,
 } from '@apitable/core';
-import { MobileSelect } from 'pc/components/common';
-import { ComponentDisplay, ScreenSize } from 'pc/components/common/component_display';
-import { Divider } from 'pc/components/common/divider';
-import { IEditor } from 'pc/components/editors/interface';
-import { NumberEditor } from 'pc/components/editors/number_editor';
-import { useAppSelector } from 'pc/store/react-redux';
 import styles from './styles.module.less';
+import { Select, Switch } from '@apitable/components';
+import { SelectValue } from 'antd/lib/select';
+import { NumberEditor } from 'pc/components/editors/number_editor';
+import { Input } from 'antd';
+import { Divider } from 'pc/components/common/divider';
+import { ComponentDisplay, ScreenSize } from 'pc/components/common/component_display';
+import { MobileSelect } from 'pc/components/common';
 
 interface IFormateNumberProps {
   currentField: INumberField | IPercentField | ICurrencyField;
@@ -65,7 +64,7 @@ const symbolAlignOptions = [
 ];
 
 export const FormateNumber: React.FC<React.PropsWithChildren<IFormateNumberProps>> = (props: IFormateNumberProps) => {
-  const datasheetId = useAppSelector((state) => props.datasheetId || Selectors.getActiveDatasheetId(state))!;
+  const datasheetId = useSelector(state => props.datasheetId || Selectors.getActiveDatasheetId(state))!;
   const numberRef = useRef<IEditor | null>(null);
   const { currentField, setCurrentField } = props;
   const { property, type } = currentField;
@@ -80,7 +79,7 @@ export const FormateNumber: React.FC<React.PropsWithChildren<IFormateNumberProps
     const { symbolAlign, symbol, commaStyle } = property as INumberFieldProperty;
 
     const getOptions = (symbol?: string, symbolAlign?: SymbolAlign, commaStyle?: string) => {
-      return optionData.map((item) => {
+      return optionData.map(item => {
         let label: React.ReactNode | Element = item.label;
         if (commaStyle) {
           label = (label as string).replace('1', `1${DefaultCommaStyle}000`);
@@ -191,7 +190,6 @@ export const FormateNumber: React.FC<React.PropsWithChildren<IFormateNumberProps
     width: 160,
     height: 35,
     editable: true,
-    disabled: false,
     editing: true,
     datasheetId,
     field: currentField,
@@ -221,7 +219,7 @@ export const FormateNumber: React.FC<React.PropsWithChildren<IFormateNumberProps
         />
       </ComponentDisplay>
       <ComponentDisplay maxWidthCompatible={ScreenSize.md}>
-        <MobileSelect defaultValue={currentField.property.precision} optionData={formatOptions} onChange={(value) => handleSelectChange({ value })} />
+        <MobileSelect defaultValue={currentField.property.precision} optionData={formatOptions} onChange={value => handleSelectChange({ value })} />
       </ComponentDisplay>
     </>
   );
@@ -233,16 +231,16 @@ export const FormateNumber: React.FC<React.PropsWithChildren<IFormateNumberProps
         <Select
           triggerCls={styles.customSelect}
           dropdownMatchSelectWidth={false}
-          value={(currentField as unknown as ICurrencyField).property.symbolAlign || 0}
+          value={((currentField as unknown) as ICurrencyField).property.symbolAlign || 0}
           onSelected={handleChangeSymbolAlign}
           options={symbolAlignOptions}
         />
       </ComponentDisplay>
       <ComponentDisplay maxWidthCompatible={ScreenSize.md}>
         <MobileSelect
-          defaultValue={(currentField as unknown as ICurrencyField).property.symbolAlign || 0}
+          defaultValue={((currentField as unknown) as ICurrencyField).property.symbolAlign || 0}
           optionData={symbolAlignOptions}
-          onChange={(value) => handleChangeSymbolAlign({ value })}
+          onChange={value => handleChangeSymbolAlign({ value })}
         />
       </ComponentDisplay>
     </>

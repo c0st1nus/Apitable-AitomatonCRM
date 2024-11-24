@@ -85,7 +85,6 @@ export class GatewayConstants {
   public static readonly ROOM_PORT: number = parseInt(process.env.ROOM_PORT || '3005', 10);
   public static readonly ROOM_PATH: string = '/room';
   public static readonly ROOM_NAMESPACE: string = 'room';
-  public static readonly DOCUMENT_PORT: number = parseInt(process.env.DOCUMENT_PORT || '3006', 10);
 
   /**
    * ack timeout default 30000ms(30s)
@@ -96,6 +95,9 @@ export class GatewayConstants {
 
   public static readonly SOCKET_SERVER_NOTIFY_PATH = '/socket/notify';
 
+  public static readonly ROOM_SERVICE = 'ROOM_SERVICE';
+
+  public static readonly BACKEND_SERVICE = 'BACKEND_SERVICE';
 }
 
 export class HealthConstants {

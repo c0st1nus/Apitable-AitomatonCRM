@@ -19,8 +19,7 @@
 package com.apitable.asset.ro;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
-import jakarta.validation.constraints.NotNull;
+import javax.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
@@ -32,18 +31,16 @@ import lombok.Data;
 @Schema(description = "Image audit result request parameters")
 public class AttachAuditScenesRo {
 
-    @Schema(description = "Audit results of image sensitive persons",
-        requiredMode = RequiredMode.REQUIRED)
+    @Schema(description = "Audit results of image sensitive persons", required = true)
     @NotNull(message = "Yellow identification results of pictures")
     private String politician;
 
-    @Schema(description = "Photo Yellow Identification Review Results",
-        requiredMode = RequiredMode.REQUIRED)
+    @Schema(description = "Photo Yellow Identification Review Results", required = true)
     @NotNull(message = "Yellow identification results of pictures")
     private AttachAuditPulpResultRo pulp;
 
 
-    @Schema(description = "Audit Results of Photo Violence", requiredMode = RequiredMode.REQUIRED)
+    @Schema(description = "Audit Results of Photo Violence", required = true)
     @NotNull(message = "Audit Results of Photo Violence")
     private String terror;
 }

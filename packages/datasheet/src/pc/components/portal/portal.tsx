@@ -46,6 +46,10 @@ export const Portal: React.FC<React.PropsWithChildren<IPortalProps>> = ({
     childProps.style = { ...(childProps.style || {}), zIndex };
     return createPortal(React.cloneElement(children, { ...childProps }), container);
   }
-  const content = <div style={wrapStyle}>{children}</div>;
+  const content = (
+    <div style={wrapStyle}>
+      {children}
+    </div>
+  );
   return createPortal(content, container);
 };

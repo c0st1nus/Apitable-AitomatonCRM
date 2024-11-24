@@ -17,17 +17,15 @@
  */
 
 import Joi from 'joi';
-import { DatasheetActions } from '../../commands_actions/datasheet';
+import { DatasheetActions } from '../datasheet';
 import { DateTimeBaseField } from './date_time_base_field';
 import { DateFormat, FieldType, IDateTimeField, IDateTimeFieldProperty, IField, TimeFormat } from 'types/field_types';
-import { IReduxState } from '../../exports/store/interfaces';
+import { IReduxState } from '../../exports/store';
 import { enumKeyToArray, enumToArray } from './validate_schema';
 import { ICellValue } from 'model/record';
 import dayjs from 'dayjs';
 import { IOpenDateTimeFieldProperty } from 'types/open/open_field_read_types';
 import { IUpdateOpenDateTimeFieldProperty } from 'types/open/open_field_write_types';
-import { getUserTimeZone } from 'modules/user/store/selectors/user';
-import { getFieldDefaultProperty } from './const';
 
 export class DateTimeField extends DateTimeBaseField {
   constructor(public override field: IDateTimeField, public override state: IReduxState) {
@@ -70,7 +68,12 @@ export class DateTimeField extends DateTimeBaseField {
   }
 
   static defaultProperty(): IDateTimeFieldProperty {
-    return getFieldDefaultProperty(FieldType.DateTime) as IDateTimeFieldProperty;
+    return {
+      dateFormat: DateFormat['YYYY/MM/DD'],
+      timeFormat: TimeFormat['hh:mm'],
+      includeTime: false,
+      autoFill: false,
+    };
   }
 
   override defaultValue(): number | null {
@@ -80,7 +83,7 @@ export class DateTimeField extends DateTimeBaseField {
     return null;
   }
 
-  /* Due to the need to traverse the DateTimeFormat enumeration value,
+  /* Due to the need to traverse the DateTimeFormat enumeration value, 
   but DateTimeFormat will have the form of keyValue and valueKey after compilation
     Need to filter out the case of number key */
   validateProperty() {
@@ -100,7 +103,7 @@ export class DateTimeField extends DateTimeBaseField {
   }
 
   get timeZone() {
-    return this.field.property.timeZone || getUserTimeZone(this.state);
+    return this.field.property.timeZone;
   }
 
   override get openFieldProperty(): IOpenDateTimeFieldProperty {

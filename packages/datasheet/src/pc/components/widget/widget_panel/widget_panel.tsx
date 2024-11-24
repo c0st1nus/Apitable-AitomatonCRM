@@ -16,24 +16,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useMount } from 'ahooks';
-import Image from 'next/image';
-import { shallowEqual } from 'react-redux';
 import { Button, IconButton, Skeleton, ThemeName } from '@apitable/components';
 import { Events, IWidgetPanelStatus, Player, ResourceType, Selectors, Strings, t, PermissionType } from '@apitable/core';
 import { AddOutlined, CloseOutlined } from '@apitable/icons';
+import { useMount } from 'ahooks';
 import { ShortcutActionManager, ShortcutActionName } from 'modules/shared/shortcut_key';
+import Image from 'next/image';
 import { ScreenSize } from 'pc/components/common/component_display';
 import { InstallPosition } from 'pc/components/widget/widget_center/enum';
 import { useResponsive } from 'pc/hooks';
-import { useAppSelector } from 'pc/store/react-redux';
-import WidgetEmptyDark from 'static/icon/datasheet/widget_empty_dark.png';
-import WidgetEmptyLight from 'static/icon/datasheet/widget_empty_light.png';
+import { shallowEqual, useSelector } from 'react-redux';
 import { useManageWidgetMap } from '../hooks';
 import { expandWidgetCenter } from '../widget_center/widget_center';
+import styles from './style.module.less';
 import { WidgetList } from './widget_list';
 import { WidgetPanelHeader } from './widget_panel_header';
-import styles from './style.module.less';
+import WidgetEmptyLight from 'static/icon/datasheet/widget_empty_light.png';
+import WidgetEmptyDark from 'static/icon/datasheet/widget_empty_dark.png';
 
 const EmptyPanel = ({ onClosePanel }: { onClosePanel?: () => void | Promise<void> }) => {
   const { screenIsAtMost } = useResponsive();
@@ -44,13 +43,13 @@ const EmptyPanel = ({ onClosePanel }: { onClosePanel?: () => void | Promise<void
   useMount(() => {
     Player.doTrigger(Events.datasheet_wigdet_empty_panel_shown);
   });
-  const themeName = useAppSelector((state) => state.theme);
+  const themeName = useSelector(state => state.theme);
   const widgetEmpty = themeName === ThemeName.Light ? WidgetEmptyLight : WidgetEmptyDark;
-  const { embedId, shareId, templateId } = useAppSelector((state) => state.pageParams);
-  const embedInfo = useAppSelector((state) => Selectors.getEmbedInfo(state));
+  const { embedId, shareId, templateId }= useSelector(state => state.pageParams);
+  const embedInfo = useSelector(state => Selectors.getEmbedInfo(state));
   const embedHidden = embedId && embedInfo && embedInfo.permissionType !== PermissionType.PRIVATEEDIT;
   const hiddenAddButton = shareId || templateId || embedHidden;
-
+ 
   return (
     <div className={styles.emptyPanel}>
       {onClosePanel && <IconButton onClick={onClosePanel} className={styles.closeIcon} icon={CloseOutlined} />}
@@ -81,19 +80,19 @@ const EmptyPanel = ({ onClosePanel }: { onClosePanel?: () => void | Promise<void
 };
 
 export const WidgetPanel = () => {
-  const { datasheetId, mirrorId } = useAppSelector((state) => state.pageParams);
+  const { datasheetId, mirrorId } = useSelector(state => state.pageParams);
   const resourceType = mirrorId ? ResourceType.Mirror : ResourceType.Datasheet;
   const resourceId = mirrorId || datasheetId || '';
-  const activeWidgetPanel = useAppSelector((state) => {
+  const activeWidgetPanel = useSelector(state => {
     return Selectors.getResourceActiveWidgetPanel(state, resourceId, resourceType);
   });
-  const netWorking = useAppSelector((state) => Selectors.getResourceNetworking(state, datasheetId!, ResourceType.Datasheet), shallowEqual);
+  const netWorking = useSelector(state => Selectors.getResourceNetworking(state, datasheetId!, ResourceType.Datasheet), shallowEqual);
   const isEmptyPanel = !activeWidgetPanel;
   const isEmptyWidget = !(activeWidgetPanel && activeWidgetPanel.widgets.length);
-  const { opening: isPanelOpening } = useAppSelector((state) => {
+  const { opening: isPanelOpening } = useSelector(state => {
     return Selectors.getResourceWidgetPanelStatus(state, resourceId, resourceType) || ({} as IWidgetPanelStatus);
   });
-  const onClosePanel = async () => {
+  const onClosePanel = async() => {
     await ShortcutActionManager.trigger(ShortcutActionName.ToggleWidgetPanel);
   };
 

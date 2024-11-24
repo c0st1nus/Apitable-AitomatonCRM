@@ -16,21 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ICollaCommandDef } from 'command_manager/command';
-import { ExecuteResult, ICollaCommandExecuteContext } from 'command_manager/types';
-import { CollaCommandName } from 'commands/enum';
+import { ExecuteResult, ICollaCommandDef, ICollaCommandExecuteContext } from 'command_manager';
+import { CollaCommandName } from 'commands';
 import { ConfigConstant } from 'config';
 import { IJOTAction } from 'engine/ot';
 import { isEmpty, isEqual, isNumber, isString } from 'lodash';
-import { ICellValue } from 'model/record';
-import { handleEmptyCellValue } from 'model/utils/index';
-import { Field } from 'model/field';
-import { DatasheetActions } from 'commands_actions/datasheet';
-import { IRecordAlarm } from '../../exports/store/interfaces';
-import {
-  getFieldRoleByFieldId,getFieldPermissionMap,getFieldMap, getDateTimeCellAlarm, getCellValue, getActiveDatasheetId, getSnapshot
-} from 'modules/database/store/selectors/resource/datasheet';
-import { ResourceType, SegmentType, WithOptional } from 'types';
+import { DatasheetActions, Field, handleEmptyCellValue, ICellValue } from 'model';
+import { IRecordAlarm, Selectors } from '../../exports/store';
+import { ResourceType, WithOptional } from 'types';
 import { FieldType, IField, IUnitIds } from 'types/field_types';
 import { getNewId, IDPrefix, num2number, str2number } from 'utils';
 import { IInternalFix } from '../common/field';
@@ -52,8 +45,8 @@ export interface ISetRecordsOptions {
 }
 
 function collectMemberProperty(datasheetId: string, actions: IJOTAction[], context: ICollaCommandExecuteContext) {
-  const { state: state, memberFieldMaintainer } = context;
-  const fieldMap = getFieldMap(state, datasheetId)!;
+  const { model: state, memberFieldMaintainer } = context;
+  const fieldMap = Selectors.getFieldMap(state, datasheetId)!;
   const isAddFieldAction = actions.map(item => item.p[3]!).some(fieldId => !fieldMap[fieldId]);
   if (isAddFieldAction) {
     return actions;
@@ -84,11 +77,11 @@ function collectMemberProperty(datasheetId: string, actions: IJOTAction[], conte
   memberFieldIds.forEach(fieldId => {
     const collectUnitIds = unitIdsMap.get(fieldId) || [];
     const field = fieldMap[fieldId]!;
-    // The unitIds of members are dynamically calculated, which will cause the position of the kanban to change in the kanban.
-    // Therefore, in the data collection, the unitIds stored in the property and all the data of the collected cells are merged,
+    // The unitIds of members are dynamically calculated, which will cause the position of the kanban to change in the kanban. 
+    // Therefore, in the data collection, the unitIds stored in the property and all the data of the collected cells are merged, 
     // and the duplicates are removed.
-    // This can ensure that the order of the existing data in unitIds does not change,
-    // and then perform "intersection" processing with the result and the collected data, and take out the same part
+    // This can ensure that the order of the existing data in unitIds does not change, 
+    // and then perform "intersection" processing with the result and the collected data, and take out the same part 
     // (i.e. that is, the data from the cell phone, but it is guaranteed the data order of the original unitIds)
     const unDuplicateArray = [...new Set([...field.property.unitIds, ...collectUnitIds])];
     const newProperty = unDuplicateArray.filter(item => item);
@@ -101,19 +94,19 @@ export const setRecords: ICollaCommandDef<ISetRecordsOptions> = {
   undoable: true,
 
   execute: (context, options) => {
-    const { state: state, ldcMaintainer, fieldMapSnapshot } = context;
+    const { model: state, ldcMaintainer, fieldMapSnapshot } = context;
     const { data: _data, internalFix, alarm } = options;
-    const datasheetId = options.datasheetId || getActiveDatasheetId(state)!;
+    const datasheetId = options.datasheetId || Selectors.getActiveDatasheetId(state)!;
     const mirrorId = options.mirrorId;
-    const snapshot = getSnapshot(state, datasheetId);
-    const fieldPermissionMap = getFieldPermissionMap(state);
+    const snapshot = Selectors.getSnapshot(state, datasheetId);
+    const fieldPermissionMap = Selectors.getFieldPermissionMap(state);
 
     if (!snapshot) {
       return null;
     }
 
     const data = _data.filter(item => {
-      const fieldRole = getFieldRoleByFieldId(fieldPermissionMap, item.fieldId);
+      const fieldRole = Selectors.getFieldRoleByFieldId(fieldPermissionMap, item.fieldId);
       if (fieldRole && fieldRole !== ConfigConstant.Role.Editor) {
         return false;
       }
@@ -146,27 +139,18 @@ export const setRecords: ICollaCommandDef<ISetRecordsOptions> = {
         }
       }
 
-      if (field.type === FieldType.URL && Array.isArray(value)) {
-        value = value?.map((v: any) => ({
-          ...v,
-          type: SegmentType.Url,
-          text: v.link || v.text,
-          title: v.title || v.text,
-        })) as any;
-      }
-
-      // There will be some data problems on the line, and brotherFieldId will also exist in the case of self-table association,
+      // There will be some data problems on the line, and brotherFieldId will also exist in the case of self-table association, 
       // resulting in the existence of redundant actions
       if (field.type === FieldType.Link && field.property.brotherFieldId && field.property.foreignDatasheetId !== datasheetId) {
         /**
          * Data consistency maintenance for associated field cells:
          * Guarantee the interrelated consistency of the cell data in brotherField in two different datasheets that are related to each other.
-         * That is: when an associated record is added to the associated field cell of a datasheet.
+         * That is: when an associated record is added to the associated field cell of a datasheet. 
          * In the related datasheet sibling fields, a corresponding association relationship should be created.
          * The same is true when deleting a record.
          */
-        const oldValue = getCellValue(state, snapshot, recordId, fieldId) as string[] | null;
-        const linkedSnapshot = getSnapshot(state, field.property.foreignDatasheetId)!;
+        const oldValue = Selectors.getCellValue(state, snapshot, recordId, fieldId) as string[] | null;
+        const linkedSnapshot = Selectors.getSnapshot(state, field.property.foreignDatasheetId)!;
         ldcMaintainer.insert(
           state,
           linkedSnapshot,
@@ -184,7 +168,7 @@ export const setRecords: ICollaCommandDef<ISetRecordsOptions> = {
       action && collected.push(action);
 
       if (field.type === FieldType.DateTime) {
-        const cacheAlarm = getDateTimeCellAlarm(snapshot, recordId, field.id);
+        const cacheAlarm = Selectors.getDateTimeCellAlarm(snapshot, recordId, field.id);
         /**
          * remove alarm
          * 1. Delete date cell data
@@ -239,3 +223,13 @@ export const setRecords: ICollaCommandDef<ISetRecordsOptions> = {
     };
   },
 };
+
+/*
+
+ declare module 'command_manager/command_manager' {
+ interface CollaCommandManager {
+ execute(options: ISetRecordsOptions & { cmd: 'SetRecords' });
+ }
+ }
+
+ */

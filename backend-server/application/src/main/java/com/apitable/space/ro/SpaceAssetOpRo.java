@@ -19,11 +19,10 @@
 package com.apitable.space.ro;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -41,8 +40,7 @@ public class SpaceAssetOpRo {
     @Schema(description = "Delete token collection")
     private List<OpAssetRo> removeToken = new ArrayList<>();
 
-    @Schema(description = "DataSheet Node Id",
-        requiredMode = RequiredMode.REQUIRED, example = "dst10")
+    @Schema(description = "DataSheet Node Id", example = "dst10", required = true)
     @NotBlank(message = "DataSheet ID cannot be empty")
     private String nodeId;
 
@@ -54,11 +52,11 @@ public class SpaceAssetOpRo {
     @Schema(description = "Attachment resource request parameters")
     public static class OpAssetRo {
 
-        @Schema(description = "Attachment token", requiredMode = RequiredMode.REQUIRED)
+        @Schema(description = "Attachment token", required = true)
         @NotNull(message = "Token cannot be empty")
         private String token;
 
-        @Schema(description = "Attachment name", requiredMode = RequiredMode.REQUIRED)
+        @Schema(description = "Attachment name", required = true)
         @NotNull(message = "Attachment name cannot be empty")
         private String name;
     }

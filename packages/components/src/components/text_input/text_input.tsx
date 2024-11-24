@@ -33,14 +33,15 @@ type IInputWrapperProps = Pick<ITextInputProps, 'size' | 'block' | 'error' | 'li
 const InputWrapper = styled.div.attrs(applyDefaultTheme) <IInputWrapperProps>`
   ${(props) => {
     const theme = props.theme as ITheme;
-    const { color } = theme;
+    const { palette, color } = theme;
+    const { background, primary, text } = palette;
     const { block, size = 'middle', error, lineStyle, disabled } = props;
     const width = block ? '100%' : '240px';
     const height = sizeHeightMap[size];
-    const borderColor = error ? color.errorColor : 'transparent';
+    const borderColor = error ? palette.danger : 'transparent';
     const commonCSS = css`
       background: ${lineStyle ? 'inherit' : color.fill0};
-      color: ${color.fc1};
+      color: ${text.primary};
       height: ${height}px;
       width: ${width};
       border-radius: ${lineStyle ? '0' : '4px'};
@@ -48,13 +49,13 @@ const InputWrapper = styled.div.attrs(applyDefaultTheme) <IInputWrapperProps>`
     if (lineStyle) {
       return [
         ...commonCSS, ...css`
-        border-bottom: 1px solid ${color.fc2};
+        border-bottom: 1px solid ${palette.text.secondary};
         &:focus-within {
-          border-bottom: 1px solid ${color.primaryColor};
+          border-bottom: 1px solid ${palette.primary};
       } 
       `];
     }
-    const focusBorderColor = error ? color.errorColor : color.primaryColor;
+    const focusBorderColor = error ? palette.danger : primary;
     return [
       ...commonCSS, ...css`
       border: 1px solid ${borderColor};
@@ -62,11 +63,11 @@ const InputWrapper = styled.div.attrs(applyDefaultTheme) <IInputWrapperProps>`
       ${SuffixWrapper} svg {
         width: 16px;
         height: 16px;
-        fill: ${props.theme.color.fc4};
+        fill: ${props.theme.palette.text.fourth};
       }
       ${!disabled && !error && css`
         &:hover {
-          border-color: ${color.primaryColor};
+          border-color: ${primary};
           background-color: ${color.bgControlsElevateDefault};   
         }
       `}
@@ -82,27 +83,27 @@ const InputWrapper = styled.div.attrs(applyDefaultTheme) <IInputWrapperProps>`
       // Error status
       ${error && css`
         &.error {
-          border-color: ${color.errorColor};
+          border-color: ${palette.danger};
 
           ${PrefixWrapper} svg {
-            fill: ${color.errorColor};
+            fill: ${palette.danger};
           }
         }
       `}
       &.focused {
         border-color: ${focusBorderColor};
-        background-color: ${color.bgCommonHigh};
+        background-color: ${background.primary};
 
         ${PrefixWrapper} svg {
-          fill: ${color.primaryColor};
+          fill: ${primary};
         }
       }
       ${disabled && css`
         ${InputInner} {
           cursor: not-allowed;
-          color: ${color.fc3};
+          color: ${text.third};
           opacity: 1;
-          -webkit-text-fill-color: ${color.fc3};
+          -webkit-text-fill-color: ${text.third};
         }
         cursor: not-allowed;
       `}
@@ -125,7 +126,7 @@ const InputInner = styled.input.attrs(applyDefaultTheme)`
   padding: 10px 0;
   display: block;
   min-width: 0;
-  caret-color: ${(props) => props.theme.color.primaryColor};
+  caret-color: ${(props) => props.theme.palette.primary};
   background: none;
   box-sizing: border-box;
   letter-spacing: inherit;
@@ -135,7 +136,7 @@ const InputInner = styled.input.attrs(applyDefaultTheme)`
     color: ${(props) => props.theme.color.fc4};
   }
   ::selection {
-    background-color: ${props => Color(props.theme.color.primaryColor).alpha(0.2).string()};
+    background-color: ${props => Color(props.theme.palette.primary).alpha(0.2).string()};
   }
 `;
 
@@ -169,8 +170,6 @@ export const TextInput = React.forwardRef(({
     e.stopPropagation();
     e.nativeEvent.stopPropagation();
     setFocus(true);
-    // @ts-ignore
-    onFocus?.(e);
   };
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {

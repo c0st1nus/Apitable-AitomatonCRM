@@ -1,11 +1,9 @@
 plugins {
-    id 'java-library'
-    id 'testing.java-conventions'
+  id 'java-library'
 }
 
 dependencies {
-    implementation platform(libs.spring.boot.dependencies)
-    implementation libs.spring.boot.starter
-    api libs.beetl
-    implementation libs.hutool.core
+  implementation(rootProject.ext.dependencies['boot-starter'])
+  api(rootProject.ext.dependencies['beetl'])
+  implementation rootProject.ext.dependencies['hutool-core']
 }

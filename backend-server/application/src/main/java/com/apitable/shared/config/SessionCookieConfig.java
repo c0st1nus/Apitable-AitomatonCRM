@@ -96,13 +96,13 @@ public class SessionCookieConfig {
     @Bean
     public LocaleResolver localeResolver() {
         // cache locale using cookies
-        CookieLocaleResolver localeResolver =
-            new CookieLocaleResolver(cookieProperties.getI18nCookieName());
+        CookieLocaleResolver localeResolver = new CookieLocaleResolver();
         localeResolver.setDefaultLocale(Locale.forLanguageTag(constProperties.getLanguageTag()));
+        localeResolver.setCookieName(cookieProperties.getI18nCookieName());
         localeResolver.setCookieDomain(cookieProperties.getDomainName());
         Duration timeout = sessionProperties.getTimeout();
         if (timeout != null) {
-            localeResolver.setCookieMaxAge(Duration.ofSeconds(timeout.getSeconds()));
+            localeResolver.setCookieMaxAge((int) timeout.getSeconds());
         }
         return localeResolver;
     }

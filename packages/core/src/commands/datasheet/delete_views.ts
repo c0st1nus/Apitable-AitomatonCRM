@@ -18,14 +18,11 @@
 
 import { find, isEmpty } from 'lodash';
 import { IJOTAction, jot } from 'engine/ot';
-import { DatasheetActions } from 'commands_actions/datasheet';
-import {
-  getActiveDatasheetId,
-  getSnapshot,
-} from 'modules/database/store/selectors/resource/datasheet/base';
+import { DatasheetActions } from 'model';
+import { Selectors } from '../../exports/store';
 import { Strings, t } from '../../exports/i18n';
 import { ResourceType } from 'types';
-import { CollaCommandName } from 'commands/enum';
+import { CollaCommandName } from 'commands';
 import { ExecuteResult, ICollaCommandDef } from 'command_manager';
 
 // import { IGridViewProperty } from 'store/interface';
@@ -45,10 +42,10 @@ export const deleteViews: ICollaCommandDef<IDeleteViewsOptions> = {
 
   execute: (context, options) => {
 
-    const { state: state } = context;
+    const { model: state } = context;
     const { data } = options;
-    const datasheetId = getActiveDatasheetId(state)!;
-    const snapshot = getSnapshot(state, datasheetId);
+    const datasheetId = Selectors.getActiveDatasheetId(state)!;
+    const snapshot = Selectors.getSnapshot(state, datasheetId);
     if (!snapshot) {
       return null;
     }

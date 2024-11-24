@@ -19,8 +19,7 @@
 package com.apitable.user.ro;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
-import jakarta.validation.constraints.NotBlank;
+import javax.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
@@ -31,16 +30,14 @@ import lombok.Data;
 public class SmsCodeValidateRo {
 
     @NotBlank(message = "Mobile phone area code cannot be empty")
-    @Schema(description = "Area code", requiredMode = RequiredMode.REQUIRED, example = "+86")
+    @Schema(description = "Area code", example = "+86", required = true)
     private String areaCode;
 
-    @Schema(description = "Phone number", requiredMode = RequiredMode.REQUIRED,
-        example = "13411112222")
+    @Schema(description = "Phone number", example = "13411112222", required = true)
     @NotBlank(message = "Mobile number cannot be empty")
     private String phone;
 
-    @Schema(description = "Mobile phone verification code",
-        requiredMode = RequiredMode.REQUIRED, example = "123456")
+    @Schema(description = "Mobile phone verification code", example = "123456", required = true)
     @NotBlank(message = "The verification code cannot be empty")
     private String code;
 }

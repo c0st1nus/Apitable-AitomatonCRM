@@ -16,14 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { CollaCommandName } from 'commands/enum';
+import { CollaCommandName } from 'commands';
 import { ExecuteResult, ICollaCommandDef } from 'command_manager';
 import { IJOTAction } from 'engine';
 import { t, Strings } from '../../exports/i18n';
-import { ISetOrgChartStyle } from '../../exports/store/interfaces';
-import { getActiveDatasheetId, getDatasheet } from 'modules/database/store/selectors/resource/datasheet/base';
+import { OrgChartView } from 'model';
+import { ISetOrgChartStyle } from '../../exports/store';
+import { getActiveDatasheetId, getDatasheet } from '../../exports/store/selectors';
 import { ResourceType } from 'types';
-import { ViewAction } from 'commands_actions/view';
 
 export type ISetOrgChartStyleOptions = ISetOrgChartStyle & {
   cmd: CollaCommandName.SetOrgChartStyle;
@@ -33,7 +33,7 @@ export const setOrgChartStyle: ICollaCommandDef<ISetOrgChartStyleOptions> = {
   undoable: true,
 
   execute: (context, options) => {
-    const { state: state } = context;
+    const { model: state } = context;
     const { viewId } = options;
     const datasheetId = getActiveDatasheetId(state)!;
     const datasheet = getDatasheet(state, datasheetId);
@@ -47,7 +47,7 @@ export const setOrgChartStyle: ICollaCommandDef<ISetOrgChartStyleOptions> = {
     }
 
     const actions: IJOTAction[] = [];
-    const setOrgChartStyleAction = ViewAction.setOrgChartStyle2Action(datasheet.snapshot, options);
+    const setOrgChartStyleAction = OrgChartView.setOrgChartStyle2Action(datasheet.snapshot, options);
     // action && collected.push(action);
     setOrgChartStyleAction && actions.push(setOrgChartStyleAction);
     if (actions.length === 0) {

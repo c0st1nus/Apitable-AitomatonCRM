@@ -39,8 +39,6 @@ export function createMockPermissions(): IPermissions {
     fieldRemovable: true,
     rowCreatable: true,
     rowRemovable: true,
-    rowArchivable: true,
-    rowUnarchivable: true,
     cellEditable: true,
     fieldPermissionManageable: true,
     viewLayoutEditable: true,

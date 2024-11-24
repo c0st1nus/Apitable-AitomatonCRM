@@ -23,13 +23,11 @@ const DynamicComponentWithNoSSR = dynamic(() => import('pc/components/route_mana
 const UpgradeSpaceWithNoSSR = dynamic(() => import('pc/components/space_manage/upgrade_space/upgrade_space'), { ssr: false });
 
 const App = () => {
-  return (
-    <>
-      <DynamicComponentWithNoSSR>
-        <UpgradeSpaceWithNoSSR />
-      </DynamicComponentWithNoSSR>
-    </>
-  );
+  return <>
+    <DynamicComponentWithNoSSR>
+      <UpgradeSpaceWithNoSSR />
+    </DynamicComponentWithNoSSR>
+  </>;
 };
 
 export default App;

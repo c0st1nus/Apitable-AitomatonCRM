@@ -30,7 +30,7 @@ export interface IAlertProps extends IHtmlElementBase {
   /**
    * content of the alert
    */
-  content: string | React.ReactNode;
+  content: string;
   /**
    * whether the alert should close
    */

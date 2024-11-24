@@ -25,16 +25,12 @@ export const changeView = (viewId: string) => {
   const { shareId, datasheetId, templateId, categoryId, mirrorId, recordId, embedId, nodeId } = state.pageParams;
   const spaceId = state.space.activeId;
 
-  window.parent.postMessage(
-    {
-      message: 'changeView',
-      data: {
-        nextViewId: viewId,
-        roomId: nodeId,
-      },
-    },
-    '*',
-  );
+  window.parent.postMessage({
+    message: 'changeView', data: {
+      nextViewId: viewId,
+      roomId: nodeId
+    }
+  }, '*');
 
   if (shareId) {
     Router.replace(Navigation.SHARE_SPACE, {
@@ -43,7 +39,7 @@ export const changeView = (viewId: string) => {
         nodeId: mirrorId || datasheetId,
         viewId,
         datasheetId,
-        recordId,
+        recordId
       },
     });
     return;
@@ -55,7 +51,7 @@ export const changeView = (viewId: string) => {
         nodeId: mirrorId || datasheetId,
         viewId,
         datasheetId,
-        recordId,
+        recordId
       },
     });
     return;
@@ -70,7 +66,7 @@ export const changeView = (viewId: string) => {
           nodeId: mirrorId || datasheetId,
           viewId,
           datasheetId,
-          recordId,
+          recordId
         },
       });
     } else {
@@ -81,7 +77,7 @@ export const changeView = (viewId: string) => {
           nodeId: mirrorId || datasheetId,
           viewId,
           datasheetId,
-          recordId,
+          recordId
         },
       });
     }
@@ -93,7 +89,7 @@ export const changeView = (viewId: string) => {
       nodeId: mirrorId || datasheetId,
       viewId,
       datasheetId,
-      recordId,
+      recordId
     },
   });
 };

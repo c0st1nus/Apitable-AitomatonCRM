@@ -17,9 +17,9 @@
  */
 
 import { ExecuteResult, ICollaCommandDef, ICommandOptionBase } from 'command_manager';
-import { WidgetActions } from 'commands_actions/widget';
+import { WidgetActions } from 'model';
+import { Selectors } from '../../exports/store';
 import { ResourceType } from 'types';
-import { getResourcePack } from 'modules/database/store/selectors/resource';
 
 export interface ISetWidgetDepDstId extends ICommandOptionBase {
   dstId: string;
@@ -31,9 +31,9 @@ export const setWidgetDepDstId: ICollaCommandDef<ISetWidgetDepDstId> = {
   undoable: false,
 
   execute(context, options) {
-    const state = context.state;
+    const state = context.model;
     const { dstId, resourceId, sourceId } = options;
-    const widgetPack = getResourcePack(state, resourceId, ResourceType.Widget);
+    const widgetPack = Selectors.getResourcePack(state, resourceId, ResourceType.Widget);
 
     if (!widgetPack) {
       return null;

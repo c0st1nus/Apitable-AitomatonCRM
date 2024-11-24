@@ -18,15 +18,13 @@
 
 import { Api, ITagsInSpace, ISubTeamListInSpaceBase, IMemberInfoInSpace, ISpaceInfo, ISpaceBasicInfo } from '@apitable/core';
 // @ts-ignore
-import { socialPlatPreOperate } from 'enterprise/home/social_platform/utils';
+import { socialPlatPreOperate } from 'enterprise';
 
-export const verifyTeamName = async (_spaceId: string, teamId: string, inputContent: string) => {
+export const verifyTeamName = async(_spaceId: string, teamId: string, inputContent: string) => {
   let questRes = false;
-  const {
-    data: { success, data },
-  } = await Api.getSubTeams(teamId);
+  const { data: { success, data }} = await Api.getSubTeams(teamId);
   if (success && data.length) {
-    if (data.find((item: { teamName: string }) => item.teamName === inputContent)) {
+    if (data.find((item: { teamName: string; }) => item.teamName === inputContent)) {
       questRes = true;
     }
   }
@@ -48,7 +46,7 @@ export const getContent = (arr: ITagsInSpace[] | ISubTeamListInSpaceBase[], name
   return content;
 };
 export const isPrimaryOrOwnFunc = (info: IMemberInfoInSpace, userMemberId: string) => {
-  return info.isPrimary || info.memberId === userMemberId;
+  return info.isPrimary || (info.memberId === userMemberId);
 };
 
 export const socialPlatPreOperateCheck = (fn: () => void, spaceInfo: ISpaceInfo | ISpaceBasicInfo | null) => {

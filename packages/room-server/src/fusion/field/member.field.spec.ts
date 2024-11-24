@@ -18,27 +18,28 @@
 
 import { FieldType, IMemberField } from '@apitable/core';
 import '@apitable/i18n-lang';
-import { MemberField } from 'fusion/field/member.field';
-import { UnitMemberService } from 'unit/services/unit.member.service';
-import { UnitService } from 'unit/services/unit.service';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { Test, TestingModule } from '@nestjs/testing';
-import { AppModule } from '../../app.module';
+import { AppModule } from 'app.module';
+import { UnitMemberService } from 'unit/services/unit.member.service';
+import { UnitService } from 'unit/services/unit.service';
+import { MemberField } from 'fusion/field/member.field';
 
 describe('MemberField', () => {
   let app: NestFastifyApplication;
   let fieldClass: MemberField;
   let field: IMemberField;
-  let unitService: UnitService;
+  let unitservice: UnitService;
 
   beforeAll(async() => {
+    jest.setTimeout(60000);
     const module: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
     app = module.createNestApplication<NestFastifyApplication>(new FastifyAdapter());
     await app.init();
-    unitService = app.get(UnitMemberService);
-    fieldClass = new MemberField(unitService);
+    unitservice = app.get(UnitMemberService);
+    fieldClass = new MemberField(unitservice);
     field = {
       id: 'fldpRxaCC8Mhe',
       name: 'Member',
@@ -74,11 +75,14 @@ describe('MemberField', () => {
     });
     it('name not exist--should throw an error', () => {
       field.property.isMulti = false;
-      expect(() => fieldClass.validate([{}], field)).toThrow(/^api_params_instance_member_name_error$/);
+      expect(() => fieldClass.validate([{
+        id: '1'
+      }], field)).toThrow(/^api_params_instance_member_name_error$/);
     });
     it('type not exist--should throw an error', () => {
       field.property.isMulti = false;
       expect(() => fieldClass.validate([{
+        id: '1',
         name: 'name'
       }], field)).toThrow(/^api_params_instance_member_type_error$/);
     });

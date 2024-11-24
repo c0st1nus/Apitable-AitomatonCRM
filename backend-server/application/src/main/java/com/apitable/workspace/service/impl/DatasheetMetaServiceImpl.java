@@ -34,17 +34,14 @@ import com.apitable.workspace.ro.MetaOpRo;
 import com.apitable.workspace.service.IDatasheetMetaService;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.toolkit.SqlHelper;
-import jakarta.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * datasheet meta service implement.
- */
 @Slf4j
 @Service
 public class DatasheetMetaServiceImpl implements IDatasheetMetaService {
@@ -129,10 +126,5 @@ public class DatasheetMetaServiceImpl implements IDatasheetMetaService {
         }
         String keyword = "\"type\": 13";
         return SqlTool.retCount(datasheetMetaMapper.countByMetaData(dstIds, keyword)) > 0;
-    }
-
-    @Override
-    public void batchRemove(List<String> nodeIds, boolean isDel, Long userId) {
-        datasheetMetaMapper.updateIsDeletedByNodeId(userId, nodeIds, isDel);
     }
 }

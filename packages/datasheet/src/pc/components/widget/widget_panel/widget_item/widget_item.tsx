@@ -16,51 +16,40 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { ThemeName } from '@apitable/components';
+import { CollaCommandName, ExecuteResult, ResourceType, Selectors, StoreActions, Strings, t } from '@apitable/core';
+import { RuntimeEnv } from '@apitable/widget-sdk';
+import { WidgetLoadError } from '@apitable/widget-sdk/dist/initialize_widget';
 import { useToggle } from 'ahooks';
 import classNames from 'classnames';
 import { SimpleEmitter } from 'modules/shared/simple_emitter';
 import Image from 'next/image';
-import * as React from 'react';
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { ThemeName } from '@apitable/components';
-import {
-  CollaCommandName,
-  ConfigConstant,
-  ExecuteResult,
-  ResourceType,
-  Selectors,
-  StoreActions,
-  Strings,
-  t
-} from '@apitable/core';
-import { RuntimeEnv } from '@apitable/widget-sdk';
-import { WidgetLoadError } from '@apitable/widget-sdk/dist/initialize_widget';
 import { ComponentDisplay, ScreenSize } from 'pc/components/common/component_display';
-import {
-  DataSourceSelectorForNode
-} from 'pc/components/data_source_selector_enhanced/data_source_selector_for_node/data_source_selector_for_node';
+import { SearchPanel } from 'pc/components/datasheet_search_panel';
+// @ts-ignore
+import { EmbedContext } from 'enterprise';
 import { expandRecordInCenter } from 'pc/components/expand_record';
-import { expandRecordPicker } from 'pc/components/record_picker';
 import { WidgetHeader } from 'pc/components/widget/widget_panel/widget_item/widget_header';
 import { WidgetHeaderMobile } from 'pc/components/widget/widget_panel/widget_item/widget_header_mobile';
 import { useResponsive } from 'pc/hooks';
 import { useAppDispatch } from 'pc/hooks/use_app_dispatch';
 import { resourceService } from 'pc/resource_service';
 import { store } from 'pc/store';
-import { useAppSelector } from 'pc/store/react-redux';
-import PngLinkDatasheetDark from 'static/icon/datasheet/chart/dashboard_widget_empty_dark.png';
-import PngLinkDatasheetLight from 'static/icon/datasheet/chart/dashboard_widget_empty_light.png';
-import { ErrorWidget } from '../../error_widget';
+import * as React from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
+import PngLinkdatasheetDark from 'static/icon/datasheet/chart/dashboard_widget_empty_dark.png';
+import PngLinkdatasheetLight from 'static/icon/datasheet/chart/dashboard_widget_empty_light.png';
 import { closeWidgetRoute, expandWidgetRoute } from '../../expand_widget';
 import { useDevLoadCheck, useFullScreen } from '../../hooks';
 import { usePreLoadError } from '../../hooks/use_pre_load_error';
+import { ErrorWidget } from '../../error_widget';
 import { IWidgetPropsBase } from './interface';
+import styles from './style.module.less';
 import { IWidgetBlockRefs, WidgetBlock } from './widget_block';
 import { WidgetBlockMain } from './widget_block_main';
 import { WidgetLoading } from './widget_loading';
-// @ts-ignore
-import { EmbedContext } from 'enterprise/embed/embed_context';
-import styles from './style.module.less';
+import { expandRecordPicker } from 'pc/components/record_picker';
 
 export const simpleEmitter = new SimpleEmitter();
 
@@ -82,23 +71,23 @@ declare global {
   }
 }
 
-export const WidgetItem: React.FC<React.PropsWithChildren<IWidgetItemProps>> = (props) => {
+export const WidgetItem: React.FC<React.PropsWithChildren<IWidgetItemProps>> = props => {
   const { widgetPanelId, widgetId, readonly, isMobile, config, setDevWidgetId, dragging, setDragging } = props;
 
-  const { folderId: folderIdForEmbed } = (useContext(EmbedContext || createContext({})) as any) || {};
+  const { folderId: folderIdForEmbed } = useContext(EmbedContext || createContext({})) as any || {};
 
-  const widget = useAppSelector((state) => Selectors.getWidget(state, widgetId));
+  const widget = useSelector(state => Selectors.getWidget(state, widgetId));
   const widgetSnapshot = widget?.snapshot;
   const widgetBindDatasheetId = widgetSnapshot ? widgetSnapshot.datasheetId : '';
   const doNotBindDatasheet = !widgetBindDatasheetId;
-  const { templateId, shareId } = useAppSelector((state) => state.pageParams);
+  const { templateId, shareId } = useSelector(state => state.pageParams);
   const linkId = templateId || shareId;
-  const rootNodeId = useAppSelector((state) => folderIdForEmbed || state.catalogTree.rootId);
-  const isExpandWidget = useAppSelector((state) => Boolean(state.pageParams.widgetId === widgetId));
-  const errorCode = useAppSelector((state) => Selectors.getDatasheetErrorCode(state, widgetBindDatasheetId));
+  const rootNodeId = useSelector(state => folderIdForEmbed || state.catalogTree.rootId);
+  const isExpandWidget = useSelector(state => Boolean(state.pageParams.widgetId === widgetId));
+  const errorCode = useSelector(state => Selectors.getDatasheetErrorCode(state, widgetBindDatasheetId));
   const dispatch = useAppDispatch();
-  const themeName = useAppSelector((state) => state.theme);
-  const PngLinkDatasheet = themeName === ThemeName.Light ? PngLinkDatasheetLight : PngLinkDatasheetDark;
+  const themeName = useSelector(state => state.theme);
+  const PngLinkdatasheet = themeName === ThemeName.Light ? PngLinkdatasheetLight : PngLinkdatasheetDark;
 
   const [searchPanelVisible, setSearchPanelVisible] = useState(false);
   const [isSettingOpened, { toggle: toggleSettingOpened }] = useToggle(false);
@@ -144,7 +133,7 @@ export const WidgetItem: React.FC<React.PropsWithChildren<IWidgetItemProps>> = (
     // eslint-disable-next-line
   }, [isExpandWidget]);
 
-  const setDepDatasheetId = ({ datasheetId, mirrorId }: { datasheetId?: string; mirrorId?: string }) => {
+  const setDepDatasheetId = ({ datasheetId, mirrorId }: { datasheetId?: string, mirrorId?: string }) => {
     if (mirrorId) {
       datasheetId = Selectors.getMirrorSourceInfo(store.getState(), mirrorId)!.datasheetId;
     }
@@ -185,7 +174,7 @@ export const WidgetItem: React.FC<React.PropsWithChildren<IWidgetItemProps>> = (
       )}
       onClick={() => toggleFullscreen()}
     >
-      <div className={styles.widgetContainer} onClick={(e) => e.stopPropagation()}>
+      <div className={styles.widgetContainer} onClick={e => e.stopPropagation()}>
         <ComponentDisplay minWidthCompatible={ScreenSize.md}>
           <WidgetHeader
             widgetId={widgetId}
@@ -224,7 +213,7 @@ export const WidgetItem: React.FC<React.PropsWithChildren<IWidgetItemProps>> = (
           {widget &&
             (doNotBindDatasheet ? (
               <div className={styles.mask}>
-                <Image src={PngLinkDatasheet} alt="" width={160} height={120} objectFit="contain"/>
+                <Image src={PngLinkdatasheet} alt='' width={160} height={120} objectFit='contain' />
                 {!linkId && (
                   <span
                     onClick={() => {
@@ -240,48 +229,41 @@ export const WidgetItem: React.FC<React.PropsWithChildren<IWidgetItemProps>> = (
               </div>
             ) : (
               PreLoadError ||
-              (!sandboxLoad ? (
-                <WidgetLoading/>
-              ) : isCiLowVersion ? (
-                <ErrorWidget content={t(Strings.widget_cli_upgrade_tip)}/>
-              ) : (
-                <WidgetBox
-                  widgetId={widgetId}
-                  widgetPackageId={widget.widgetPackageId}
-                  ref={widgetLoader}
-                  nodeId={widgetBindDatasheetId!}
-                  isExpandWidget={isExpandWidget}
-                  isSettingOpened={isSettingOpened}
-                  toggleSetting={toggleSetting}
-                  toggleFullscreen={toggleFullscreen}
-                  expandRecord={expandRecordInCenter}
-                  expandRecordPicker={expandRecordPicker}
-                  isDevMode={config?.isDevMode}
-                  setDevWidgetId={setDevWidgetId}
-                  dragging={dragging}
-                  key={props.index}
-                  runtimeEnv={runtimeEnv}
-                />
-              ))
+              (
+                !sandboxLoad ? <WidgetLoading /> : (isCiLowVersion ? 
+                  <ErrorWidget content={t(Strings.widget_cli_upgrade_tip)} /> :
+                  <WidgetBox
+                    widgetId={widgetId}
+                    widgetPackageId={widget.widgetPackageId}
+                    ref={widgetLoader}
+                    nodeId={widgetBindDatasheetId!}
+                    isExpandWidget={isExpandWidget}
+                    isSettingOpened={isSettingOpened}
+                    toggleSetting={toggleSetting}
+                    toggleFullscreen={toggleFullscreen}
+                    expandRecord={expandRecordInCenter}
+                    expandRecordPicker={expandRecordPicker}
+                    isDevMode={config?.isDevMode}
+                    setDevWidgetId={setDevWidgetId}
+                    dragging={dragging}
+                    key={props.index}
+                    runtimeEnv={runtimeEnv}
+                  />
+                ))
             ))}
         </div>
         {searchPanelVisible && !readonly && (
-          <DataSourceSelectorForNode
-            onHide={() => {
-              setSearchPanelVisible(false);
-            }}
-            permissionRequired={'manageable'}
+          <SearchPanel
+            folderId={rootNodeId}
+            activeDatasheetId={''}
+            setSearchPanelVisible={setSearchPanelVisible}
             onChange={setDepDatasheetId}
-            nodeTypes={[ConfigConstant.NodeType.DATASHEET, ConfigConstant.NodeType.MIRROR]}
-            defaultNodeIds={{
-              folderId: rootNodeId,
-              datasheetId: '',
-            }}
-            single
-            requiredData={['datasheetId', 'mirrorId']}
+            noCheckPermission
+            showMirrorNode
           />
         )}
       </div>
     </div>
   );
 };
+

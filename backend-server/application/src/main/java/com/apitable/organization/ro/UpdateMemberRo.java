@@ -22,10 +22,9 @@ import com.apitable.core.support.deserializer.StringArrayToLongArrayDeserializer
 import com.apitable.core.support.deserializer.StringToLongDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import java.util.List;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import lombok.Data;
 
 /**
@@ -38,8 +37,7 @@ import lombok.Data;
 public class UpdateMemberRo {
 
     @NotNull
-    @Schema(description = "Member ID",
-        requiredMode = RequiredMode.REQUIRED, type = "java.lang.String", example = "1")
+    @Schema(description = "Member ID", required = true, type = "java.lang.String", example = "1")
     @JsonDeserialize(using = StringToLongDeserializer.class)
     private Long memberId;
 
@@ -61,11 +59,6 @@ public class UpdateMemberRo {
         + "\"10103\",\"10104\"]")
     @JsonDeserialize(using = StringArrayToLongArrayDeserializer.class)
     private List<Long> teamIds;
-
-    @Schema(description = "Department ID", type = "List", example = "[\"10101\",\"10102\","
-        + "\"10103\",\"10104\"]")
-    @JsonDeserialize(using = StringArrayToLongArrayDeserializer.class)
-    private List<Long> roleIds;
 
     @Schema(description = "Attribution tag ID set", type = "List", example = "[\"10101\","
         + "\"10102\",\"10103\",\"10104\"]")

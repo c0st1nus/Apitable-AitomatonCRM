@@ -18,11 +18,12 @@
 
 package com.apitable.workspace.entity;
 
+import java.io.Serializable;
+import java.time.LocalDateTime;
+
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
-import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -32,7 +33,7 @@ import lombok.experimental.Accessors;
 
 /**
  * <p>
- * Workbench - Node Share Setting Operation Record Table.
+ * Workbench - Node Share Setting Operation Record Table
  * </p>
  *
  * @author Mybatis Generator Tool
@@ -49,28 +50,28 @@ public class NodeShareOperateEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Primary Key.
+     * Primary Key
      */
     @TableId(value = "id", type = IdType.ASSIGN_ID)
     private Long id;
 
     /**
-     * Share Node ID.
+     * Share Node ID
      */
     private String nodeId;
 
     /**
-     * Operation event type (0: open share, 1: close share, 2: open transfer, 3: close transfer, 4: refresh link).
+     * Operation event type (0: open share, 1: close share, 2: open transfer, 3: close transfer, 4: refresh link)
      */
     private Integer operateEvent;
 
     /**
-     * Operator.
+     * Operator
      */
     private Long operator;
 
     /**
-     * Create Time.
+     * Create Time
      */
     private LocalDateTime createdAt;
 

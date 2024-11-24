@@ -1,5 +1,5 @@
-import React, { MutableRefObject } from 'react';
 import { ICascaderOption } from '../../utils';
+import React, { MutableRefObject } from 'react';
 
 export interface ICascader {
   loading?: boolean;
@@ -14,4 +14,6 @@ export interface ICascader {
   showSearch?: boolean;
 }
 
-export type IMobileCascader = Pick<ICascader, 'options' | 'onChange' | 'cascaderRef' | 'value' | 'disabled'>;
+export type IMobileCascader = Pick<
+  ICascader,
+  'options' | 'onChange' | 'cascaderRef' | 'value'>;

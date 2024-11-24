@@ -17,8 +17,8 @@
  */
 
 import Joi from 'joi';
-import { IReduxState } from '../../exports/store/interfaces';
-import { DatasheetActions } from '../../commands_actions/datasheet';
+import { IReduxState } from '../../exports/store';
+import { DatasheetActions } from '../datasheet';
 import { NumberBaseField } from './number_base_field';
 import { ICellToStringOption, ICellValue } from 'model/record';
 import { numberToShow, str2Currency, str2number } from 'utils';
@@ -28,7 +28,6 @@ import { enumToArray } from 'model/field/validate_schema';
 import { TSymbolAlign } from 'types';
 import { IOpenCurrencyFieldProperty } from 'types/open/open_field_read_types';
 import { IUpdateOpenCurrencyFieldProperty } from 'types/open/open_field_write_types';
-import { getFieldDefaultProperty } from './const';
 
 export const getSymbolAlignStr = (symbolAlign?: SymbolAlign.default | SymbolAlign.left | SymbolAlign.right): undefined | TSymbolAlign => {
   if (symbolAlign == null) {
@@ -112,7 +111,11 @@ export class CurrencyField extends NumberBaseField {
   }
 
   static defaultProperty() {
-    return getFieldDefaultProperty(FieldType.Currency) as ICurrencyFieldProperty;
+    return {
+      symbol: '$',
+      precision: 2,
+      symbolAlign: SymbolAlign.default
+    };
   }
 
   static openUpdatePropertySchema = Joi.object({

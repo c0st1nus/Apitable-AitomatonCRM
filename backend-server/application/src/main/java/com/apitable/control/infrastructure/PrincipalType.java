@@ -19,8 +19,7 @@
 package com.apitable.control.infrastructure;
 
 /**
- * Principal Type.
- *
+ * Principal Type
  * @author Shawn Deng
  */
 public enum PrincipalType {

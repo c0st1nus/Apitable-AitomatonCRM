@@ -17,8 +17,8 @@
  */
 
 import { Token, TokenType } from '../lexer/token';
-import type { IFieldMap, IReduxState } from 'exports/store/interfaces';
-import { Field } from 'model/field';
+import type { IFieldMap, IReduxState } from 'exports/store';
+import { Field } from 'model';
 import { BasicValueType, IField } from 'types';
 import { ROLLUP_KEY_WORDS } from 'formula_parser/consts';
 import { t, Strings } from 'exports/i18n';
@@ -182,6 +182,8 @@ export abstract class ValueOperandNodeBase extends AstNode {
 }
 
 export class ValueOperandNode extends ValueOperandNodeBase {
+  override readonly value!: string;
+  override readonly valueType!: BasicValueType;
   override readonly name = AstNodeType.ValueOperandNode;
   override readonly field!: IField;
 
@@ -193,6 +195,8 @@ export class ValueOperandNode extends ValueOperandNodeBase {
 }
 
 export class PureValueOperandNode extends ValueOperandNodeBase {
+  override readonly value!: string;
+  override readonly valueType!: BasicValueType;
   override readonly name = AstNodeType.PureValueOperandNode;
   override readonly field!: IField;
 
@@ -241,7 +245,7 @@ export class StringOperandNode extends AstNode {
     const terminatorMap = new Map([
       [/\\n/g, '\n'], // newline
       [/\\r/g, '\r'], // newline
-      [/\\t/g, '\t'], // tab
+      [/\\t/g, '\t'], // tab 
     ]);
 
     terminatorMap.forEach((v, k) => {

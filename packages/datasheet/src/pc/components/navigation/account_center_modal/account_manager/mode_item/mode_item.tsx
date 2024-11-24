@@ -16,11 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { Button } from '@apitable/components';
+import { Strings, t } from '@apitable/core';
 import classnames from 'classnames';
 import Image from 'next/image';
 import { FC } from 'react';
-import { Button } from '@apitable/components';
-import { Strings, t } from '@apitable/core';
 import styles from './style.module.less';
 
 export interface IModeItemProps {
@@ -33,7 +33,16 @@ export interface IModeItemProps {
   onClick: () => void;
 }
 
-export const ModeItem: FC<React.PropsWithChildren<IModeItemProps>> = ({ className, img, name, state, modeName, bindingTime, onClick }) => {
+export const ModeItem: FC<React.PropsWithChildren<IModeItemProps>> = ({
+  className,
+  img,
+  name,
+  state,
+  modeName,
+  bindingTime,
+  onClick,
+}) => {
+
   return (
     <div className={classnames(styles.modeItem, className)}>
       <span className={styles.img}>
@@ -54,9 +63,7 @@ export const ModeItem: FC<React.PropsWithChildren<IModeItemProps>> = ({ classNam
           <div className={styles.value}>{name ? name : <div className={styles.defaultLine} />}</div>
         </div>
       </div>
-      <Button size="small" color={state ? 'danger' : 'primary'} onClick={onClick}>
-        {state ? t(Strings.unbind) : t(Strings.bind)}
-      </Button>
+      <Button size="small" color={state ? 'danger' : 'primary'} onClick={onClick}>{state ? t(Strings.unbind) : t(Strings.bind)}</Button>
     </div>
   );
 };

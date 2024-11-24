@@ -59,7 +59,7 @@ public class PlayerNotificationServiceImplTest extends AbstractIntegrationTest {
         NotificationManager.me().playerNotify(NotificationTemplateId.NEW_USER_WELCOME_NOTIFY,
                 Collections.singletonList(userId), 0L, null, extras);
         List<NotificationModelDTO> notify = iPlayerNotificationService.getUserNotificationByTypeAndIsRead(userId,
-                false);
+                0);
         JSONObject extrasObj = JSONUtil.parseObj(notify.get(0).getNotifyBody());
         assertThat(extrasObj.getByPath(BODY_EXTRAS + "." + EXTRA_TOAST + "." + EXTRA_TOAST_URL)).isEqualTo(template.getUrl());
 

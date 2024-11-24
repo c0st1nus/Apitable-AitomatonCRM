@@ -19,102 +19,81 @@
 package com.apitable.workspace.enums;
 
 /**
- * node type.
+ * node type
+ *
  */
 public enum NodeType {
 
     /**
-     * root node.
+     * root node
      */
     ROOT(0),
 
     /**
-     * folder.
+     * folder
      */
     FOLDER(1),
 
     /**
-     * datasheet.
+     * datasheet
      */
     DATASHEET(2),
 
     /**
-     * form.
+     * form
      */
     FORM(3),
 
     /**
-     * dashboard.
+     * dashboard
      */
     DASHBOARD(4),
 
     /**
-     * mirror.
+     * mirror
      */
     MIRROR(5),
 
     /**
-     * dataPage, Page design based on.
+     * dataPage, Page design based on
      */
     DATAPAGE(6),
 
     /**
-     * canvas.
+     * canvas
      */
     CANVAS(7),
 
     /**
-     * editor documents.
+     * editor documents
      */
     WORD_DOC(8),
 
     /**
-     * ai chat bot.
-     */
-    AI_CHAT_BOT(9),
-
-    /**
-     * automation.
-     */
-    AUTOMATION(10),
-
-    /**
-     * airagent. NOTICE: Airagent will not create `node`, here is just for ID Generating
-     */
-    AIRAGENT(11),
-
-    /**
-     * custom page.
-     */
-    CUSTOM_PAGE(12),
-
-    /**
-     * static resource file.
+     * static resource file
      */
     ASSET_FILE(98),
 
     /**
-     * dataDoc.
+     * dataDoc
      */
     DATADOC(99);
 
 
-    private final int value;
+    private int nodeType;
 
-    NodeType(int value) {
-        this.value = value;
+    NodeType(int nodeType) {
+        this.nodeType = nodeType;
     }
 
     public int getNodeType() {
-        return value;
+        return nodeType;
     }
 
-    /**
-     * transform from.
-     *
-     * @param code code value
-     * @return NodeType
-     */
+    public void setNodeType(int nodeType) {
+        this.nodeType = nodeType;
+    }
+
     public static NodeType toEnum(int code) {
         for (NodeType e : NodeType.values()) {
             if (e.getNodeType() == code) {
@@ -125,29 +104,9 @@ public enum NodeType {
     }
 
     /**
-     * whether is root node type.
-     *
-     * @return true if is root
+     * exclude root and folder type
      */
-    public boolean isRoot() {
-        return this == ROOT;
-    }
-
-    /**
-     * whether is folder node type.
-     *
-     * @return true if is folder
-     */
-    public boolean isFolder() {
-        return this == FOLDER;
-    }
-
-    /**
-     * whether is not folder node type.
-     *
-     * @return true if is not folder
-     */
-    public boolean isNotFolder() {
-        return !isRoot() && !isFolder();
+    public boolean isFileNode() {
+        return nodeType > 1;
     }
 }

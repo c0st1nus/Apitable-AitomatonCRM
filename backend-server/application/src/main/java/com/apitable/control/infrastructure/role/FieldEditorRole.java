@@ -23,7 +23,7 @@ import com.apitable.control.infrastructure.role.RoleConstants.Field;
 
 /**
  * <p>
- * Editor Role of Field.
+ * Editor Role of Field
  * </p>
  *
  * @author Chambers
@@ -38,12 +38,6 @@ public class FieldEditorRole extends FieldReaderRole {
         this(inherit, false);
     }
 
-    /**
-     * constructor.
-     *
-     * @param inherit inherit
-     * @param isAdmin isAdmin
-     */
     public FieldEditorRole(boolean inherit, boolean isAdmin) {
         super(inherit, isAdmin);
 

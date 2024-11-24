@@ -20,10 +20,8 @@ package com.apitable.space.controller;
 
 import cn.hutool.core.util.StrUtil;
 import com.apitable.core.support.ResponseData;
-import com.apitable.interfaces.security.facade.HumanVerificationServiceFacade;
-import com.apitable.interfaces.security.model.NonRobotMetadata;
+import com.apitable.organization.mapper.TeamMapper;
 import com.apitable.organization.ro.InviteValidRo;
-import com.apitable.organization.service.ITeamService;
 import com.apitable.shared.component.scanner.annotation.ApiResource;
 import com.apitable.shared.component.scanner.annotation.GetResource;
 import com.apitable.shared.component.scanner.annotation.PostResource;
@@ -31,6 +29,7 @@ import com.apitable.shared.constants.ParamsConstants;
 import com.apitable.shared.context.LoginContext;
 import com.apitable.shared.context.SessionContext;
 import com.apitable.space.entity.InvitationEntity;
+import com.apitable.space.mapper.SpaceInviteLinkMapper;
 import com.apitable.space.ro.SpaceLinkOpRo;
 import com.apitable.space.service.IInvitationService;
 import com.apitable.space.service.ISpaceInviteLinkService;
@@ -41,9 +40,10 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.annotation.Resource;
-import jakarta.validation.Valid;
+import java.util.Collections;
 import java.util.List;
+import javax.annotation.Resource;
+import javax.validation.Valid;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -60,13 +60,13 @@ public class SpaceLinkController {
     private ISpaceInviteLinkService iSpaceInviteLinkService;
 
     @Resource
-    private ITeamService iTeamService;
+    private SpaceInviteLinkMapper spaceInviteLinkMapper;
+
+    @Resource
+    private TeamMapper teamMapper;
 
     @Resource
     private IInvitationService iInvitationService;
-
-    @Resource
-    private HumanVerificationServiceFacade humanVerificationServiceFacade;
 
     /**
      * Get a list of links.
@@ -77,15 +77,16 @@ public class SpaceLinkController {
         schema = @Schema(type = "string"), in = ParameterIn.HEADER, example = "spczJrh2i3tLW")
     public ResponseData<List<SpaceLinkVo>> list() {
         Long memberId = LoginContext.me().getMemberId();
-        return ResponseData.success(iSpaceInviteLinkService.getSpaceLinkVos(memberId));
+        List<SpaceLinkVo> vo = spaceInviteLinkMapper.selectLinkVo(memberId);
+        return ResponseData.success(vo);
     }
 
     /**
      * Generate or refresh link.
      */
     @PostResource(path = "/generate", tags = "INVITE_MEMBER")
-    @Operation(summary = "Generate or refresh link",
-        description = "return token，the front end stitching $DOMAIN/invite/link?token=:token")
+    @Operation(summary = "Generate or refresh link", description = "return token，the front stitch"
+        + " ../invite/link?token=:token")
     @Parameter(name = ParamsConstants.SPACE_ID, description = "space id", required = true,
         schema = @Schema(type = "string"), in = ParameterIn.HEADER, example = "spczJrh2i3tLW")
     public ResponseData<String> generate(@RequestBody @Valid SpaceLinkOpRo opRo) {
@@ -98,7 +99,7 @@ public class SpaceLinkController {
         }
         Long teamId = opRo.getTeamId();
         if (teamId == 0) {
-            teamId = iTeamService.getRootTeamId(spaceId);
+            teamId = teamMapper.selectRootIdBySpaceId(spaceId);
         }
         String token = iSpaceInviteLinkService.saveOrUpdate(spaceId, teamId, memberId);
         return ResponseData.success(token);
@@ -112,43 +113,42 @@ public class SpaceLinkController {
     @Parameter(name = ParamsConstants.SPACE_ID, description = "space id", required = true,
         schema = @Schema(type = "string"), in = ParameterIn.HEADER, example = "spcyQkKp9XJEl")
     public ResponseData<Void> delete(@RequestBody @Valid SpaceLinkOpRo opRo) {
-        String spaceId = LoginContext.me().getSpaceId();
         Long memberId = LoginContext.me().getMemberId();
         Long teamId = opRo.getTeamId();
         if (teamId == 0) {
-            teamId = iTeamService.getRootTeamId(spaceId);
+            String spaceId = LoginContext.me().getSpaceId();
+            teamId = teamMapper.selectRootIdBySpaceId(spaceId);
         }
-        iSpaceInviteLinkService.deleteByTeamIdAndMemberId(teamId, memberId);
+        spaceInviteLinkMapper.delByTeamIdAndMemberId(teamId, Collections.singletonList(memberId));
         return ResponseData.success();
     }
 
     /**
      * Valid invite link token.
      */
-    @PostResource(path = "/valid", requiredLogin = false)
+    @PostResource(name = "Valid invite link token", path = "/valid", requiredLogin = false)
     @Operation(summary = "Valid invite link token", description = "After the verification is "
         + "successful, it can obtain related invitation information")
     public ResponseData<SpaceLinkInfoVo> valid(@RequestBody @Valid InviteValidRo data) {
-        if (StrUtil.isBlank(data.getNodeId())) {
-            return ResponseData.success(iSpaceInviteLinkService.valid(data.getToken()));
+        SpaceLinkInfoVo vo;
+        if (StrUtil.isNotBlank(data.getNodeId())) {
+            InvitationEntity entity =
+                iInvitationService.validInvitationToken(data.getToken(), data.getNodeId());
+            vo = iInvitationService.getInvitationInfo(entity.getSpaceId(), entity.getCreator());
+        } else {
+            vo = iSpaceInviteLinkService.valid(data.getToken());
         }
-        InvitationEntity entity =
-            iInvitationService.validInvitationToken(data.getToken(), data.getNodeId());
-        SpaceLinkInfoVo vo =
-            iInvitationService.getInvitationInfo(entity.getSpaceId(), entity.getCreator());
         return ResponseData.success(vo);
     }
 
     /**
      * Join the space using the public link.
      */
-    @PostResource(path = "/join", requiredPermission = false)
-    @Operation(summary = "Join the space using the public link",
-        description = "If return code status 201,"
-            + "the user redirects to the login page due to unauthorized.")
+    @PostResource(name = "Join the space using the public link", path = "/join",
+        requiredPermission = false)
+    @Operation(summary = "Join the space using the public link", description = "If return code "
+        + "status 201, the user redirects to the login page due to unauthorized。")
     public ResponseData<Void> join(@RequestBody @Valid InviteValidRo data) {
-        // human verification
-        humanVerificationServiceFacade.verifyNonRobot(new NonRobotMetadata(data.getData()));
         Long userId = SessionContext.getUserId();
         iSpaceInviteLinkService.join(userId, data.getToken(), data.getNodeId());
         return ResponseData.success();

@@ -19,15 +19,13 @@
 package com.apitable.organization.dto;
 
 import java.util.List;
+
 import lombok.Data;
 
-/**
- * search member dto.
- */
 @Data
 public class SearchMemberDTO {
 
-    private Long unitId;
+	private Long unitId;
 
     private Long memberId;
 

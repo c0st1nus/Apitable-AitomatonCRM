@@ -18,18 +18,19 @@
 
 package com.apitable.core.support.tree.v2;
 
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.ObjectUtil;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.ObjectUtil;
+
 /**
  * <p>
- * V2 Try to build tree nodes without dependencies.
- * Note: sort the List externally, the incoming List is ordered.
+ *  V2 Try to build tree nodes without dependencies
+ *  Note: sort the List externally, the incoming List is ordered
  * </p>
  */
 public class NotRelyTryTreeBuildFactory<T extends Tree> extends AbstractTreeBuildFactory<T> {
@@ -57,7 +58,7 @@ public class NotRelyTryTreeBuildFactory<T extends Tree> extends AbstractTreeBuil
     }
 
     /**
-     * build tree.
+     * build tree
      *
      * @param totalNodes the node list
      */
@@ -74,8 +75,7 @@ public class NotRelyTryTreeBuildFactory<T extends Tree> extends AbstractTreeBuil
 
         // By default, using the first element parent id as the first match
         Entry<String, T> next = eTreeMap.entrySet().iterator().next();
-        String basisParentId =
-            null == next ? DefaultTreeBuildFactory.ROOT_PARENT_ID : next.getValue().getParentId();
+        String basisParentId = null == next ? DefaultTreeBuildFactory.ROOT_PARENT_ID : next.getValue().getParentId();
 
         List<T> rootTreeList = CollUtil.newArrayList();
         String parentId;
@@ -95,7 +95,8 @@ public class NotRelyTryTreeBuildFactory<T extends Tree> extends AbstractTreeBuil
             final T parentNode = eTreeMap.get(parentId);
             if (null != parentNode) {
                 parentNode.addChildren(node);
-            } else {
+            }
+            else {
                 // If no matching node, the replacement condition is used for the next round of matching
                 basisParentId = parentId;
                 rootTreeList.add(node);

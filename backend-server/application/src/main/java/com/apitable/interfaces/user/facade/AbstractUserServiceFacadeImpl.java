@@ -20,6 +20,7 @@ package com.apitable.interfaces.user.facade;
 
 import com.apitable.interfaces.auth.model.UserAuth;
 import com.apitable.interfaces.user.model.InvitationCode;
+import com.apitable.interfaces.user.model.RewardWizardAction;
 import com.apitable.interfaces.user.model.RewardedUser;
 
 /**
@@ -28,7 +29,7 @@ import com.apitable.interfaces.user.model.RewardedUser;
 public abstract class AbstractUserServiceFacadeImpl implements UserServiceFacade {
 
     @Override
-    public void onUserChangeEmailAction(Long userId, String email, String oldEmail) {
+    public void onUserChangeEmailAction(Long userId, String email) {
 
     }
 
@@ -63,6 +64,11 @@ public abstract class AbstractUserServiceFacadeImpl implements UserServiceFacade
 
     @Override
     public void rewardUserInfoUpdateAction(RewardedUser rewardedUser) {
+
+    }
+
+    @Override
+    public void rewardWizardAction(RewardWizardAction wizardAction) {
 
     }
 

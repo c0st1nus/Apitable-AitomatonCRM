@@ -15,17 +15,17 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+import { Test, TestingModule } from '@nestjs/testing';
 import { NodeDescriptionService } from './node.description.service';
 import { NodeDescRepository } from '../repositories/node.desc.repository';
-import { Test, TestingModule } from '@nestjs/testing';
 
 describe('Test NodeDescriptionService', () => {
-  let moduleFixture: TestingModule;
+  let module: TestingModule;
   let repository: NodeDescRepository;
   let service: NodeDescriptionService;
 
-  beforeEach(async() => {
-    moduleFixture = await Test.createTestingModule({
+  beforeAll(async() => {
+    module = await Test.createTestingModule({
       providers: [
         {
           provide: NodeDescRepository,
@@ -36,13 +36,12 @@ describe('Test NodeDescriptionService', () => {
         NodeDescriptionService,
       ],
     }).compile();
-    service = moduleFixture.get<NodeDescriptionService>(NodeDescriptionService);
-    repository = moduleFixture.get<NodeDescRepository>(NodeDescRepository);
-    jest.spyOn(repository, 'selectDescriptionByNodeId').mockResolvedValue({ description: 'node description' });
+    service = module.get<NodeDescriptionService>(NodeDescriptionService);
+    repository = module.get<NodeDescRepository>(NodeDescRepository);
   });
 
-  afterEach(async() => {
-    await moduleFixture.close();
+  beforeEach(() => {
+    jest.spyOn(repository, 'selectDescriptionByNodeId').mockResolvedValue({ description: 'node description' });
   });
 
   it('should be return node description', async() => {

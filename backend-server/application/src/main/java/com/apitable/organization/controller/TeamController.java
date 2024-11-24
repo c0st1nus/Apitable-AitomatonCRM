@@ -53,12 +53,12 @@ import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.annotation.Resource;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import java.util.Collections;
 import java.util.List;
+import javax.annotation.Resource;
+import javax.validation.Valid;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -105,9 +105,27 @@ public class TeamController {
     }
 
     /**
+     * Team branch.
+     * TODO remove it after replace tree api
+     */
+    @Deprecated
+    @GetResource(path = "/branch", name = "team branch")
+    @Operation(summary = "team branch", description = "team branch. result is tree")
+    @Parameter(name = ParamsConstants.SPACE_ID, description = "space id", required = true,
+        schema = @Schema(type = "string"), in = ParameterIn.HEADER, example = "spcyQkKp9XJEl")
+    public ResponseData<List<TeamTreeVo>> getTeamBranch() {
+        // get the member's space
+        String spaceId = LoginContext.me().getSpaceId();
+        Long memberId = LoginContext.me().getMemberId();
+        // load the member's team tree.
+        List<TeamTreeVo> defaultTreeRes = iTeamService.loadMemberTeamTree(spaceId, memberId);
+        return ResponseData.success(defaultTreeRes);
+    }
+
+    /**
      * Query direct sub departments.
      */
-    @GetResource(path = "/subTeams")
+    @GetResource(path = "/subTeams", name = "Query direct sub departments")
     @Operation(summary = "Query direct sub departments",
         description = "query sub team by team id. if team id lack, default root team.")
     @Parameters({
@@ -146,7 +164,7 @@ public class TeamController {
         SpaceGlobalFeature feature = iSpaceService.getSpaceGlobalFeature(spaceId);
         SpaceHolder.setGlobalFeature(feature);
         if (teamId == 0) {
-            teamId = iTeamService.getRootTeamId(spaceId);
+            teamId = teamMapper.selectRootIdBySpaceId(spaceId);
         }
         List<MemberPageVo> resultList =
             teamMapper.selectMembersByTeamId(Collections.singletonList(teamId));
@@ -156,7 +174,7 @@ public class TeamController {
     /**
      * Query team information.
      */
-    @GetResource(path = "/read")
+    @GetResource(path = "/read", name = "Querying team information")
     @Operation(summary = "Query team information",
         description = "Query department information. if team id lack, default root team")
     @Parameters({
@@ -176,7 +194,7 @@ public class TeamController {
     /**
      * Create team.
      */
-    @PostResource(path = "/create", tags = "CREATE_TEAM")
+    @PostResource(path = "/create", name = "Create team", tags = "CREATE_TEAM")
     @Operation(summary = "Create team", description = "Create team")
     @Parameter(name = ParamsConstants.SPACE_ID, description = "space id", required = true,
         schema = @Schema(type = "string"), in = ParameterIn.HEADER, example = "spcyQkKp9XJEl")
@@ -187,7 +205,7 @@ public class TeamController {
         Long superId = data.getSuperId();
         // get root team id
         if (data.getSuperId() == 0) {
-            superId = iTeamService.getRootTeamId(spaceId);
+            superId = teamMapper.selectRootIdBySpaceId(spaceId);
         }
         iTeamService.createSubTeam(spaceId, teamName, superId);
         return ResponseData.success();
@@ -196,10 +214,9 @@ public class TeamController {
     /**
      * Update team info.
      */
-    @PostResource(path = "/update", tags = "UPDATE_TEAM")
-    @Operation(summary = "Update team info",
-        description = "Update team info. If modify team level,"
-            + "default sort in the end of parent team.")
+    @PostResource(path = "/update", name = "Update team info", tags = "UPDATE_TEAM")
+    @Operation(summary = "Update team info", description = "Update team info. If modify team "
+        + "level, default sort in the end of parent team.")
     @Parameter(name = ParamsConstants.SPACE_ID, description = "space id", required = true,
         schema = @Schema(type = "string"), in = ParameterIn.HEADER, example = "spcyQkKp9XJEl")
     public ResponseData<Void> updateTeam(@RequestBody @Valid UpdateTeamRo data) {
@@ -213,7 +230,7 @@ public class TeamController {
         Long superId = data.getSuperId();
         if (superId == 0) {
             // get real root team id
-            superId = iTeamService.getRootTeamId(department.getSpaceId());
+            superId = teamMapper.selectRootIdBySpaceId(department.getSpaceId());
             ExceptionUtil.isNotNull(superId, UPDATE_TEAM_ERROR);
         }
         if (department.getParentId().equals(superId)) {
@@ -234,8 +251,8 @@ public class TeamController {
     /**
      * Delete team.
      */
-    @PostResource(path = "/delete/{teamId}",
-        method = {RequestMethod.DELETE}, tags = "DELETE_TEAM")
+    @PostResource(path = "/delete/{teamId}", method = { RequestMethod.DELETE },
+        name = "Delete team", tags = "DELETE_TEAM")
     @Operation(summary = "Delete team",
         description = "Delete team. If team has members, it can be deleted.")
     @Parameters({
@@ -256,7 +273,7 @@ public class TeamController {
         int retCount = SqlTool.retCount(teamMapper.existChildrenByParentId(teamId));
         ExceptionUtil.isTrue(retCount == 0, TEAM_HAS_SUB);
         // query the all team's member number.
-        long count = iTeamService.countMemberCountByParentId(teamId);
+        int count = iTeamService.countMemberCountByParentId(teamId);
         ExceptionUtil.isFalse(count > 0, TEAM_HAS_MEMBER);
         // delete the team
         iTeamService.deleteTeam(teamId);

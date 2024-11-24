@@ -18,10 +18,11 @@
 
 import { useMemo } from 'react';
 import { byteMGArr, decimalCeil, t, Strings } from '@apitable/core';
-import { IHooksParams, IHooksResult } from '../interface';
 import { getPercent } from '../utils';
+import { IHooksParams, IHooksResult } from '../interface';
 
 interface IHooksResultWithGift extends IHooksResult {
+
   allUsed: number;
   allUsedText: string;
   allTotal: number;
@@ -44,6 +45,7 @@ interface IHooksResultWithGift extends IHooksResult {
 type IUseCapacity = (hooksParams: IHooksParams) => IHooksResultWithGift;
 
 export const useCapacity: IUseCapacity = ({ subscription, spaceInfo }) => {
+
   const { allUsed, allTotal, used, total, giftUsed, giftTotal } = useMemo(() => {
     const allUsed = spaceInfo?.capacityUsedSizes || 0;
     const giftUsed = spaceInfo?.giftCapacityUsedSizes || 0;
@@ -65,7 +67,7 @@ export const useCapacity: IUseCapacity = ({ subscription, spaceInfo }) => {
     const allUsedText = `${allUsedArr[0]}${allUsedArr[1]}`;
     const allTotalArr = byteMGArr(allTotal);
     const allTotalText = `${allTotalArr[0]}${allTotalArr[1]}`;
-    const allUsedPercent = decimalCeil(getPercent(allUsedArr[2] / allTotalArr[2]) * 100);
+    const allUsedPercent = decimalCeil(getPercent((allUsedArr[2]) / (allTotalArr[2])) * 100);
     const allRemainArr = byteMGArr(allRemain, false);
     const allRemainText = `${allRemainArr[0]}${allRemainArr[1]}`;
     const allRemainPercent = 100 - allUsedPercent;
@@ -76,7 +78,7 @@ export const useCapacity: IUseCapacity = ({ subscription, spaceInfo }) => {
     const usedText = `${usedArr[0]}${usedArr[1]}`;
     const totalArr = byteMGArr(total);
     const totalText = `${totalArr[0]}${totalArr[1]}`;
-    const usedPercent = decimalCeil(getPercent(usedArr[2] / totalArr[2]) * 100);
+    const usedPercent = decimalCeil(getPercent((usedArr[2]) / (totalArr[2])) * 100);
     const remainArr = byteMGArr(remain, false);
     const remainText = `${remainArr[0]}${remainArr[1]}`;
     const remainPercent = 100 - usedPercent;
@@ -87,7 +89,7 @@ export const useCapacity: IUseCapacity = ({ subscription, spaceInfo }) => {
     const giftUsedText = `${giftUsedArr[0]}${giftUsedArr[1]}`;
     const giftTotalArr = byteMGArr(giftTotal);
     const giftTotalText = `${giftTotalArr[0]}${giftTotalArr[1]}`;
-    const giftUsedPercent = decimalCeil(getPercent(giftUsedArr[2] / giftTotalArr[2]) * 100);
+    const giftUsedPercent = decimalCeil(getPercent((giftUsedArr[2]) / (giftTotalArr[2])) * 100);
 
     const giftRemainArr = byteMGArr(giftRemain, false);
     const giftRemainText = `${giftRemainArr[0]}${giftRemainArr[1]}`;
@@ -95,6 +97,7 @@ export const useCapacity: IUseCapacity = ({ subscription, spaceInfo }) => {
 
     if (allTotal === -1) {
       return {
+
         allUsed,
         allUsedText,
         allTotal,

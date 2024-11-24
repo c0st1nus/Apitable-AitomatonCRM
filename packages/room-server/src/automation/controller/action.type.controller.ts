@@ -17,16 +17,17 @@
  */
 
 import { Controller, Get, Query } from '@nestjs/common';
-import { RobotActionTypeBaseService } from '../services/robot.action.type.base.service';
+import { RobotActionTypeService } from '../services/robot.action.type.service';
 
-@Controller(['nest/v1/robots/action-types', 'nest/v1/automation/action-types'])
+@Controller('nest/v1/robots/action-types')
 export class RobotActionTypeController {
   constructor(
-    private readonly robotActionTypeService: RobotActionTypeBaseService,
+    private readonly robotActionTypeService: RobotActionTypeService,
   ) { }
 
   @Get(['/'])
-  getActionTypes(@Query('lang') lang: string) {
-    return this.robotActionTypeService.getActionType(lang);
+  getActionTypes(@Query('lang') lang: string | string[]) {
+    const language = (!lang || lang.includes('zh')) ? 'zh' : 'en';
+    return this.robotActionTypeService.getActionType(language);
   }
 }

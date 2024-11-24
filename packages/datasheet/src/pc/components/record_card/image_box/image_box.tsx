@@ -16,14 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { Field, IAttachmentValue, IField, Selectors, ViewType } from '@apitable/core';
 import classNames from 'classnames';
 import Image from 'next/image';
+import { DisplayFile } from 'pc/components/display_file';
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import { Field, IAttachmentValue, IField, Selectors, ViewType } from '@apitable/core';
-import { DisplayFile } from 'pc/components/display_file';
-import { useAllowDownloadAttachment } from 'pc/components/upload_modal/preview_item';
-import { useAppSelector } from 'pc/store/react-redux';
+import { useSelector } from 'react-redux';
 import styles from './style.module.less';
 
 export enum ImageShowType {
@@ -47,24 +46,13 @@ interface IImageBoxProps {
 }
 
 export const ImageBox: React.FC<React.PropsWithChildren<IImageBoxProps>> = ({
-  images,
-  showType = ImageShowType.Thumbnail,
-  style,
-  width,
-  fileList,
-  height,
-  recordId,
-  field,
-  showOneImage,
-  isCoverFit,
+  images, showType = ImageShowType.Thumbnail, style, width, fileList, height, recordId, field, showOneImage,
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const permissions = useAppSelector((state) => Selectors.getPermissions(state));
-  const currentView = useAppSelector(Selectors.getCurrentView);
+  const permissions = useSelector(state => Selectors.getPermissions(state));
+  const currentView = useSelector(Selectors.getCurrentView);
   const isGalleryView = currentView!.type === ViewType.Gallery;
   const imgWidthDiff = isGalleryView ? 2 : 4;
-  const datasheetId = useAppSelector((state) => state.pageParams.datasheetId);
-  const allowDownload = useAllowDownloadAttachment(field.id, datasheetId);
 
   useEffect(() => {
     setCurrentIndex(0);
@@ -73,7 +61,7 @@ export const ImageBox: React.FC<React.PropsWithChildren<IImageBoxProps>> = ({
   const showImages = images.slice(0, showOneImage ? 1 : SHOW_IMAGE_MAX_COUNT);
   const marqueeWrapperWidth = showImages.length * 16 + 8;
   const imgWidth = Math.floor((width! - 200) / 6);
-  const thumbHeight = (imgWidth * 4) / 3;
+  const thumbHeight = imgWidth * 4 / 3;
   const editable = Field.bindModel(field).recordEditable() && permissions.cellEditable;
 
   return (
@@ -94,16 +82,14 @@ export const ImageBox: React.FC<React.PropsWithChildren<IImageBoxProps>> = ({
         recordId={recordId}
         field={field}
         editable={editable}
-        isCoverFit={isCoverFit}
-        disabledDownload={!allowDownload}
       />
       <div className={styles.bottomWrapper} />
-      {showImages.length > 1 && (
-        <>
-          {showType === ImageShowType.Thumbnail ? (
-            <div className={styles.indexThumbnailWrapper}>
-              {showImages.map((imgSrc, index) => (
-                <span
+      {
+        showImages.length > 1 && <>
+          {
+            showType === ImageShowType.Thumbnail ?
+              <div className={styles.indexThumbnailWrapper}>
+                {showImages.map((imgSrc, index) => <span
                   key={index}
                   className={classNames(styles.thumbnailItem, {
                     [styles.activeThumb]: index === currentIndex,
@@ -116,27 +102,32 @@ export const ImageBox: React.FC<React.PropsWithChildren<IImageBoxProps>> = ({
                     width: imgWidth,
                   }}
                 >
-                  <Image key={imgSrc + index} src={imgSrc} height={thumbHeight} width={imgWidth} alt="" />
-                </span>
-              ))}
-            </div>
-          ) : (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div className={styles.indexMarqueeWrapper} style={{ width: marqueeWrapperWidth }}>
-                {showImages.map((_imgSrc, index) => (
-                  <div
-                    key={index}
-                    onMouseOver={() => setCurrentIndex(index)}
-                    className={classNames(styles.marqueeItem, {
-                      [styles.active]: index === currentIndex,
-                    })}
+                  <Image
+                    key={imgSrc + index}
+                    src={imgSrc}
+                    height={thumbHeight}
+                    width={imgWidth}
                   />
-                ))}
+                </span>)}
+              </div> :
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div className={styles.indexMarqueeWrapper} style={{ width: marqueeWrapperWidth }}>
+                  {
+                    showImages.map((_imgSrc, index) =>
+                      <div
+                        key={index}
+                        onMouseOver={() => setCurrentIndex(index)}
+                        className={classNames(styles.marqueeItem, {
+                          [styles.active]: index === currentIndex,
+                        })}
+                      />,
+                    )
+                  }
+                </div>
               </div>
-            </div>
-          )}
+          }
         </>
-      )}
+      }
     </div>
   );
 };

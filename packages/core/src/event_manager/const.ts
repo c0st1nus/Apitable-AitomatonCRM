@@ -16,9 +16,39 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { EventRealTypeEnums, EventSourceTypeEnums, OPEventNameEnums } from './enum';
 import { datasheetEvent } from './events/datasheet';
-import type { IEventListenerOptions } from './interface/event_manager.interface';
+import { IEventListenerOptions } from './interface/event_manager.interface';
+
+/**
+ * Before defining a new event, declare it below
+ */
+export enum OPEventNameEnums {
+  FieldUpdated = 'FieldUpdated',
+  CellUpdated = 'CellUpdated',
+  RecordCreated = 'RecordCreated',
+  RecordDeleted = 'RecordDeleted',
+  RecordUpdated = 'RecordUpdated',
+  RecordMetaUpdated = 'RecordMetaUpdated',
+  RecordCommentUpdated = 'RecordCommentUpdated',
+  FormSubmitted = 'FormSubmitted',
+}
+
+export enum EventRealTypeEnums {
+  VIRTUAL = 'VIRTUAL',
+  REAL = 'REAL',
+  ALL = 'ALL',
+}
+
+export enum EventAtomTypeEnums {
+  ATOM = 'ATOM',
+  COMB = 'COMB',
+}
+
+export enum EventSourceTypeEnums {
+  LOCAL = 'LOCAL',
+  REMOTE = 'REMOTE',
+  ALL = 'ALL',
+}
 
 /**
  * When listening for events, you can pass in option parameters. 
@@ -50,7 +80,5 @@ export const EventNameClsMap = {
   [OPEventNameEnums.RecordCreated]: datasheetEvent.OPEventRecordCreated,
   [OPEventNameEnums.RecordDeleted]: datasheetEvent.OPEventRecordDeleted,
   [OPEventNameEnums.RecordUpdated]: datasheetEvent.OPEventRecordUpdated,
-  [OPEventNameEnums.RecordArchived]: datasheetEvent.OPEventRecordArchived,
-  [OPEventNameEnums.RecordUnarchived]: datasheetEvent.OPEventRecordUnarchived,
 };
 

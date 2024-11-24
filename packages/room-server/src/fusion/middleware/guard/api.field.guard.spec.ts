@@ -18,18 +18,26 @@
 
 import { ApiTipConstant } from '@apitable/core';
 import '@apitable/i18n-lang';
-import { Reflector } from '@nestjs/core';
+import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
+import { Test, TestingModule } from '@nestjs/testing';
+import { AppModule } from 'app.module';
 import { ApiException } from '../../../shared/exception';
 import { ApiFieldGuard } from './api.field.guard';
 
 describe('ApiDatasheetGuard', () => {
+  let app: NestFastifyApplication;
   let guard: ApiFieldGuard;
   // let request;
   let context: any;
   let memberRepository: any;
-  let reflector: Reflector;
-  let metaService: any;
-  beforeAll(() => {
+  beforeAll(async() => {
+    jest.setTimeout(60000);
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+    app = module.createNestApplication<NestFastifyApplication>(new FastifyAdapter());
+    await app.init();
+    // request = app.resolve(REQUEST);
     context = {
       switchToHttp: jest.fn().mockReturnThis(),
       getRequest: jest.fn().mockReturnThis(),
@@ -37,18 +45,18 @@ describe('ApiDatasheetGuard', () => {
     memberRepository = {
       selectSpaceIdsByUserId: jest.fn().mockReturnThis(),
     };
-    reflector = new Reflector();
-    metaService = {
-      getMetaDataByDstId: jest.fn().mockReturnThis(),
-    };
-    guard = new ApiFieldGuard(memberRepository, reflector, metaService);
+    guard = new ApiFieldGuard(memberRepository);
+  });
+
+  afterAll(async() => {
+    await app.close();
   });
 
   describe('canActivate', () => {
     it('missing spaceId, return 400 code', () => {
       (context.switchToHttp().getRequest as jest.Mock).mockReturnValueOnce({
         params: {
-          dstId: 'abc'
+          datasheetId: 'abc'
         },
       });
       const error = ApiException.tipError(ApiTipConstant.api_params_instance_space_id_error);
@@ -57,7 +65,7 @@ describe('ApiDatasheetGuard', () => {
       });
     });
 
-    it('missing dstId, return 400 code', () => {
+    it('missing datasheetId, return 400 code', () => {
       (context.switchToHttp().getRequest as jest.Mock).mockReturnValueOnce({
         params: {
           spaceId: 'abc',
@@ -69,7 +77,7 @@ describe('ApiDatasheetGuard', () => {
       });
     });
 
-    it('invalid dstId, return 400 code', () => {
+    it('invalid datasheetId, return 400 code', () => {
       (context.switchToHttp().getRequest as jest.Mock).mockReturnValueOnce({
         datasheet: null,
         params: {
@@ -82,7 +90,7 @@ describe('ApiDatasheetGuard', () => {
       });
     });
 
-    it('dstId is not in space, return 400 code', () => {
+    it('datasheetId is not in space, return 400 code', () => {
       (context.switchToHttp().getRequest as jest.Mock).mockReturnValueOnce({
         datasheet: { spaceId: 'aaa' },
         user: {
@@ -90,7 +98,7 @@ describe('ApiDatasheetGuard', () => {
         },
         params: {
           spaceId: 'bbb',
-          dstId: 'aaa',
+          datasheetId: 'aaa',
         },
       });
       (memberRepository.selectSpaceIdsByUserId as jest.Mock).mockReturnValueOnce(['bbb']);
@@ -108,7 +116,7 @@ describe('ApiDatasheetGuard', () => {
         },
         params: {
           spaceId: 'aaa',
-          dstId: 'aaa',
+          datasheetId: 'aaa',
         },
       });
       (memberRepository.selectSpaceIdsByUserId as jest.Mock).mockReturnValueOnce(['bbb']);

@@ -16,24 +16,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useMount } from 'ahooks';
+import { ConfigConstant, IAttachmentValue, Strings, t } from '@apitable/core';
 import { Tooltip } from 'antd';
 import classNames from 'classnames';
-import { uniqBy } from 'lodash';
-import { useContext, useEffect, useRef, useState } from 'react';
-import * as React from 'react';
-import { useThemeColors } from '@apitable/components';
-import { ConfigConstant, IAttachmentValue, Strings, t } from '@apitable/core';
-import { FileAddOutlined, LinkOutlined, PasteOutlined } from '@apitable/icons';
 import { ComponentDisplay, ScreenSize } from 'pc/components/common/component_display';
 import { ExpandAttachContext } from 'pc/components/expand_record/expand_attachment';
 import { resourceService } from 'pc/resource_service';
-import { useAppSelector } from 'pc/store/react-redux';
+import { useThemeColors } from '@apitable/components';
 import { initNoTraceVerification, UploadManager } from 'pc/utils';
+import { useContext, useEffect, useRef, useState } from 'react';
+import * as React from 'react';
 import { IUploadFileList } from '../upload_core';
 import { UploadPaste } from '../upload_paste/upload_paste';
 import { IUploadZoneItem, UploadZone } from '../upload_zone';
 import styles from './styles.module.less';
+import { useMount } from 'ahooks';
+import { useSelector } from 'react-redux';
+import { uniqBy } from 'lodash';
+import { FileAddOutlined, LinkOutlined, PasteOutlined } from '@apitable/icons';
 
 export enum UploadTabType {
   Drag = 'Drag',
@@ -73,11 +73,10 @@ interface IUploadTabProps {
 
 export interface ICommonTabRef {
   focus(): void;
-
   trigger?(): void;
 }
 
-export const UploadTab: React.FC<React.PropsWithChildren<IUploadTabProps>> = (props) => {
+export const UploadTab: React.FC<React.PropsWithChildren<IUploadTabProps>> = props => {
   const colors = useThemeColors();
   const { recordId, fieldId, setUploadList, className, cellValue } = props;
   const uploadManager = resourceService.instance!.uploadManager;
@@ -86,18 +85,17 @@ export const UploadTab: React.FC<React.PropsWithChildren<IUploadTabProps>> = (pr
   const { isFocus } = useContext(ExpandAttachContext);
 
   const [currentTab, setCurrentTab] = useState(UploadTabType.Drag);
-  const userInfo = useAppSelector((state) => state.user.info);
-  const { shareId, formId, aiId } = useAppSelector((state) => state.pageParams);
+  const userInfo = useSelector(state => state.user.info);
+  const { shareId, formId } = useSelector(state => state.pageParams);
   useMount(() => {
-    if (!shareId || (!formId && !aiId)) {
+    if (!shareId || !formId) {
       return;
     }
     if (userInfo) {
       return;
     }
 
-    initNoTraceVerification(() => {
-    }, ConfigConstant.CaptchaIds.LOGIN);
+    initNoTraceVerification(() => {}, ConfigConstant.CaptchaIds.LOGIN);
   });
 
   useEffect(() => {
@@ -150,7 +148,7 @@ export const UploadTab: React.FC<React.PropsWithChildren<IUploadTabProps>> = (pr
                     tabInfoRef.current?.focus();
                   }}
                 >
-                  <Icon size={16} color={showActiveIcon(isActive) ? colors.primaryColor : colors.fourthLevelText}/>
+                  <Icon size={16} color={showActiveIcon(isActive) ? colors.primaryColor : colors.fourthLevelText} />
                 </span>
               </Tooltip>
             );
@@ -168,16 +166,14 @@ export const UploadTab: React.FC<React.PropsWithChildren<IUploadTabProps>> = (pr
       <div className={styles.uploadTabInfo}>
         <ComponentDisplay minWidthCompatible={ScreenSize.md}>
           {currentTab === UploadTabType.Drag && (
-            <UploadZone onUpload={onUpload} recordId={recordId} fieldId={fieldId} cellValue={cellValue}
-              ref={tabInfoRef}/>
+            <UploadZone onUpload={onUpload} recordId={recordId} fieldId={fieldId} cellValue={cellValue} ref={tabInfoRef} />
           )}
           {currentTab === UploadTabType.Paste && (
-            <UploadPaste onUpload={onUpload} ref={tabInfoRef} fieldId={fieldId} recordId={recordId}
-              cellValue={cellValue}/>
+            <UploadPaste onUpload={onUpload} ref={tabInfoRef} fieldId={fieldId} recordId={recordId} cellValue={cellValue} />
           )}
         </ComponentDisplay>
         <ComponentDisplay maxWidthCompatible={ScreenSize.md}>
-          <UploadZone onUpload={onUpload} recordId={recordId} fieldId={fieldId} cellValue={cellValue} ref={tabInfoRef}/>
+          <UploadZone onUpload={onUpload} recordId={recordId} fieldId={fieldId} cellValue={cellValue} ref={tabInfoRef} />
         </ComponentDisplay>
       </div>
     </div>

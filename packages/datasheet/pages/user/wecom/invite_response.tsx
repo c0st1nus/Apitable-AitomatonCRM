@@ -18,12 +18,10 @@
 
 import React from 'react';
 // @ts-ignore
-import { isWecomFunc } from 'enterprise/home/social_platform/utils';
-// @ts-ignore
-import { WecomInvite } from 'enterprise/wecom/wecom_invite/wecom_invite';
+import { WecomInvite, isWecomFunc } from 'enterprise';
 
 const App = () => {
-  if (!isWecomFunc?.()) {
+  if(!isWecomFunc?.()){
     return null;
   }
   return <WecomInvite />;

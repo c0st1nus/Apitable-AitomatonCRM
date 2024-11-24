@@ -16,19 +16,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Input } from 'antd';
-import classNames from 'classnames';
+import { IField, ISingleTextField, t, Strings } from '@apitable/core';
 import { Dispatch, SetStateAction } from 'react';
 import * as React from 'react';
-import { IField, ISingleTextField, t, Strings } from '@apitable/core';
 import styles from './styles.module.less';
+import { Input } from 'antd';
+import classNames from 'classnames';
 
 interface IFormatSingleText {
   currentField: ISingleTextField;
   setCurrentField: Dispatch<SetStateAction<IField>>;
 }
 
-export const FormatSingleText: React.FC<React.PropsWithChildren<IFormatSingleText>> = (props) => {
+export const FormatSingleText: React.FC<React.PropsWithChildren<IFormatSingleText>> = props => {
   const { setCurrentField, currentField } = props;
 
   function onChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -44,9 +44,15 @@ export const FormatSingleText: React.FC<React.PropsWithChildren<IFormatSingleTex
     <div className={styles.section}>
       <h2 className={classNames(styles.sectionTitle, styles.singleText)}>
         {t(Strings.default) + ' '}
-        <span>({t(Strings.field_configuration_optional)}）</span>
+        <span>
+          ({t(Strings.field_configuration_optional)}）
+        </span>
       </h2>
-      <Input value={currentField.property.defaultValue} onChange={onChange} placeholder={t(Strings.placeholder_add_record_default_complete)} />
+      <Input
+        value={currentField.property.defaultValue}
+        onChange={onChange}
+        placeholder={t(Strings.placeholder_add_record_default_complete)}
+      />
     </div>
   );
 };

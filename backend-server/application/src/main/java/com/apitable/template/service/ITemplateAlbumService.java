@@ -18,54 +18,40 @@
 
 package com.apitable.template.service;
 
-import com.apitable.template.entity.TemplateAlbumEntity;
+import java.util.List;
+
 import com.apitable.template.vo.AlbumContentVo;
 import com.apitable.template.vo.AlbumVo;
-import com.baomidou.mybatisplus.extension.service.IService;
-import java.util.List;
 
 /**
  * <p>
- * Template Center - Template Album Service.
+ * Template Center - Template Album Service
  * </p>
  */
-public interface ITemplateAlbumService extends IService<TemplateAlbumEntity> {
+public interface ITemplateAlbumService {
 
     /**
-     * get template album views by album ids.
-     *
-     * @param albumIds album ids
+     * get template album views by album ids
      */
     List<AlbumVo> getAlbumVosByAlbumIds(List<String> albumIds);
 
     /**
-     * get template album views by category code.
-     *
-     * @param categoryCode category code
+     * get template album views by category code
      */
     List<AlbumVo> getAlbumVosByCategoryCode(String categoryCode);
 
     /**
-     * get recommended albums.
-     *
-     * @param lang           locale
-     * @param maxCount       max count
-     * @param excludeAlbumId exclude album id
+     * get recommended albums
      */
     List<AlbumVo> getRecommendedAlbums(String lang, Integer maxCount, String excludeAlbumId);
 
     /**
-     * fuzzy search album.
-     *
-     * @param lang    locale
-     * @param keyword keyword
+     * fuzzy search album
      */
     List<AlbumVo> searchAlbums(String lang, String keyword);
 
     /**
-     * get album content view.
-     *
-     * @param albumId album id
+     * get album content view
      */
     AlbumContentVo getAlbumContentVo(String albumId);
 }

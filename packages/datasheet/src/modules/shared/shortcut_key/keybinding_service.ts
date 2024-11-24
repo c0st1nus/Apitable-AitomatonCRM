@@ -46,25 +46,27 @@ export class KeybindingService {
     window.removeEventListener('keydown', this.keyEventHandle);
   }
 
-  private keyEventHandle = async (e: KeyboardEvent) => {
+  private keyEventHandle = async(e: KeyboardEvent) => {
     const keyEvent = new StandardKeyboardEvent(e);
-    const shouldPreventDefault = (await this.dispatch(keyEvent)) !== false;
+    const shouldPreventDefault = await this.dispatch(keyEvent) === false ? false : true;
     if (shouldPreventDefault) {
       keyEvent.preventDefault();
     }
   };
 
   private getResolvedResult(firstPart: SimpleKeybinding): IKeybindingItem | null {
-    const keyHintResult = this.keybindingItems.reduce((prev: IKeybindingItem[], keybindingItem: IKeybindingItem) => {
-      if (keybindingItem.key.equals(firstPart)) {
-        prev.push(keybindingItem);
-      }
-      return prev;
-    }, []);
+    const keyHintResult = this.keybindingItems.reduce(
+      (prev: IKeybindingItem[], keybindingItem: IKeybindingItem) => {
+        if (keybindingItem.key.equals(firstPart)) {
+          prev.push(keybindingItem);
+        }
+        return prev;
+      }, [],
+    );
     if (!keyHintResult.length) {
       return null;
     }
-    const resolvedResult = keyHintResult.find((keybindingItem) => {
+    const resolvedResult = keyHintResult.find(keybindingItem => {
       if (keybindingItem.when) {
         return ContextKeyEvaluate(keybindingItem.when, ShortcutContext.context);
       }
@@ -77,7 +79,7 @@ export class KeybindingService {
   }
 
   private resolveKeybindingItems(keybindings: IKeyBinding[]) {
-    this.keybindingItems = keybindings.map((binding) => {
+    this.keybindingItems = keybindings.map(binding => {
       const key = KeybindingParser.parseUserBinding(getKeyForOS(binding));
       if (!key) {
         throw new Error('Error binding key'!);
@@ -85,7 +87,7 @@ export class KeybindingService {
 
       // string to enum
       if (binding.command === undefined) {
-        console.warn('! ' + `Found an empty shortcut Command statement: ${binding.key}`);
+        console.warn('! ' + `Found an empty shortcut Command statement: ${binding.key}`); 
         binding.command = 'None'; // Give a default value
       }
 

@@ -86,7 +86,6 @@ export const StyledLinkButton = styled.div.attrs(applyDefaultTheme) <ILinkButton
 
   display: flex;
   flex-direction: row;
-  flex-shrink: 0;
   justify-content: center;
   align-items: center;
   cursor: pointer;

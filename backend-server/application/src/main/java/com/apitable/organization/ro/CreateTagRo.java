@@ -19,10 +19,9 @@
 package com.apitable.organization.ro;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import lombok.Data;
 
 /**
@@ -33,13 +32,11 @@ import lombok.Data;
 public class CreateTagRo {
 
     @NotNull(message = "Space ID cannot be empty")
-    @Schema(description = "Space unique ID", example = "r4Arzo4YydiwsgAV",
-        requiredMode = RequiredMode.REQUIRED)
+    @Schema(description = "Space unique ID", example = "r4Arzo4YydiwsgAV", required = true)
     private String spaceId;
 
     @NotBlank
     @Size(min = 1, max = 100, message = "Limit 1 to 100 characters and input special characters")
-    @Schema(description = "Label Name", type = "string", example = "New label",
-        requiredMode = RequiredMode.REQUIRED)
+    @Schema(description = "Label Name", type = "string", example = "New label", required = true)
     private String tagName;
 }

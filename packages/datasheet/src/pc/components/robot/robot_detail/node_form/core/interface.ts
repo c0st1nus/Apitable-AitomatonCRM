@@ -51,7 +51,8 @@ export type IPathSchema<T = any> = IFieldPath & {
 };
 
 export interface IWidgetProps
-  extends Pick<React.HTMLAttributes<HTMLElement>, Exclude<keyof React.HTMLAttributes<HTMLElement>, 'onBlur' | 'onFocus'>> {
+  extends Pick<React.HTMLAttributes<HTMLElement>,
+    Exclude<keyof React.HTMLAttributes<HTMLElement>, 'onBlur' | 'onFocus'>> {
   id: string;
   schema: JSONSchema7;
   uiSchema: IUiSchema;
@@ -131,7 +132,7 @@ export type IFieldTemplateProps<T = any> = {
   disabled: boolean;
   displayLabel: boolean;
   fields: IField[];
-  schema: any;//JSONSchema7;
+  schema: JSONSchema7;
   uiSchema: IUiSchema;
   formContext: any;
   formData: T;
@@ -234,11 +235,6 @@ type FieldValidation = {
   addError: (message: string) => void;
 };
 
-export type FieldDetailValidation = Record<string, {
-  __errors: FieldError[]
-}>;
-export type ValidationResult = FieldValidation | Partial<FieldDetailValidation>;
-
 type FormValidation = FieldValidation & {
   [fieldName: string]: FieldValidation;
 };
@@ -252,7 +248,7 @@ export type IThemeProps<T = any> = Omit<IFormProps<T>, 'schema'>;
 export interface INodeSchema {
   // Description of the node data type
   schema: JSONSchema7;
-  // An extension to IJsonSchema. The ui of the control form, i.e. the uiSchema in the react json schema form,
+  // An extension to IJsonSchema. The ui of the control form, i.e. the uiSchema in the react json schema form, 
   // is placed here in the schema of the described data.
   uiSchema?: object;
 }
@@ -282,14 +278,12 @@ export interface IFormProps<T> {
   liveValidate?: boolean;
   method?: string;
   name?: string;
-  validateOnMount?: boolean;
   noHtml5Validate?: boolean;
   noValidate?: boolean;
   ObjectFieldTemplate?: React.ElementType<IObjectFieldTemplateProps>;
   omitExtraData?: boolean;
   onBlur?: (id: string, value: any) => void;
   onChange?: (e: IChangeEvent<T>, es?: ErrorSchema) => any;
-  onUpdate?: (e: IChangeEvent<T>) => any;
   onError?: (e: any) => any;
   onFocus?: (id: string, value: any) => void;
   onSubmit?: (e: ISubmitEvent<T>, nativeEvent: React.FormEvent<HTMLFormElement>) => any;
@@ -299,7 +293,7 @@ export interface IFormProps<T> {
   target?: string;
   transformErrors?: (errors: AjvError[]) => AjvError[];
   uiSchema?: IUiSchema;
-  validate?: (formData: T, errors: FormValidation) => ValidationResult ;
+  validate?: (formData: T, errors: FormValidation) => FormValidation;
   widgets?: { [name: string]: IWidget };
   nodeOutputSchemaList?: INodeSchema[];
 }

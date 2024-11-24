@@ -34,31 +34,37 @@ interface IUseScrollerProps {
 }
 
 export const useMobileScroller = (props: IUseScrollerProps) => {
-  const { containerRef, horizontalBarRef, verticalBarRef, containerWidth, containerHeight, totalWidth, totalHeight, isTouchDevice, isRunning } =
-    props;
+  const { 
+    containerRef,
+    horizontalBarRef,
+    verticalBarRef,
+    containerWidth,
+    containerHeight,
+    totalWidth,
+    totalHeight,
+    isTouchDevice,
+    isRunning
+  } = props;
   const scrollerRef = useRef<typeof Scroller | null>(null);
 
-  const mobileScrollHandler = useCallback(
-    (scrollLeft: number, scrollTop: number) => {
-      if (verticalBarRef.current) {
-        verticalBarRef.current.scrollTop = scrollTop;
-      }
-      if (horizontalBarRef.current) {
-        horizontalBarRef.current.scrollLeft = scrollLeft;
-      }
-    },
-    [verticalBarRef, horizontalBarRef],
-  );
+  const mobileScrollHandler = useCallback((scrollLeft: number, scrollTop: number) => {
+    if (verticalBarRef.current) {
+      verticalBarRef.current.scrollTop = scrollTop;
+    }
+    if (horizontalBarRef.current) {
+      horizontalBarRef.current.scrollLeft = scrollLeft;
+    }
+  }, [verticalBarRef, horizontalBarRef]);
 
   // Scroll to a location (for mobile use)
-  const scrollTo = useCallback(
-    ({ scrollTop, scrollLeft }: IScrollCoordsProps) => {
-      if (horizontalBarRef.current && verticalBarRef.current) {
-        scrollerRef.current?.scrollTo(scrollLeft || horizontalBarRef.current.scrollLeft, scrollTop || verticalBarRef.current.scrollTop);
-      }
-    },
-    [horizontalBarRef, verticalBarRef],
-  );
+  const scrollTo = useCallback(({ scrollTop, scrollLeft }: IScrollCoordsProps) => {
+    if (horizontalBarRef.current && verticalBarRef.current) {
+      scrollerRef.current?.scrollTo(
+        scrollLeft || horizontalBarRef.current.scrollLeft, 
+        scrollTop || verticalBarRef.current.scrollTop
+      );
+    }
+  }, [horizontalBarRef, verticalBarRef]);
 
   const onTouchStart = useCallback((e: TouchEvent) => {
     if (scrollerRef.current) {
@@ -73,20 +79,17 @@ export const useMobileScroller = (props: IUseScrollerProps) => {
     }
   }, []);
 
-  const onTouchEnd = useCallback(
-    (e: any) => {
-      if (scrollerRef.current) {
-        if (horizontalBarRef.current && verticalBarRef.current) {
-          scrollTo({
-            scrollLeft: horizontalBarRef.current.scrollLeft,
-            scrollTop: verticalBarRef.current.scrollTop,
-          });
-        }
-        scrollerRef.current.doTouchEnd(e.timeStamp);
+  const onTouchEnd = useCallback((e: any) => {
+    if (scrollerRef.current) {
+      if (horizontalBarRef.current && verticalBarRef.current) {
+        scrollTo({ 
+          scrollLeft: horizontalBarRef.current.scrollLeft, 
+          scrollTop: verticalBarRef.current.scrollTop 
+        });
       }
-    },
-    [horizontalBarRef, verticalBarRef, scrollTo],
-  );
+      scrollerRef.current.doTouchEnd(e.timeStamp);
+    }
+  }, [horizontalBarRef, verticalBarRef, scrollTo]);
 
   useEffect(() => {
     if (isTouchDevice) {
@@ -113,7 +116,7 @@ export const useMobileScroller = (props: IUseScrollerProps) => {
     element.addEventListener('touchstart', onTouchStart);
     element.addEventListener('touchend', onTouchEnd);
     element.addEventListener('touchmove', onTouchMove);
-
+    
     return () => {
       element.removeEventListener('touchstart', onTouchStart);
       element.removeEventListener('touchend', onTouchEnd);

@@ -180,14 +180,6 @@ public class NodePermissionView {
     @JsonSerialize(nullsUsing = NullBooleanSerializer.class)
     private Boolean rowRemovable;
 
-    @Schema(description = "Archive Row", example = "true")
-    @JsonSerialize(nullsUsing = NullBooleanSerializer.class)
-    private Boolean rowArchivable;
-
-    @Schema(description = "Unarchive Row", example = "true")
-    @JsonSerialize(nullsUsing = NullBooleanSerializer.class)
-    private Boolean rowUnarchivable;
-
     @Schema(description = "Edit Cell", example = "true")
     @JsonSerialize(nullsUsing = NullBooleanSerializer.class)
     private Boolean cellEditable;

@@ -22,8 +22,6 @@ export const SelectPopupContainer = styled.div`
   background: var(--highestBg);
   border-radius: 4px;
   box-shadow: var(--shadowCommonHighest);
-  max-height: 300px; 
-  overflow-y: auto;
   cursor: pointer;
   &:focus {
     outline: none;

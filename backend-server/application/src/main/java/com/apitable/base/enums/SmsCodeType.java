@@ -18,14 +18,15 @@
 
 package com.apitable.base.enums;
 
-import com.apitable.core.support.serializer.IBaseEnum;
-import com.apitable.shared.captcha.sms.TencentConstants;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import com.apitable.shared.captcha.sms.TencentConstants;
+import com.apitable.core.support.serializer.IBaseEnum;
+
 /**
  * <p>
- * sms verification code type.
+ * sms verification code type
  * </p>
  *
  * @author Shawn Deng
@@ -62,12 +63,6 @@ public enum SmsCodeType implements IBaseEnum {
 
     private final TencentConstants.SmsTemplate template;
 
-    /**
-     * transform name to enum.
-     *
-     * @param name name
-     * @return SmsCodeType
-     */
     public static SmsCodeType fromName(Integer name) {
         for (SmsCodeType type : SmsCodeType.values()) {
             if (type.getValue().equals(name)) {
@@ -77,12 +72,6 @@ public enum SmsCodeType implements IBaseEnum {
         throw new IllegalArgumentException("unknown sms code type");
     }
 
-    /**
-     * transform name to enum.
-     *
-     * @param name name
-     * @return SmsCodeType
-     */
     public static SmsCodeType ofName(String name) {
         SmsCodeType type = null;
         for (SmsCodeType ele : SmsCodeType.values()) {

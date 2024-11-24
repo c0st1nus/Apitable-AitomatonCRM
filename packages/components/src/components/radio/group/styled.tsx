@@ -45,12 +45,12 @@ export const RadioGroupStyled = styled.div.attrs(applyDefaultTheme) <IRadioGroup
   }
   ${props => {
     if (props.isBtn) {
-      const { color } = props.theme;
+      const { background } = props.theme.palette;
       return css`
         display: ${props.block ? 'flex' : 'inline-flex'};
         flex-flow: row wrap;
         padding: 4px;
-        background-color: ${color.bgControlsDefaultSolid};
+        background-color: ${background.input};
       `;
     }
     if (props.row) {

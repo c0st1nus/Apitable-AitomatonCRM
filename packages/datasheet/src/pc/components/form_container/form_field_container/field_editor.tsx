@@ -16,10 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { difference } from 'lodash';
 import { forwardRef, useRef, useContext, useCallback } from 'react';
 import * as React from 'react';
-import { Button } from '@apitable/components';
+import { useSelector } from 'react-redux';
 import {
   IField,
   FieldType,
@@ -31,31 +30,29 @@ import {
   t,
   Strings,
   IAttachmentValue,
-  Api,
-  IAttacheField,
+  Api, IAttacheField,
 } from '@apitable/core';
-import { AddOutlined } from '@apitable/icons';
-import { ScreenSize } from 'pc/components/common/component_display';
-import { CascaderEditor } from 'pc/components/editors/cascader_editor';
+import styles from './style.module.less';
+import { Button } from '@apitable/components';
+import { ExpandLink, FetchForeignTimes } from 'pc/components/expand_record/expand_link';
+import { ExpandAttachment, ExpandAttachContext } from 'pc/components/expand_record/expand_attachment';
+import { TextEditor } from 'pc/components/editors/text_editor';
 import { CheckboxEditor } from 'pc/components/editors/checkbox_editor';
 import { DateTimeEditor } from 'pc/components/editors/date_time_editor';
-import { EnhanceTextEditor } from 'pc/components/editors/enhance_text_editor';
 import { RatingEditor } from 'pc/components/editors/rating_editor';
-import { TextEditor } from 'pc/components/editors/text_editor';
-import { ExpandAttachment, ExpandAttachContext } from 'pc/components/expand_record/expand_attachment';
-import { ExpandFormula } from 'pc/components/expand_record/expand_formula';
-import { ExpandLink, FetchForeignTimes } from 'pc/components/expand_record/expand_link';
-import { ExpandLookUpBase } from 'pc/components/expand_record/expand_lookup';
-import { ExpandNumber } from 'pc/components/expand_record/expand_number';
-import { ExpandSelect } from 'pc/components/expand_record/expand_select';
-import { FormWorkdocEditor } from 'pc/components/form_container/form_workdoc_editor';
-import { useResponsive } from 'pc/hooks';
-import { useAppSelector } from 'pc/store/react-redux';
-import { FormContext } from '../form_context';
-import { ComputedFieldWrapper } from './computed_field_wrapper';
+import { EnhanceTextEditor } from 'pc/components/editors/enhance_text_editor';
 import { OptionFieldEditor, MemberFieldEditor } from './form_editors';
-import styles from './style.module.less';
-
+import { CascaderEditor } from 'pc/components/editors/cascader_editor';
+import { FormContext } from '../form_context';
+import { useResponsive } from 'pc/hooks';
+import { ScreenSize } from 'pc/components/common/component_display';
+import { difference } from 'lodash';
+import { ExpandLookUpBase } from 'pc/components/expand_record/expand_lookup';
+import { ExpandFormula } from 'pc/components/expand_record/expand_formula';
+import { ComputedFieldWrapper } from './computed_field_wrapper';
+import { ExpandSelect } from 'pc/components/expand_record/expand_select';
+import { ExpandNumber } from 'pc/components/expand_record/expand_number';
+import { AddOutlined } from '@apitable/icons';
 export interface ICommonProps {
   style: React.CSSProperties;
   datasheetId: string;
@@ -86,9 +83,9 @@ export interface IFormFieldProps {
 export const FieldEditorBase: React.ForwardRefRenderFunction<IEditor, IFormFieldProps> = (props, ref) => {
   const { commonProps: baseProps, isFocus, onClose, cellValue, onMouseDown } = props;
   const { field, editable, recordId } = baseProps;
-  const { formProps, setFormData, setFormErrors, setFormToStorage, mount } = useContext(FormContext);
+  const { formProps, setFormData, setFormErrors, setFormToStorage } = useContext(FormContext);
   const attachmentRef = useRef<IAttachmentValue[]>([]);
-  const shareId = useAppSelector((state) => state.pageParams.shareId);
+  const shareId = useSelector(state => state.pageParams.shareId);
   const { screenIsAtMost } = useResponsive();
   const isMobile = screenIsAtMost(ScreenSize.md);
   const compactMode = formProps?.compactMode;
@@ -116,7 +113,6 @@ export const FieldEditorBase: React.ForwardRefRenderFunction<IEditor, IFormField
         case FieldType.Rating:
         case FieldType.DateTime:
         case FieldType.Link:
-        case FieldType.OneWayLink:
           finalValue = value;
           break;
         case FieldType.SingleSelect:
@@ -214,7 +210,7 @@ export const FieldEditorBase: React.ForwardRefRenderFunction<IEditor, IFormField
         <DateTimeEditor
           {...commonProps}
           onClose={onClose}
-          ref={(ele) => (((ref as React.MutableRefObject<IEditor>).current as any) = ele as any)}
+          ref={ele => (((ref as React.MutableRefObject<IEditor>).current as any) = ele as any)}
           field={field as IDateTimeField}
           style={{ height: isMobile ? 48 : 40, alignItems: 'center' }}
         />
@@ -236,7 +232,7 @@ export const FieldEditorBase: React.ForwardRefRenderFunction<IEditor, IFormField
     case FieldType.Email:
     case FieldType.Phone:
       return <EnhanceTextEditor ref={ref} {...commonProps} isForm />;
-    case FieldType.SingleSelect:
+    case FieldType.SingleSelect: 
     case FieldType.MultiSelect:
       return compactMode ? (
         <ExpandSelect {...commonProps} unitMap={null} cellValue={cellValue} isFocus={isFocus} onClose={onClose} onChange={onSave} />
@@ -249,7 +245,6 @@ export const FieldEditorBase: React.ForwardRefRenderFunction<IEditor, IFormField
       } else {
         attachmentRef.current = cellValue as IAttachmentValue[];
       }
-
       return editable ? (
         <ExpandAttachContext.Provider value={{ isFocus }}>
           <ExpandAttachment
@@ -269,7 +264,6 @@ export const FieldEditorBase: React.ForwardRefRenderFunction<IEditor, IFormField
     case FieldType.Cascader:
       return <CascaderEditor ref={ref} {...commonProps} toggleEditing={onClose} editing={isFocus} showSearch={false} />;
     case FieldType.Link:
-    case FieldType.OneWayLink:
       return editable ? (
         <ExpandLink
           ref={ref}
@@ -296,24 +290,6 @@ export const FieldEditorBase: React.ForwardRefRenderFunction<IEditor, IFormField
         <ComputedFieldWrapper className={styles.formFormula} title={t(Strings.tooltip_edit_form_formula_field)}>
           <ExpandFormula {...commonProps} recordId={recordId} />
         </ComputedFieldWrapper>
-      );
-    case FieldType.Button:
-      return (<>/</>);
-    case FieldType.WorkDoc:
-      if (isMobile) {
-        return <ComputedFieldWrapper className={styles.formWorkdoc} title={t(Strings.tooltip_edit_form_workdoc_field)} />;
-      }
-      return (
-        <FormWorkdocEditor
-          cellValue={cellValue}
-          fieldId={field.id}
-          editing={commonProps.editing}
-          editable={commonProps.editable}
-          datasheetId={commonProps.datasheetId}
-          mount={mount}
-          onSave={onSave}
-          isMobile={isMobile}
-        />
       );
     default:
       return <></>;

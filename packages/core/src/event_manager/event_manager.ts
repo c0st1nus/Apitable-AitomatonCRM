@@ -17,9 +17,8 @@
  */
 
 import { isEqual } from 'lodash';
-import { defaultEventListenerOptions } from './const';
+import { defaultEventListenerOptions, EventRealTypeEnums, EventSourceTypeEnums, OPEventNameEnums } from './const';
 import { AnyObject, IEventInstance, IEventListenerMap, IEventListenerOptions, IEventManager, IOPEvent } from './interface';
-import { EventRealTypeEnums, EventSourceTypeEnums, OPEventNameEnums } from './enum';
 
 /**
  * Manage event monitoring

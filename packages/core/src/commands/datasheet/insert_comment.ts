@@ -18,14 +18,11 @@
 
 import { getNewIds, IDPrefix } from 'utils';
 import { ResourceType } from 'types';
-import { CollaCommandName } from 'commands/enum';
-import { IComments } from '../../exports/store/interfaces';
-import {
-  getSnapshot,
-} from 'modules/database/store/selectors/resource/datasheet/base';
+import { CollaCommandName } from 'commands';
+import { IComments, Selectors } from '../../exports/store';
 import { ExecuteResult, ICollaCommandDef, ICollaCommandExecuteContext } from 'command_manager';
 import { IJOTAction } from 'engine';
-import { DatasheetActions } from 'commands_actions/datasheet';
+import { DatasheetActions } from 'model';
 export interface IInsertComment {
   cmd: CollaCommandName.InsertComment;
   datasheetId: string;
@@ -37,10 +34,10 @@ export const insertComment: ICollaCommandDef<IInsertComment> = {
   undoable: false,
 
   execute(context: ICollaCommandExecuteContext, options: IInsertComment) {
-    const { state: state } = context;
+    const { model: state } = context;
     const { datasheetId, recordId, comments } = options;
 
-    const snapshot = getSnapshot(state, datasheetId);
+    const snapshot = Selectors.getSnapshot(state, datasheetId);
 
     if (!snapshot) {
       return null;

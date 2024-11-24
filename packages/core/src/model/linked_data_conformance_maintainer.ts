@@ -16,15 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { DatasheetActions } from '../commands_actions/datasheet';
+import { DatasheetActions } from './datasheet';
 import { without } from 'lodash';
-import { BasicValueType, FieldType, ILinkField } from 'types/field_types';
-import { IReduxState } from '../exports/store/interfaces';
-import { ISnapshot } from 'modules/database/store/interfaces/resource/datasheet/datasheet';
+import { ILinkField, FieldType, BasicValueType } from 'types/field_types';
+import { Selectors, ISnapshot, IReduxState } from '../exports/store';
 import { ILinkedActions } from 'command_manager';
 import { handleEmptyCellValue } from './utils';
-import { getCellValue } from 'modules/database/store/selectors/resource/datasheet/cell_calc';
-import { getSnapshot } from 'modules/database/store/selectors/resource/datasheet/base';
+
 enum ActionFlag {
   Add = '+',
   Del = '-',
@@ -81,8 +79,9 @@ export class LinkedDataConformanceMaintainer {
         ActionFlag.Add,
       );
     });
+
     toDel.forEach(linkedRecordId => {
-      const cellValueInLinkedCell = getCellValue(
+      const cellValueInLinkedCell = Selectors.getCellValue(
         state,
         linkedSnapshot,
         linkedRecordId,
@@ -154,7 +153,7 @@ export class LinkedDataConformanceMaintainer {
     const linkedActions: ILinkedActions[] = [];
     if (this.linkedChange.size > 0) {
       this.linkedChange.forEach((datasheet, datasheetId) => {
-        const snapshot = getSnapshot(state, datasheetId)!;
+        const snapshot = Selectors.getSnapshot(state, datasheetId)!;
 
         const linkedAction: ILinkedActions = { datasheetId, actions: [] };
         linkedActions.push(linkedAction);
@@ -173,9 +172,9 @@ export class LinkedDataConformanceMaintainer {
 
             const fieldType = snapshot.meta.fieldMap[fieldId] && snapshot.meta.fieldMap[fieldId]!.type;
             // Make sure that the cell is populated only when the foreign key field is indeed the relation field type.
-            const cellValueInLinkedCell = (fieldType === FieldType.Link || fieldType === FieldType.OneWayLink) ?
-              getCellValue(state, snapshot, recordId, fieldId, undefined, undefined, true) as string[] || [] : [];
-            let newLinkedCellValue: string[] | null = without(cellValueInLinkedCell, ...changeIds.del, ...changeIds.add);
+            const cellValueInLinkedCell = fieldType === FieldType.Link ?
+              Selectors.getCellValue(state, snapshot, recordId, fieldId, undefined, undefined, true) as string[] || [] : [];
+            let newLinkedCellValue: string[] | null = without(cellValueInLinkedCell, ...changeIds.del);
             newLinkedCellValue.push(...changeIds.add);
             newLinkedCellValue = handleEmptyCellValue(newLinkedCellValue, BasicValueType.Array);
             const action = DatasheetActions.setRecord2Action(

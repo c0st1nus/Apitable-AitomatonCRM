@@ -19,16 +19,14 @@
 package com.apitable.user.enums;
 
 import com.apitable.core.exception.BusinessException;
-import lombok.Getter;
 
 /**
  * <p>
- * User Link Type.
+ * User Link Type
  * </p>
  *
  * @author Chambers
  */
-@Getter
 public enum LinkType {
 
     DINGTALK(0),
@@ -45,12 +43,10 @@ public enum LinkType {
         this.type = type;
     }
 
-    /**
-     * transform to enum.
-     *
-     * @param type type
-     * @return LinkType
-     */
+    public int getType() {
+        return type;
+    }
+
     public static LinkType toEnum(Integer type) {
         for (LinkType e : LinkType.values()) {
             if (e.getType() == type) {

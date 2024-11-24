@@ -18,14 +18,15 @@
 
 package com.apitable.shared.util;
 
+import java.util.regex.Pattern;
+
 import cn.hutool.core.net.url.UrlQuery;
 import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.StrUtil;
-import java.util.regex.Pattern;
 
 /**
  * <p>
- * UrlQuery Extend Tool.
+ * UrlQuery Extend Tool
  * </p>
  *
  * @author Pengap
@@ -33,7 +34,7 @@ import java.util.regex.Pattern;
 public class UrlQueryExtend extends UrlQuery {
 
     /**
-     * remove the specified parameter from the url.
+     * remove the specified parameter from the url
      *
      * @param url      Url
      * @param paramKey param key

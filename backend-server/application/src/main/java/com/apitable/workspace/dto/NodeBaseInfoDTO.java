@@ -20,9 +20,6 @@ package com.apitable.workspace.dto;
 
 import lombok.Data;
 
-/**
- * Node base info dto.
- */
 @Data
 public class NodeBaseInfoDTO {
 

@@ -17,12 +17,12 @@
  */
 
 import { CollaCommandManager, IResourceOpsCollect } from 'command_manager';
-import { CommandExecutionResultType, IEventEmitter, IResourceEvent, IResourceEventHandler, ResourceEventType } from 'databus/common/event';
-import { IReduxState } from 'exports/store/interfaces';
+import { CommandExecutionResultType, ResourceEventType, IResourceEventHandler, IEventEmitter, IResourceEvent } from 'databus/common/event';
+import { IReduxState } from 'exports/store';
 import { Store } from 'redux';
 import { IDataStorageProvider, IStoreProvider } from '../providers';
-import { Dashboard, IDashboardOptions } from './dashboard';
 import { Datasheet, IDatasheetOptions } from './datasheet';
+import { Dashboard, IDashboardOptions } from './dashboard';
 
 /**
  * A database is responsible for providing `Datasheet` instances.
@@ -97,7 +97,7 @@ export class Database implements IEventEmitter {
   private getCommandManager(store: Store<IReduxState>): CollaCommandManager {
     if (this.commandManagers.has(store)) {
       return this.commandManagers.get(store)!;
-    }
+    } 
     const commandManager = new CollaCommandManager(
       {
         handleCommandExecuted: (resourceOpCollections: IResourceOpsCollect[]) => {

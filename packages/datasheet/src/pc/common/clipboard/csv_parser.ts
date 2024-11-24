@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import endsWith from 'lodash/endsWith';
 import { string2Segment } from '@apitable/core';
+import endsWith from 'lodash/endsWith';
 import { browser } from '../../../modules/shared/browser';
 import { ITableCellData, ITableData } from './table_data';
 
@@ -96,13 +96,11 @@ export function parseCsv(data: string): ITableData | null {
     tableText.push(rowText);
   }
 
-  const tableCellData = tableText.map((rowData) =>
-    rowData.map<ITableCellData>((value) => ({
-      value: string2Segment(value),
-      rowSpan: 1,
-      colSpan: 1,
-    })),
-  );
+  const tableCellData = tableText.map(rowData => rowData.map<ITableCellData>(value => ({
+    value: string2Segment(value),
+    rowSpan: 1,
+    colSpan: 1,
+  })));
   const rowCount = tableCellData.length;
   const columnCount = getMaxLength(tableCellData);
 

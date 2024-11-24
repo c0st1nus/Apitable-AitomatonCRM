@@ -18,21 +18,18 @@
 
 import Joi from 'joi';
 import { isEqual } from 'lodash';
-import { DatasheetActions } from 'commands_actions/datasheet';
+import { DatasheetActions } from 'model/datasheet';
 import { ICellValue } from 'model/record';
 import { getApiMetaUserProperty } from 'model/utils';
-import { IRecord, IRecordMap, IReduxState } from '../../exports/store/interfaces';
-import { getUserMap } from 'modules/org/store/selectors/unit_info';
+import { IRecord, IRecordMap, IReduxState, Selectors } from '../../exports/store';
 import { IAPIMetaCreateByFieldProperty } from 'types/field_api_property_types';
 import {
   BasicValueType, FieldType, IAddOpenCreatedByFieldProperty, ICreatedByField, IField, IJsonSchema, IUuids
 } from '../../types';
-import { MemberBaseField } from './member_base_field';
-import { OtherTypeUnitId } from './const';
+import { MemberBaseField, OtherTypeUnitId } from './member_base_field';
 import { datasheetIdString, joiErrorResult } from './validate_schema';
 import { t, Strings } from '../../exports/i18n';
-import { getFieldDefaultProperty } from './const';
-import { ICreatedByProperty } from '../../types/field_types';
+
 export class CreatedByField extends MemberBaseField {
 
   constructor(public override field: ICreatedByField, public override state: IReduxState) {
@@ -40,14 +37,17 @@ export class CreatedByField extends MemberBaseField {
   }
 
   static propertySchema = Joi.object({
-    // anonymous uuid is null
-    uuids: Joi.array().items(Joi.string(), null).required(),
+    uuids: Joi.array().items(Joi.string()).required(),
     datasheetId: datasheetIdString().required(),
     subscription: Joi.boolean(),
   }).required();
 
   static defaultProperty() {
-    return getFieldDefaultProperty(FieldType.CreatedBy) as ICreatedByProperty;
+    return {
+      uuids: [],
+      datasheetId: '',
+      subscription: false,
+    };
   }
 
   validateProperty() {
@@ -76,7 +76,7 @@ export class CreatedByField extends MemberBaseField {
   }
 
   override get apiMetaProperty(): IAPIMetaCreateByFieldProperty {
-    const userMap = getUserMap(this.state);
+    const userMap = Selectors.getUserMap(this.state);
     return getApiMetaUserProperty(this.field.property.uuids, userMap);
   }
 
@@ -136,7 +136,7 @@ export class CreatedByField extends MemberBaseField {
   }
 
   override getUnitNames(cellValue: IUuids) {
-    const userMap = getUserMap(this.state);
+    const userMap = Selectors.getUserMap(this.state);
     if (!userMap) {
       return null;
     }
@@ -163,7 +163,7 @@ export class CreatedByField extends MemberBaseField {
   }
 
   override getUnits(cellValue: IUuids) {
-    const userMap = getUserMap(this.state);
+    const userMap = Selectors.getUserMap(this.state);
     if (!userMap) {
       return null;
     }

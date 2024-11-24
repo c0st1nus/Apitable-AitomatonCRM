@@ -23,7 +23,4 @@ export class ClientDataStorageProvider extends ClientDataLoader implements datab
   saveOps(ops: IResourceOpsCollect[]): Promise<any> | any {
     this.operationExecuted(ops);
   }
-
-  async nestRoomChangeFromRust(_roomId: string, _data: any) {
-  }
 }

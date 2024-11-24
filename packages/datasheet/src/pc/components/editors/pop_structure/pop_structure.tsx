@@ -16,14 +16,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useDebounceFn } from 'ahooks';
-import { useCallback, useEffect, useRef, useState, useLayoutEffect } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import * as React from 'react';
-import { DEFAULT_COLUMN_WIDTH as MIN_POP_STRUCTURE_WIDTH, t, Strings } from '@apitable/core';
-import { ComponentDisplay, ScreenSize } from 'pc/components/common/component_display';
-import { Popup } from 'pc/components/common/mobile/popup';
-import { useResponsive } from 'pc/hooks';
 import { stopPropagation } from 'pc/utils/dom';
+import { DEFAULT_COLUMN_WIDTH as MIN_POP_STRUCTURE_WIDTH, t, Strings } from '@apitable/core';
+import { useLayoutEffect } from 'react';
+import { useDebounceFn } from 'ahooks';
+import { ComponentDisplay, ScreenSize } from 'pc/components/common/component_display';
+import { useResponsive } from 'pc/hooks';
+import { Popup } from 'pc/components/common/mobile/popup';
 import { PopStructureContext } from './context';
 
 interface IPopStructureProps {
@@ -37,9 +38,9 @@ interface IPopStructureProps {
   onClose(): void;
 }
 
-const SECURITY_PADDING = 30;
+const SECURITY_PADDING = 30; 
 
-export const PopStructure: React.FC<React.PropsWithChildren<IPopStructureProps>> = (props) => {
+export const PopStructure: React.FC<React.PropsWithChildren<IPopStructureProps>> = props => {
   const { children, editing, height, className, style, width, onClose, disableMinWidth, disableMobile } = props;
 
   const [position, setPosition] = useState({});
@@ -107,7 +108,7 @@ export const PopStructure: React.FC<React.PropsWithChildren<IPopStructureProps>>
           ...style,
           ...position,
           minHeight: 'auto',
-          minWidth: disableMinWidth ? 'auto' : style?.width ? MIN_POP_STRUCTURE_WIDTH : 'auto',
+          minWidth: disableMinWidth ? 'auto' : (style?.width ? MIN_POP_STRUCTURE_WIDTH : 'auto'),
         }}
       >
         <PopStructureContext.Provider value={context}>{children}</PopStructureContext.Provider>
@@ -127,7 +128,7 @@ export const PopStructure: React.FC<React.PropsWithChildren<IPopStructureProps>>
             ...style,
             ...position,
             minHeight: 'auto',
-            minWidth: disableMinWidth ? 'auto' : style?.width ? MIN_POP_STRUCTURE_WIDTH : 'auto',
+            minWidth: disableMinWidth ? 'auto' : (style?.width ? MIN_POP_STRUCTURE_WIDTH : 'auto'),
           }}
         >
           <PopStructureContext.Provider value={context}>{children}</PopStructureContext.Provider>

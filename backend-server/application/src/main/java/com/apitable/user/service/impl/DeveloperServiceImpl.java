@@ -18,23 +18,23 @@
 
 package com.apitable.user.service.impl;
 
-import static com.apitable.user.enums.DeveloperException.GENERATE_API_KEY_ERROR;
+import javax.annotation.Resource;
 
-import com.apitable.core.util.ExceptionUtil;
+import com.baomidou.mybatisplus.extension.toolkit.SqlHelper;
+import lombok.extern.slf4j.Slf4j;
+
+import com.apitable.user.mapper.DeveloperMapper;
+import com.apitable.user.service.IDeveloperService;
+import com.apitable.user.mapper.UserMapper;
 import com.apitable.shared.util.ApiHelper;
+import com.apitable.core.util.ExceptionUtil;
 import com.apitable.user.entity.DeveloperEntity;
 import com.apitable.user.entity.UserEntity;
-import com.apitable.user.mapper.DeveloperMapper;
-import com.apitable.user.mapper.UserMapper;
-import com.apitable.user.service.IDeveloperService;
-import com.baomidou.mybatisplus.extension.toolkit.SqlHelper;
-import jakarta.annotation.Resource;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.stereotype.Service;
 
-/**
- * developer service implementation.
- */
+import static com.apitable.user.enums.DeveloperException.GENERATE_API_KEY_ERROR;
+
 @Service
 @Slf4j
 public class DeveloperServiceImpl implements IDeveloperService {
@@ -65,8 +65,8 @@ public class DeveloperServiceImpl implements IDeveloperService {
         }
         UserEntity user = userMapper.selectById(userId);
         return user != null
-            && !user.getIsDeleted()
-            && !user.getIsPaused(); // the user is paused or deleted, his api key is invalid.
+                && !user.getIsDeleted()
+                && !user.getIsPaused(); // the user is paused or deleted, his api key is invalid.
     }
 
     @Override

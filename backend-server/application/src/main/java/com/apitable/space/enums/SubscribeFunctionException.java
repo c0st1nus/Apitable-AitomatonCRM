@@ -18,13 +18,14 @@
 
 package com.apitable.space.enums;
 
-import com.apitable.core.exception.BaseException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import com.apitable.core.exception.BaseException;
+
 /**
  * <p>
- * subscription exception.
+ * subscription exception
  * </p>
  *
  * @author Shawn Deng

@@ -16,12 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import * as React from 'react';
 import { forwardRef, memo, useEffect } from 'react';
-import { IBaseEditorProps, IEditor } from 'pc/components/editors/interface';
-import { CellText } from 'pc/components/multi_grid/cell/cell_text';
-import { NumberEditor } from '../../editors/number_editor';
+import * as React from 'react';
 import styles from './style.module.less';
+import { IEditor, IBaseEditorProps } from 'pc/components/editors/interface';
+import { NumberEditor } from '../../editors/number_editor';
+import { CellText } from 'pc/components/multi_grid/cell/cell_text';
 
 interface IExpandNumberProps extends IBaseEditorProps {
   isFocus: boolean;
@@ -31,13 +31,10 @@ interface IExpandNumberProps extends IBaseEditorProps {
   editing: boolean;
   className?: string;
   onBlur?: (...args: any) => void;
-  onChange?: (...args: any) => void;
-  onAiFormChange?: (...args: any) => void;
 }
 
 const ExpandNumberBase: React.ForwardRefRenderFunction<IEditor, IExpandNumberProps> = (props, ref) => {
-  const { isFocus, field, cellValue, style, editable, editing, width, height, datasheetId, className, onSave, onBlur, onChange, onAiFormChange } =
-    props;
+  const { isFocus, field, cellValue, style, editable, editing, width, height, datasheetId, className, onSave, onBlur } = props;
 
   useEffect(() => {
     if (isFocus && editable && typeof ref === 'object') {
@@ -57,18 +54,18 @@ const ExpandNumberBase: React.ForwardRefRenderFunction<IEditor, IExpandNumberPro
         width={width}
         height={height}
         style={style}
-        disabled={!editable}
+        editable={editable}
         editing={editing}
-        isLeftTextAlign
+        isFromFieldEditor
         onSave={onSave}
         onBlur={onBlur}
-        onChange={onAiFormChange}
       />
-      {editable && !isFocus && (
+      {
+        editable && !isFocus && 
         <div className={styles.cellNumber}>
           <CellText cellValue={cellValue} field={field} className={className} />
         </div>
-      )}
+      }
     </div>
   );
 };

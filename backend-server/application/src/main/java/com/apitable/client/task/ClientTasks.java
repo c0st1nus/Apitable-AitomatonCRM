@@ -22,17 +22,18 @@ import static net.javacrumbs.shedlock.core.LockAssert.assertLocked;
 
 import cn.hutool.core.util.StrUtil;
 import com.apitable.shared.config.properties.ConstProperties;
-import jakarta.annotation.Resource;
 import java.util.HashMap;
 import java.util.Map;
+import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * Client task class.
@@ -43,7 +44,7 @@ import org.springframework.web.client.RestClient;
 public class ClientTasks {
 
     @Resource
-    private RestClient restClient;
+    private RestTemplate restTemplate;
 
     @Resource
     private ConstProperties constProperties;
@@ -60,19 +61,14 @@ public class ClientTasks {
     @SchedulerLock(name = "heartbeat", lockAtMostFor = "1h", lockAtLeastFor = "30m")
     public void heartbeat() {
         assertLocked();
-        log.info("Execute Heartbeat Cron");
         HttpHeaders headers = new HttpHeaders();
         Map<String, Object> message = new HashMap<>();
         if (StrUtil.isNotBlank(constProperties.getServerDomain())) {
             message.put("serverDomain", constProperties.getServerDomain());
         }
         message.put("locale", constProperties.getLanguageTag());
-        restClient.post()
-            .uri(heartbeatUrl)
-            .headers(header -> header.addAll(headers))
-            .body(message)
-            .retrieve()
-            .body(String.class);
+        HttpEntity<Object> request = new HttpEntity<>(message, headers);
+        restTemplate.postForObject(heartbeatUrl, request, String.class);
     }
 }
 

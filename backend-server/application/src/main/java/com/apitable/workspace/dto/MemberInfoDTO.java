@@ -22,8 +22,9 @@ import lombok.Data;
 
 /**
  * <p>
- * member information.
+ * member information
  * </p>
+ *
  */
 @Data
 public class MemberInfoDTO {

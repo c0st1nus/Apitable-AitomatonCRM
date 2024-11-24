@@ -28,7 +28,9 @@ export function DefaultArrayItem(props: any) {
   };
   return (
     <div key={props.key} className={props.className}>
-      <div className={props.hasToolbar ? 'col-xs-9' : 'col-xs-12'}>{props.children}</div>
+      <div className={props.hasToolbar ? 'col-xs-9' : 'col-xs-12'}>
+        {props.children}
+      </div>
 
       {props.hasToolbar && (
         <div className="col-xs-3 array-item-toolbox">
@@ -37,8 +39,7 @@ export function DefaultArrayItem(props: any) {
             style={{
               display: 'flex',
               justifyContent: 'space-around',
-            }}
-          >
+            }}>
             {(props.hasMoveUp || props.hasMoveDown) && (
               <IconButton
                 icon="arrow-up"
@@ -58,7 +59,9 @@ export function DefaultArrayItem(props: any) {
                 aria-label="Move down"
                 tabIndex="-1"
                 style={btnStyle}
-                disabled={props.disabled || props.readonly || !props.hasMoveDown}
+                disabled={
+                  props.disabled || props.readonly || !props.hasMoveDown
+                }
                 onClick={props.onReorderClick(props.index, props.index + 1)}
               />
             )}

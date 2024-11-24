@@ -17,14 +17,12 @@
  */
 
 import Joi from 'joi';
-import { IReduxState } from '../../exports/store/interfaces';
+import { IReduxState } from '../../exports/store';
 import { TextBaseField } from './text_base_field';
 import { FieldType, IField, ISingleTextField, SegmentType, ISegment, IStandardValue } from 'types/field_types';
-import { DatasheetActions } from 'commands_actions/datasheet';
+import { DatasheetActions } from 'model';
 import { IOpenSingleTextFieldProperty } from 'types/open/open_field_read_types';
 import { IUpdateOpenSingleTextFieldProperty } from 'types/open/open_field_write_types';
-import { getFieldDefaultProperty } from './const';
-import { ISingleTextProperty } from 'types/field_types';
 
 export class SingleTextField extends TextBaseField {
   constructor(public override field: ISingleTextField, public override state: IReduxState) {
@@ -36,7 +34,7 @@ export class SingleTextField extends TextBaseField {
   });
 
   static defaultProperty() {
-    return getFieldDefaultProperty(FieldType.SingleText) as ISingleTextProperty;
+    return {};
   }
 
   override get apiMetaProperty() {

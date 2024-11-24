@@ -1,5 +1,6 @@
-import React from 'react';
-import { Box, Dropdown, useTheme } from '@apitable/components';
+import React, { useState } from 'react';
+import Trigger from 'rc-trigger';
+import { Box, useTheme } from '@apitable/components';
 import { ISelectField, ISelectFieldBaseOpenValue, getFieldOptionColor, ISelectFieldOption, FieldType, FOperator } from '@apitable/core';
 import { ChevronDownOutlined, CheckOutlined } from '@apitable/icons';
 
@@ -23,37 +24,38 @@ const getSelectOptions = (value: string[] | null, options: IOption[]) => {
 };
 
 export const FilterSelect: React.FC<IFilterSelectProps> = (props) => {
+  const [visible, setVisible] = useState<boolean>(false);
   const { color } = useTheme();
   const { value, field, onChange, operator } = props;
   const isMulti = field.type === FieldType.MultiSelect || [FOperator.Contains, FOperator.DoesNotContain].includes(operator);
 
   return (
-    <Dropdown
-      options={{
-        placement: 'bottom',
-        autoWidth: true,
-        arrow: false
-      }}
-      trigger={
-        <FilterInputWrap pointer>
-          <Box flex={1} padding={'8px 10px'}>
-            {Boolean(value) &&
-                <SelectValueBox
-                  options={field.property.options}
-                  selectOptions={getSelectOptions(value, field.property.options) as ISelectFieldBaseOpenValue[]}
-                />}
-          </Box>
-          <Box display={'flex'} alignItems={'center'} paddingRight={'10px'}>
-            <ChevronDownOutlined size={16} color={color.black[300]} />
-          </Box>
-        </FilterInputWrap>
+    <Trigger
+      action={['click']}
+      popup={<OptionList isMulti={isMulti} field={field as ISelectField} value={value} onChange={(v) => {
+        onChange.length === 0 ? onChange(null) : onChange(v);
+      }}/>}
+      destroyPopupOnHide
+      popupAlign={
+        { points: ['tl', 'bl'], offset: [0, 8] }
       }
-    >{
-        () => (
-          <OptionList isMulti={isMulti} field={field as ISelectField} value={value} onChange={(v) => {
-            onChange.length === 0 ? onChange(null) : onChange(v);
-          }}/>)}
-    </Dropdown>
+      popupVisible={visible}
+      onPopupVisibleChange={visible => setVisible(visible)}
+      stretch="width,height"
+    >
+      <FilterInputWrap pointer>
+        <Box flex={1} padding={'8px 10px'}>
+          {Boolean(value) &&
+        <SelectValueBox
+          options={field.property.options}
+          selectOptions={getSelectOptions(value, field.property.options) as ISelectFieldBaseOpenValue[]}
+        />}
+        </Box>
+        <Box display={'flex'} alignItems={'center'} paddingRight={'10px'}>
+          <ChevronDownOutlined size={16} color={color.black[300]} />
+        </Box>
+      </FilterInputWrap>
+    </Trigger>
   );
 };
 
@@ -85,7 +87,6 @@ const OptionList: React.FC<IOptionListProps> = (props) => {
     }
     onChange && onChange(_value);
   };
-
   return (
     <SelectPopupContainer>
       <div>

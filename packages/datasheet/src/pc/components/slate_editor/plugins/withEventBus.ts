@@ -84,4 +84,5 @@ export const withEventBus = <T extends Editor>(inEditor: T) => {
   };
 
   return editor;
+
 };

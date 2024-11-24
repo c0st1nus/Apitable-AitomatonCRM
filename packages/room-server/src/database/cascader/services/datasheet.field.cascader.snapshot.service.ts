@@ -120,9 +120,7 @@ export class DatasheetFieldCascaderSnapshotService {
       const linkedRecordData: ILinkRecordData = reduce(
         fieldIdToCellValue,
         (result, cellValue, fldId) => {
-          if(fieldMethods[fldId]) {
-            result[fldId] = { text: getTextByCellValue(cellValue, fldId, fieldMethods) };
-          }
+          result[fldId] = { text: getTextByCellValue(cellValue, fldId, fieldMethods) };
           return result;
         },
         {} as ILinkRecordData,

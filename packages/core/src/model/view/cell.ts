@@ -16,10 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { IReduxState } from '../../exports/store/interfaces';
-import { getCellIndex, getCellUIIndex, getCellByIndex } from 'modules/database/store/selectors/resource/datasheet/cell_range_calc';
-import { getVisibleRows } from 'modules/database/store/selectors/resource/datasheet/rows_calc';
-import { getVisibleColumns } from 'modules/database/store/selectors/resource/datasheet/calc';
+import { IReduxState, Selectors } from '../../exports/store';
 import { ICell } from './range';
 
 export enum CellDirection {
@@ -41,21 +38,21 @@ export class Cell {
   }
 
   getIndex(state: IReduxState, cell?: ICell) {
-    return getCellIndex(state, cell || Cell.instance);
+    return Selectors.getCellIndex(state, cell || Cell.instance);
   }
 
   getUIIndex(state: IReduxState, cell?: ICell) {
-    return getCellUIIndex(state, cell || Cell.instance);
+    return Selectors.getCellUIIndex(state, cell || Cell.instance);
   }
 
   move(state: IReduxState, direction: CellDirection, breakpoints: number[] = []) {
-    const columns = getVisibleColumns(state)!;
-    const rows = getVisibleRows(state);
+    const columns = Selectors.getVisibleColumns(state)!;
+    const rows = Selectors.getVisibleRows(state);
     const rowCount = rows.length;
     const maxColumnIndex = columns.length - 1;
     let minRowIndex = 0;
     let maxRowIndex = rowCount - 1;
-    let { recordIndex, fieldIndex }: { recordIndex: number, fieldIndex: number } = getCellIndex(state, Cell.instance)!;
+    let { recordIndex, fieldIndex }: { recordIndex: number, fieldIndex: number } = Selectors.getCellIndex(state, Cell.instance)!;
 
     /**
      * No action is required for the following two cases:
@@ -116,6 +113,6 @@ export class Cell {
     if (recordIndex > rowCount - 1) recordIndex = rowCount - 1;
     if (fieldIndex < 0) fieldIndex = 0;
     if (fieldIndex > maxColumnIndex) fieldIndex = maxColumnIndex;
-    return getCellByIndex(state, { recordIndex, fieldIndex });
+    return Selectors.getCellByIndex(state, { recordIndex, fieldIndex });
   }
 }

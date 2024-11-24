@@ -16,24 +16,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { batchActions } from 'redux-batched-actions';
 import { Api, ApiInterface, ConfigConstant, IReduxState, IUnitValue, Navigation, StatusCode, StoreActions, Strings, t } from '@apitable/core';
 import { uploadAttachToS3, UploadType } from '@apitable/widget-sdk';
 import { Message } from 'pc/components/common/message';
 import { Modal } from 'pc/components/common/modal/modal/modal';
 import { openSliderVerificationModal } from 'pc/components/common/slider_verification';
-import { ActionType } from 'pc/components/home/pc_home';
 import { useLinkInvite } from 'pc/components/invite/use_invite';
 import { Router } from 'pc/components/route_manager/router';
 import { useDispatch } from 'pc/hooks/use_dispatch';
 import { secondStepVerify } from 'pc/hooks/utils';
 import { NotificationStore } from 'pc/notification_store';
 import { store } from 'pc/store';
-import { useAppSelector } from 'pc/store/react-redux';
+import { getSearchParams } from 'pc/utils';
 import { isLocalSite } from 'pc/utils/catalog';
-import { getSearchParams } from 'pc/utils/dom';
+import { useSelector } from 'react-redux';
+import { batchActions } from 'redux-batched-actions';
 import { getEnvVariables } from 'pc/utils/env';
-import { deleteStorageByKey, StorageName } from '../utils/storage';
+import { ActionType } from 'pc/components/home/pc_home';
 
 export const LOGIN_SUCCESS = 'LOGIN_SUCCESS';
 
@@ -44,9 +43,11 @@ export const useUserRequest = () => {
   const dispatch = useDispatch();
   const urlParams = getSearchParams();
   const reference = urlParams.get('reference') || undefined;
-  const activeSpaceId = useAppSelector((state) => state.space.activeId);
-  const userInfo = useAppSelector((state: IReduxState) => state.user.info);
-  const inviteEmailInfo = useAppSelector((state: IReduxState) => state.invite.inviteEmailInfo);
+  const activeSpaceId = useSelector(state => state.space.activeId);
+  const userInfo = useSelector((state: IReduxState) => state.user.info);
+  const inviteEmailInfo = useSelector(
+    (state: IReduxState) => state.invite.inviteEmailInfo
+  );
   const { join } = useLinkInvite();
   /**
    * Get the login status and update the user information into userMe in redux if you are already logged in.
@@ -54,45 +55,52 @@ export const useUserRequest = () => {
    * @param {boolean} filter
    * @returns {Promise<import("axios").AxiosResponse<IApiWrapper & {data: IUserInfo}>>}
    */
-  const getLoginStatusReq = (locateIdMap: { spaceId?: string | null; nodeId?: string | null } = { spaceId: '', nodeId: '' }, filter = false) => {
-    return Api.getUserMe(locateIdMap, filter).then((res) => {
-      const { data, success, code, message } = res.data;
-      if (success) {
+  const getLoginStatusReq =
+    (locateIdMap: { spaceId?: string | null; nodeId?: string | null } = { spaceId: '', nodeId: '' }, filter = false) => {
+      return Api.getUserMe(locateIdMap, filter).then((res) => {
+        const { data, success, code, message } = res.data;
+        if (success) {
+          dispatch(
+            batchActions(
+              [
+                StoreActions.setIsLogin(true),
+                StoreActions.setUserMe(data),
+                StoreActions.setLoading(false),
+                StoreActions.updateUserInfoErr(null),
+              ],
+              LOGIN_SUCCESS
+            )
+          );
+          if (!activeSpaceId) {
+            dispatch(StoreActions.setActiveSpaceId(data.spaceId));
+          }
+          if (locateIdMap.spaceId) {
+            NotificationStore.joinSpace(locateIdMap.spaceId);
+          }
+          return data;
+        }
+        if (code === StatusCode.INVALID_SPACE) {
+          Modal.error({
+            title: t(Strings.get_verification_code_err_title),
+            content: t(Strings.enter_unactive_space_err_message),
+            okText: t(Strings.submit),
+            onOk: () => {
+              Router.push(Navigation.HOME);
+            },
+          });
+          return;
+        }
+        dispatch(StoreActions.setLoading(false));
         dispatch(
-          batchActions(
-            [StoreActions.setIsLogin(true), StoreActions.setUserMe(data), StoreActions.setLoading(false), StoreActions.updateUserInfoErr(null)],
-            LOGIN_SUCCESS,
-          ),
+          StoreActions.updateUserInfoErr({
+            code,
+            msg: message,
+          })
         );
-        if (!activeSpaceId) {
-          dispatch(StoreActions.setActiveSpaceId(data.spaceId));
-        }
-        if (locateIdMap.spaceId) {
-          NotificationStore.joinSpace(locateIdMap.spaceId);
-        }
-        return data;
-      }
-      if (code === StatusCode.INVALID_SPACE) {
-        Modal.error({
-          title: t(Strings.get_verification_code_err_title),
-          content: t(Strings.enter_unactive_space_err_message),
-          okText: t(Strings.submit),
-          onOk: () => {
-            Router.push(Navigation.HOME);
-          },
-        });
         return;
-      }
-      dispatch(StoreActions.setLoading(false));
-      dispatch(
-        StoreActions.updateUserInfoErr({
-          code,
-          msg: message,
-        }),
-      );
-      return;
-    });
-  };
+      });
+
+    };
 
   /**
    * Direct login/registration
@@ -112,11 +120,11 @@ export const useUserRequest = () => {
         if (inviteCode) {
           Api.submitInviteCode(inviteCode);
         }
-        if (urlParams.has('inviteLinkToken')) {
-          join();
-          return;
-        }
         if (!data) {
+          if (urlParams.has('inviteLinkToken')) {
+            join();
+            return res.data;
+          }
           if (urlParams.has('inviteMailToken') && inviteEmailInfo) {
             Router.redirect(Navigation.WORKBENCH, {
               params: { spaceId: inviteEmailInfo.data.spaceId },
@@ -126,7 +134,11 @@ export const useUserRequest = () => {
           }
         }
 
-        if (!getEnvVariables().IS_APITABLE && data?.isNewUser && loginData.type === ConfigConstant.LoginTypes.EMAIL) {
+        if (
+          !getEnvVariables().IS_APITABLE &&
+          data?.isNewUser && 
+          loginData.type === ConfigConstant.LoginTypes.EMAIL
+        ) {
           const query: any = { improveType: ConfigConstant.ImproveType.Phone };
           const inviteLinkToken = urlParams.get('inviteLinkToken');
           const inviteMailToken = urlParams.get('inviteMailToken');
@@ -169,14 +181,14 @@ export const useUserRequest = () => {
         return res.data;
       }
 
-      if (!secondStepVerify(code)) {
+      if (secondStepVerify(code)) {
         return;
       }
       dispatch(
         StoreActions.setHomeErr({
           code,
           msg: message,
-        }),
+        })
       );
       return res.data;
     });
@@ -188,7 +200,7 @@ export const useUserRequest = () => {
     code,
     reference,
     inviteLinkToken,
-    inviteMailToken,
+    inviteMailToken
   }: {
     areaCode: string;
     phone: string;
@@ -240,6 +252,7 @@ export const useUserRequest = () => {
     return Api.signIn(loginData).then((res) => {
       const { success, code, message, data } = res.data;
       if (success) {
+
         dispatch(StoreActions.setLoading(true));
 
         const urlParams = getSearchParams();
@@ -279,7 +292,7 @@ export const useUserRequest = () => {
         }
         Router.push(Navigation.HOME);
       }
-      if (!env.IS_SELFHOST) {
+      if (!env.DISABLE_AWSC) {
         if (code === StatusCode.SECONDARY_VALIDATION || code === StatusCode.NVC_FAIL) {
           openSliderVerificationModal();
         } else if (code === StatusCode.PHONE_VALIDATION) {
@@ -287,7 +300,7 @@ export const useUserRequest = () => {
             title: t(Strings.warning),
             content: t(Strings.status_code_phone_validation),
             onOk: () => {
-              if (!env.IS_SELFHOST) {
+              if (!env.DISABLE_AWSC) {
                 window['nvc'].reset();
               }
             },
@@ -304,7 +317,7 @@ export const useUserRequest = () => {
         StoreActions.setHomeErr({
           code,
           msg: message,
-        }),
+        })
       );
       return res.data;
     });
@@ -314,8 +327,6 @@ export const useUserRequest = () => {
     return Api.signUp(token, inviteCode).then((res) => {
       const { success } = res.data;
       if (success) {
-        localStorage.removeItem('client-lang');
-        deleteStorageByKey(StorageName.IsPanelClosed);
         const searchParams = getSearchParams();
         if (searchParams.toString()) {
           const paramsObj = {};
@@ -336,33 +347,10 @@ export const useUserRequest = () => {
     });
   };
 
-  const registerReq = (username: string, credential: string) => {
-    const defaultLang = (): string => {
-      // @ts-ignore
-      const languageMap = (global || window).languageManifest;
-
-      let userLanguage = navigator.language;
-
-      if (userLanguage == 'zh-TW') {
-        userLanguage = 'zh-HK';
-      }
-      if (languageMap[userLanguage]) {
-        return userLanguage;
-      } 
-      const langArr = Object.keys(languageMap);
-      for (let i = 0; i < langArr.length; i++) {
-        if (langArr[i].indexOf(userLanguage) > -1) {
-          return langArr[i];
-        }
-      }
-      
-      return 'en-US';
-    };
-    return Api.register(username, credential, defaultLang()).then((res) => {
+  const registerReq = (username: string, credential: string) => {    
+    return Api.register(username, credential).then((res) => {
       const { success } = res.data;
       if (success) {
-        localStorage.removeItem('client-lang');
-        deleteStorageByKey(StorageName.IsPanelClosed);
         dispatch(StoreActions.setLoading(true));
 
         const urlParams = getSearchParams();
@@ -394,7 +382,6 @@ export const useUserRequest = () => {
     return Api.signOut().then((res) => {
       const { success, data } = res.data;
       if (success) {
-        deleteStorageByKey(StorageName.IsPanelClosed);
         if (data.needRedirect) {
           window.location.href = data.redirectUri;
         } else {
@@ -413,26 +400,24 @@ export const useUserRequest = () => {
       const { success } = res.data;
       if (success) {
         needMessage &&
-          Message.success({
-            content: t(Strings.message_member_name_modified_successfully),
-          });
+        Message.success({
+          content: t(Strings.message_member_name_modified_successfully),
+        });
         dispatch(StoreActions.updateUserInfo({ memberName, isMemberNameModified: true }));
         // Synchronising member information such as datasheets after modifying member information
         if (oldUnitMap) {
-          dispatch(
-            StoreActions.updateUnitMap({
-              [oldUnitMap.unitId]: {
-                ...oldUnitMap,
-                name: memberName,
-              },
-            }),
-          );
+          dispatch(StoreActions.updateUnitMap({
+            [oldUnitMap.unitId]: {
+              ...oldUnitMap,
+              name: memberName,
+            }
+          }));
         }
       } else {
         needMessage &&
-          Message.error({
-            content: t(Strings.message_member_name_modified_failed),
-          });
+        Message.error({
+          content: t(Strings.message_member_name_modified_failed),
+        });
       }
     });
 
@@ -471,7 +456,7 @@ export const useUserRequest = () => {
   };
 
   // Get Inviteable Member Status
-  const getInviteStatus = async () => {
+  const getInviteStatus = async() => {
     if (!userInfo) {
       return;
     }
@@ -495,8 +480,8 @@ export const useUserRequest = () => {
   };
 
   const updateAvatarColor = (avatarColor: number) => {
-    return Api.updateUser({
-      avatarColor,
+    return Api.updateUser({ 
+      avatarColor, 
       init: false,
       avatar: null as any,
     }).then((res) => {
@@ -514,7 +499,13 @@ export const useUserRequest = () => {
   };
 
   // Update avatar
-  const customOrOfficialAvatarUpload = async ({ file, token }: { file?: File; token?: string }) => {
+  const customOrOfficialAvatarUpload = async({
+    file,
+    token,
+  }: {
+    file?: File;
+    token?: string;
+  }) => {
     if (!file && !token) {
       return;
     }
@@ -524,8 +515,8 @@ export const useUserRequest = () => {
     if (file) {
       return uploadAttachToS3({
         file: file,
-        fileType: UploadType.UserAvatar,
-      }).then(async (res) => {
+        fileType: UploadType.UserAvatar
+      }).then(async(res) => {
         const { success, data } = res.data;
         if (success) {
           return await updateAvatar(data.token, false);
@@ -537,11 +528,16 @@ export const useUserRequest = () => {
   };
 
   // Get mobile verification code
-  const getSmsCodeReq = (areaCode: string, phone: string, type: number, data?: string) => {
+  const getSmsCodeReq = (
+    areaCode: string,
+    phone: string,
+    type: number,
+    data?: string
+  ) => {
     const env = getEnvVariables();
     return Api.getSmsCode(areaCode, phone, type, data).then((res) => {
       const { success, code } = res.data;
-      if (success || env.IS_SELFHOST) {
+      if (success || env.DISABLE_AWSC) {
         return res.data;
       }
       // Perform secondary verification (slider verification)
@@ -552,7 +548,7 @@ export const useUserRequest = () => {
           title: t(Strings.warning),
           content: t(Strings.status_code_phone_validation),
           onOk: () => {
-            if (!env.IS_SELFHOST) {
+            if (!env.DISABLE_AWSC) {
               window['nvc'].reset();
             }
           },
@@ -573,7 +569,13 @@ export const useUserRequest = () => {
     });
   };
 
-  const retrievePwdReq = (areaCode: string, username: string, code: string, password: string, type: string) => {
+  const retrievePwdReq = (
+    areaCode: string,
+    username: string,
+    code: string,
+    password: string,
+    type: string,
+  ) => {
     return Api.retrievePwd(areaCode, username, code, password, type).then((res) => {
       const { success } = res.data;
       if (success) {
@@ -584,25 +586,25 @@ export const useUserRequest = () => {
   };
 
   const modifyPasswordReq = (password: string, code?: string, type?: string) => {
-    return Api.updatePwd(password, code, type).then((res) => {
+    return Api.updatePwd(password, code, type).then(res => {
       return res.data;
     });
   };
 
   const updateLangReq = (locale: string) => {
-    return Api.updateUser({ locale }).then((res) => {
+    return Api.updateUser({ locale }).then(res => {
       return res.data;
     });
   };
 
   const getUserCanLogoutReq = () => {
-    return Api.getUserCanLogout().then((res) => {
+    return Api.getUserCanLogout().then(res => {
       return res.data;
     });
   };
 
   const submitInviteCodeReq = (inviteCode: string) => {
-    return Api.submitInviteCode(inviteCode).then((res) => {
+    return Api.submitInviteCode(inviteCode).then(res => {
       return res.data;
     });
   };

@@ -19,14 +19,12 @@
   }
 
   :global {
-    .ant-drawer-content-wrapper {
-      box-shadow: none;
-    }
     .ant-drawer-content {
       position: relative;
-      background-color: var(--bgCommonHigh);
-      border-right: 1px solid var(--borderCommonDefault);
-      box-shadow: var(--shadowSideRightHigh);
+      background-color: transparent;
+      background-color: var(--defaultBg);
+      // FIXME:THEME
+      // .backgroundBlur (var(--fc8), 80%, 10px);
     }
     .ant-drawer-content,
     .ant-drawer-wrapper-body,
@@ -37,7 +35,7 @@
     .ant-drawer-header {
       padding: 24px 24px 16px;
       border: 0;
-      background: var(--bgCommonHigh) !important;
+      background: transparent;
     }
 
     .ant-drawer-title {
@@ -51,7 +49,6 @@
     .ant-drawer-body {
       flex: 1;
       padding: 0 !important;
-      background: var(--bgCommonHigh) !important;
     }
 
     .ant-tabs-content-holder {

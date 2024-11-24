@@ -18,13 +18,11 @@
 
 package com.apitable.space.enums;
 
-import cn.hutool.core.util.StrUtil;
 import java.util.Objects;
+
+import cn.hutool.core.util.StrUtil;
 import lombok.Getter;
 
-/**
- * labs feature enum.
- */
 @Getter
 public enum LabsFeatureEnum {
 
@@ -51,12 +49,6 @@ public enum LabsFeatureEnum {
         this.applicantType = applicantType;
     }
 
-    /**
-     * transform featureKey to featureName.
-     *
-     * @param featureKey featureKey
-     * @return featureName
-     */
     public static String ofFeatureKey(String featureKey) {
         for (LabsFeatureEnum featureEnum : LabsFeatureEnum.values()) {
             if (featureEnum.name().equalsIgnoreCase(featureKey)) {
@@ -66,19 +58,13 @@ public enum LabsFeatureEnum {
         return UNKNOWN_LAB_FEATURE.getFeatureName();
     }
 
-    /**
-     * transform featureName to LabsFeatureEnum.
-     *
-     * @param featureName featureName
-     * @return LabsFeatureEnum
-     */
     public static LabsFeatureEnum ofLabsFeature(String featureName) {
         if (StrUtil.isBlank(featureName)) {
             return UNKNOWN_LAB_FEATURE;
         }
         for (LabsFeatureEnum featureEnum : LabsFeatureEnum.values()) {
-            if (Objects.equals(featureName, featureEnum.getFeatureName())
-                || Objects.equals(featureName, featureEnum.name())) {
+            if (Objects.equals(featureName, featureEnum.getFeatureName()) ||
+                    Objects.equals(featureName, featureEnum.name())) {
                 return featureEnum;
             }
         }

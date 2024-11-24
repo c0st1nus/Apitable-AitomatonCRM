@@ -25,13 +25,12 @@ const CssItem = css<Pick<IOption, 'disabled' | 'prefixIcon' | 'suffixIcon'>>`
   position: relative;
   height: 40px;
 
-  ${(props) => {
+  ${props => {
     if (props.disabled) {
       return css`
         cursor: not-allowed;
 
-        .prefixIcon,
-        .optionLabel {
+        .prefixIcon, .optionLabel {
           opacity: 0.5;
         }
       `;
@@ -39,14 +38,14 @@ const CssItem = css<Pick<IOption, 'disabled' | 'prefixIcon' | 'suffixIcon'>>`
     return;
   }}
 
-  padding-left: ${(props) => {
+  padding-left: ${props => {
     if (props.prefixIcon) {
       return '20px';
     }
     return '';
   }};
 
-  padding-right: ${(props) => {
+  padding-right: ${props => {
     if (props.suffixIcon) {
       return '20px';
     }
@@ -56,6 +55,7 @@ const CssItem = css<Pick<IOption, 'disabled' | 'prefixIcon' | 'suffixIcon'>>`
   svg {
     vertical-align: -0.225em;
   }
+
 
   .suffixIcon,
   .prefixIcon {
@@ -75,11 +75,12 @@ const CssItem = css<Pick<IOption, 'disabled' | 'prefixIcon' | 'suffixIcon'>>`
 
     &.isChecked {
       svg {
-        fill: ${(props) => {
-          return props.theme.color.primaryColor;
-        }};
+        fill: ${props => {
+    return props.theme.color.primaryColor;
+  }};
       }
     }
+
   }
 
   .optionLabel {
@@ -90,14 +91,14 @@ const CssItem = css<Pick<IOption, 'disabled' | 'prefixIcon' | 'suffixIcon'>>`
     line-height: 40px;
 
     &.isChecked {
-      color: ${(props) => {
-        return props.theme.color.primaryColor;
-      }};
+      color: ${props => {
+    return props.theme.color.primaryColor;
+  }};
     }
   }
 `;
 
-export const StyledSelectTrigger = styled.div.attrs(applyDefaultTheme)<{ disabled: boolean; focus: boolean }>`
+export const StyledSelectTrigger = styled.div.attrs(applyDefaultTheme) <{ disabled: boolean; focus: boolean }>`
   cursor: pointer;
   border-radius: 4px;
   border: 1px solid transparent;
@@ -108,7 +109,7 @@ export const StyledSelectTrigger = styled.div.attrs(applyDefaultTheme)<{ disable
   height: 40px;
   user-select: none;
   outline: none;
-  transition: all 0.3s;
+  transition: all .3s;
 
   ${(props) => {
     const { fc5 } = props.theme.color;
@@ -117,23 +118,21 @@ export const StyledSelectTrigger = styled.div.attrs(applyDefaultTheme)<{ disable
         cursor: not-allowed;
       `;
     }
-    return (
-      !props.disabled &&
-      css`
-        &:hover {
-          border-color: ${fc5};
-        }
-      `
-    );
+    return !props.disabled && css`
+      &:hover {
+        border-color: ${fc5};
+      }
+    `;
   }};
 
   ${(props) => {
+    const { fc6 } = props.theme.color;
     return css`
-      background-color: ${props.theme.color.fc6};
+      background-color: ${fc6};
     `;
-  }}
+  }};
 
-  ${(props) => {
+  ${props => {
     const { fc0 } = props.theme.color;
     if (props.focus) {
       return css`
@@ -141,14 +140,11 @@ export const StyledSelectTrigger = styled.div.attrs(applyDefaultTheme)<{ disable
       `;
     }
 
-    return (
-      !props.disabled &&
-      css`
-        &:focus-within {
-          border-color: ${fc0} !important;
-        }
-      `
-    );
+    return !props.disabled && css`
+      &:focus-within {
+        border-color: ${fc0} !important;
+      }
+    `;
   }}
 `;
 
@@ -167,11 +163,11 @@ export const StyledSelectedContainer = styled.div.attrs(applyDefaultTheme)`
     display: inline-block;
     font-size: 13px;
     ${(props) => {
-      const { blackBlue } = props.theme.color;
-      return css`
+    const { blackBlue } = props.theme.color;
+    return css`
         color: ${blackBlue[500]};
       `;
-    }}
+  }}
   }
 
   ${CssItem};
@@ -185,17 +181,13 @@ export const PrefixIcon = styled.span`
   padding-right: 4px;
 `;
 
-export const StyledArrowIcon = styled(PrefixIcon)<{ rotated: boolean }>`
+export const StyledArrowIcon = styled(PrefixIcon) <{ rotated: boolean }>`
   position: absolute;
   right: 8px;
   display: flex;
   align-items: center;
   transition: transform 0.3s;
-  ${(props) =>
-    props.rotated &&
-    css`
-      transform: rotate(180deg);
-    `}
+  ${props => props.rotated && css` transform: rotate(180deg); `}
   height: auto;
   transform-origin: 40%;
 `;
@@ -210,16 +202,15 @@ export const GlobalStyle = createGlobalStyle`
 
 export const hightLightCls = styled.div.attrs(applyDefaultTheme)`
   background: none;
-  color: ${(props) => props.theme.color.primaryColor};
+  color: ${(props) => props.theme.palette.primary};
   padding: 0;
 `;
 
-export const StyledListContainer = styled.div.attrs(applyDefaultTheme)<{ width: string; minWidth?: string; maxWidth?: string }>`
+export const StyledListContainer = styled.div.attrs(applyDefaultTheme) <{ width: string; minWidth: string }>`
   width: ${(props) => props.width};
   min-width: ${(props) => props.minWidth};
-  max-width: ${(props) => props.maxWidth};
   padding: 4px 0;
-  ${(props) => css`
+  ${props => css`
     background-color: ${props.theme.color.highestBg};
     box-shadow: ${props.theme.color.shadowCommonHighest};
   `}
@@ -227,15 +218,17 @@ export const StyledListContainer = styled.div.attrs(applyDefaultTheme)<{ width: 
 `;
 
 export const OptionOutside = styled(ListDeprecate.Item).attrs(applyDefaultTheme)`
+
   ${CssItem};
-  padding-left: ${(props) => {
+
+  padding-left: ${props => {
     if (props.prefixIcon) {
       return '28px';
     }
     return '';
   }};
 
-  padding-right: ${(props) => {
+  padding-right: ${props => {
     if (props.suffixIcon) {
       return '28px';
     }

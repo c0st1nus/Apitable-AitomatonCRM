@@ -1,12 +1,8 @@
-import { Field } from 'model/field';
-import { NO_CACHE } from 'cache_manager/cache';
-import { CacheManager } from 'cache_manager';
-import { dataSelfHelper } from 'compute_manager/compute_cache_manager';
+import { CacheManager, NO_CACHE } from 'cache_manager';
+import { dataSelfHelper } from 'compute_manager';
 import { IRecord, IRecordSnapshot, IReduxState, ISnapshot, Role } from 'exports/store/interfaces';
-import { evaluate } from 'formula_parser/evaluate';
-import { ButtonField } from 'model/field/button_field';
-import { handleEmptyCellValue } from 'model/utils';
-import { ICellValue } from 'model/record';
+import { evaluate } from 'formula_parser';
+import { Field, handleEmptyCellValue, IAutomaticallyField, ICellValue, LookUpField } from 'model';
 import { BasicValueType, FieldType, IAttachmentValue, IFormulaField } from 'types/field_types';
 import { getFieldPermissionMap, getFieldRoleByFieldId } from './base';
 
@@ -109,9 +105,8 @@ export const calcCellValueAndString = ({
   const instance = Field.bindContext(field, state);
   return {
     cellValue,
-    cellStr: field.type === FieldType.URL ? Field.bindContext(field, state).cellValueToTitle(cellValue) : instance.cellValueToString(cellValue),
-    // issue: https://github.com/vikadata/vikadata/issues/7757
-    ignoreCache: workerCompute() ? false : (field.type === FieldType.CreatedBy ? true : !instance.isComputed),
+    cellStr: instance.cellValueToString(cellValue),
+    ignoreCache: workerCompute() ? false : !instance.isComputed,
   };
 };
 
@@ -164,10 +159,6 @@ export const calcCellValue = (
     return null;
   }
 
-  if(field.type === FieldType.Button ) {
-    return field.property.text;
-  }
-
   const instance = Field.bindContext(field, state);
 
   if (instance.isComputed) {
@@ -198,9 +189,6 @@ export const getComputeCellValue = (state: IReduxState, snapshot: IRecordSnapsho
     case FieldType.LookUp: {
       return Field.bindContext(field, state).getCellValue(recordId, withError);
     }
-    case FieldType.Button: {
-      return (Field.bindContext(field, state) as ButtonField).cellValueToArray(null);
-    }
     case FieldType.CreatedBy:
     case FieldType.LastModifiedBy:
     case FieldType.CreatedTime:
@@ -208,14 +196,13 @@ export const getComputeCellValue = (state: IReduxState, snapshot: IRecordSnapsho
       if (!record) {
         return null;
       }
-      // @ts-ignore
-      return Field.bindContext(field, state).getCellValue(record);
+      return (Field.bindContext(field, state) as IAutomaticallyField).getCellValue(record);
     }
     case FieldType.AutoNumber: {
       if (!record) {
         return null;
       }
-      return Field.bindContext(field, state).getCellValue(record, fieldId);
+      return (Field.bindContext(field, state) as any).getCellValue(record, fieldId);
     }
     default:
       return null;
@@ -267,7 +254,7 @@ export const _getLookUpTreeValue = (state: IReduxState, snapshot: ISnapshot, rec
   }
   if (Field.bindContext(field, state).isComputed) {
     if (field.type === FieldType.LookUp) {
-      return Field.bindContext(field, state).getLookUpTreeValue(recordId);
+      return new LookUpField(field, state).getLookUpTreeValue(recordId);
     }
     return getComputeCellValue(state, snapshot, recordId, fieldId);
   }

@@ -18,9 +18,9 @@
 
 import { ExecuteFailReason, ExecuteResult, ICollaCommandExecuteContext, ICollaCommandExecuteResultBase } from './types';
 import { IJOTAction } from 'engine/ot/interface';
-import { CollaCommandName } from 'commands/enum';
+import { CollaCommandName } from 'commands';
 import { ResourceType } from 'types';
-import { IFieldMap } from '../exports/store/interfaces';
+import { IFieldMap } from '../exports/store';
 
 export interface ILinkedActions {
   datasheetId: string;
@@ -36,7 +36,7 @@ export interface ICollaCommandDefExecuteSuccessResult<T = any> extends ICollaCom
   /**
    * @description This property exists if the action of the current command contains changes to cell data
    */
-  fieldMapSnapshot?: IFieldMap;
+  fieldMapSnapshot?: IFieldMap
 }
 
 export interface ICollaCommandDefExecuteFailResult extends ICollaCommandExecuteResultBase {
@@ -44,7 +44,8 @@ export interface ICollaCommandDefExecuteFailResult extends ICollaCommandExecuteR
   reason: ExecuteFailReason;
 }
 
-export type ICollaCommandDefExecuteResult<T> = ICollaCommandDefExecuteSuccessResult<T> | ICollaCommandDefExecuteFailResult;
+export type ICollaCommandDefExecuteResult<T> = ICollaCommandDefExecuteSuccessResult<T> |
+  ICollaCommandDefExecuteFailResult;
 
 /**
  * Collaborative Command definition
@@ -58,7 +59,8 @@ export interface ICollaCommandDef<T = any, R = {}> {
   /**
    * Actions are generated if the execution is successful, and the reason is returned if it fails. No need to deal with returning null.
    */
-  readonly execute: (context: ICollaCommandExecuteContext, options: T) => ICollaCommandDefExecuteResult<R> | null;
+  readonly execute: (context: ICollaCommandExecuteContext, options: T) =>
+    ICollaCommandDefExecuteResult<R> | null;
 
   /**
    * Determine whether the current undo can be undone, if not, it can be undo by default
@@ -78,10 +80,9 @@ export interface ICommandOptionBase {
 }
 
 export class CollaCommand<T extends ICommandOptionBase = any, R = any> {
-  constructor(
-    private _cmdDef: ICollaCommandDef<T, R>,
-    public name: string
-  ) {}
+
+  constructor(private _cmdDef: ICollaCommandDef<T, R>, public name: string) {
+  }
 
   undoable(): boolean {
     return this._cmdDef.undoable;

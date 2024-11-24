@@ -16,12 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import * as React from 'react';
-import { Box } from '@apitable/components';
 import {
   CollaCommandName,
-  FieldType,
-  IAttacheField,
+  FieldType, IAttacheField,
   IAttachmentValue,
   ICellValue,
   IDateTimeField,
@@ -38,36 +35,35 @@ import {
   ViewType,
 } from '@apitable/core';
 import { ScreenSize } from 'pc/components/common/component_display';
-import { ButtonFieldItem } from 'pc/components/editors/button_editor/buton_item';
 import { CheckboxEditor } from 'pc/components/editors/checkbox_editor';
 import { FocusHolder } from 'pc/components/editors/focus_holder';
 import { IEditor } from 'pc/components/editors/interface';
 import { RatingEditor } from 'pc/components/editors/rating_editor';
-import { autoTaskScheduling } from 'pc/components/gantt_view/utils/auto_task_line_layout';
 import { CellAutoNumber } from 'pc/components/multi_grid/cell/cell_auto_number';
 import { useResponsive } from 'pc/hooks';
 import { resourceService } from 'pc/resource_service';
 import { store } from 'pc/store';
-import { useAppSelector } from 'pc/store/react-redux';
-import { IURLMeta, recognizeURLAndSetTitle } from 'pc/utils';
 import { dispatch } from 'pc/worker/store';
+import * as React from 'react';
 import { EnhanceTextEditor } from '../../editors/enhance_text_editor';
+import { IURLMeta, recognizeURLAndSetTitle } from 'pc/utils';
+import { useSelector } from 'react-redux';
+import { autoTaskScheduling } from 'pc/components/gantt_view/utils/auto_task_line_layout';
 
 // Editors
 import { TextEditor } from '../../editors/text_editor';
 import { CellCreatedBy } from '../../multi_grid/cell/cell_created_by';
 import { CellCreatedTime } from '../../multi_grid/cell/cell_created_time';
 import { ExpandAttachContext, ExpandAttachment } from '../expand_attachment';
-import { ExpandCascader } from '../expand_cascader';
 import { ExpandDateTimeEditor } from '../expand_date_time_editor';
 import { ExpandFormula } from '../expand_formula';
 import { ExpandLink } from '../expand_link';
 import { ExpandLookUp } from '../expand_lookup';
 import { ExpandNumber } from '../expand_number';
 import { ExpandSelect } from '../expand_select';
-import { ExpandWorkdoc } from '../expand_work_doc';
+import { ExpandCascader } from '../expand_cascader';
 // @ts-ignore
-import { convertAlarmStructure } from 'enterprise/alarm/date_time_alarm/utils';
+import { convertAlarmStructure } from 'enterprise';
 
 export interface ICommonProps {
   style: React.CSSProperties;
@@ -90,7 +86,7 @@ export interface IFieldBlockProps {
   showAlarm?: boolean;
 }
 
-export const FieldBlock: React.FC<React.PropsWithChildren<IFieldBlockProps>> = (props) => {
+export const FieldBlock: React.FC<React.PropsWithChildren<IFieldBlockProps>> = props => {
   const { commonProps: _commonProps, cellValue, isFocus, onMouseDown, showAlarm } = props;
 
   const { datasheetId, mirrorId, field, record, ref: editorRef } = _commonProps;
@@ -101,31 +97,25 @@ export const FieldBlock: React.FC<React.PropsWithChildren<IFieldBlockProps>> = (
   const mobileEditorWidth: React.CSSProperties = isMobile ? { width: '100%' } : {};
 
   const state = store.getState();
-  const activeView = useAppSelector((state) => Selectors.getCurrentView(state));
-  const visibleRows = useAppSelector((state) => Selectors.getVisibleRows(state));
+  const activeView = useSelector(state => Selectors.getCurrentView(state));
+  const visibleRows = useSelector(state => Selectors.getVisibleRows(state));
 
   const onSave = (value: ICellValue, curAlarm?: Omit<IRecordAlarmClient, 'id'>) => {
-    const isUrlWithRecogURLFlag = field.type === FieldType.URL && field.property?.isRecogURLFlag && Array.isArray(value);
+    resourceService.instance!.commandManager.execute({
+      cmd: CollaCommandName.SetRecords,
+      datasheetId,
+      alarm: convertAlarmStructure?.(curAlarm as IRecordAlarmClient),
+      data: [
+        {
+          recordId: record!.id,
+          fieldId: field.id,
+          value,
+        },
+      ],
+      mirrorId,
+    });
 
-    const urlTextNoChange = isUrlWithRecogURLFlag && cellValue?.[0].text === (value[0] as any)?.text;
-
-    if (!urlTextNoChange) {
-      resourceService.instance!.commandManager.execute({
-        cmd: CollaCommandName.SetRecords,
-        datasheetId,
-        alarm: convertAlarmStructure?.(curAlarm as IRecordAlarmClient),
-        data: [
-          {
-            recordId: record!.id,
-            fieldId: field.id,
-            value,
-          },
-        ],
-        mirrorId,
-      });
-    }
-
-    if (isUrlWithRecogURLFlag) {
+    if (field.type === FieldType.URL && field.property?.isRecogURLFlag && Array.isArray(value)) {
       const _value = value as IHyperlinkSegment[];
       const url = _value.reduce((acc: string, cur: IHyperlinkSegment) => (cur.text || '') + acc, '');
 
@@ -137,7 +127,7 @@ export const FieldBlock: React.FC<React.PropsWithChildren<IFieldBlockProps>> = (
             {
               recordId: record.id,
               fieldId: field.id,
-              value: value.map((v) => ({
+              value: value.map(v => ({
                 ...(v as any),
                 type: SegmentType.Url,
                 title: meta?.title,
@@ -148,7 +138,7 @@ export const FieldBlock: React.FC<React.PropsWithChildren<IFieldBlockProps>> = (
         });
       };
 
-      if (isUrl(url) && cellValue?.[0]?.text !== (value[0] as any)?.text) {
+      if (isUrl(url)) {
         recognizeURLAndSetTitle({
           url,
           callback,
@@ -156,7 +146,6 @@ export const FieldBlock: React.FC<React.PropsWithChildren<IFieldBlockProps>> = (
       }
     }
     if (activeView && activeView.type === ViewType.Gantt) {
-      // eslint-disable-next-line no-unsafe-optional-chaining
       const { linkFieldId, endFieldId } = activeView?.style;
       if (!(linkFieldId && endFieldId === field.id)) return;
       const sourceRecordData = {
@@ -240,7 +229,7 @@ export const FieldBlock: React.FC<React.PropsWithChildren<IFieldBlockProps>> = (
             recordId={record.id}
             cellValue={cellValue as IAttachmentValue[]}
             onClick={onMouseDown}
-            onSave={(cellValue) => {
+            onSave={cellValue => {
               dispatch(StoreActions.setPreviewFileCellActive(cellValue));
               commonProps.onSave(cellValue);
             }}
@@ -248,7 +237,6 @@ export const FieldBlock: React.FC<React.PropsWithChildren<IFieldBlockProps>> = (
         </ExpandAttachContext.Provider>
       );
     case FieldType.Link:
-    case FieldType.OneWayLink:
       return (
         <ExpandLink
           {...commonProps}
@@ -300,16 +288,14 @@ export const FieldBlock: React.FC<React.PropsWithChildren<IFieldBlockProps>> = (
       );
     case FieldType.Cascader:
       return (
-        <ExpandCascader {...commonProps} isFocus={isFocus} cellValue={cellValue} field={commonProps.field as ILinkField} style={mobileEditorWidth} />
+        <ExpandCascader
+          {...commonProps}
+          isFocus={isFocus}
+          cellValue={cellValue}
+          field={commonProps.field as ILinkField}
+          style={mobileEditorWidth}
+        />
       );
-    case FieldType.Button:
-      return (
-        <Box paddingLeft={'10px'} height={'22px'}>
-          <ButtonFieldItem recordId={record.id} field={field} record={record} />
-        </Box>
-      );
-    case FieldType.WorkDoc:
-      return <ExpandWorkdoc {...commonProps} cellValue={cellValue} datasheetId={datasheetId} recordId={record.id} />;
     default:
       return <div />;
   }

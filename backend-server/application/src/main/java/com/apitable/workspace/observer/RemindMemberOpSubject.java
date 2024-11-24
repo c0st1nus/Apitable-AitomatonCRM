@@ -18,9 +18,10 @@
 
 package com.apitable.workspace.observer;
 
-import com.apitable.workspace.observer.remind.NotifyDataSheetMeta;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.apitable.workspace.observer.remind.NotifyDataSheetMeta;
 
 /**
  * <p>
@@ -29,7 +30,7 @@ import java.util.List;
  */
 public class RemindMemberOpSubject implements DatasheetObservable {
 
-    private final List<DatasheetObserver> observers;
+    private List<DatasheetObserver> observers;
 
     private NotifyDataSheetMeta meta;
 
@@ -58,11 +59,6 @@ public class RemindMemberOpSubject implements DatasheetObservable {
         }
     }
 
-    /**
-     * send notify.
-     *
-     * @param meta notify meta
-     */
     public void sendNotify(NotifyDataSheetMeta meta) {
         this.meta = meta;
         // send message

@@ -16,14 +16,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { IReduxState } from '../exports/store/interfaces';
+import { IReduxState } from '../exports/store';
 import { ResourceType } from 'types';
 import { IChangeset, IOperation } from '../engine/ot/interface';
-import { EventNameClsMap, REMOTE_NEW_CHANGES } from './const';
-import { EventAtomTypeEnums, EventRealTypeEnums, EventSourceTypeEnums, OPEventNameEnums } from './enum';
+import {
+  EventAtomTypeEnums,
+  EventNameClsMap, EventRealTypeEnums, EventSourceTypeEnums,
+  OPEventNameEnums, REMOTE_NEW_CHANGES
+} from './const';
 import { OPEventCellUpdated } from './events/datasheet/cell_updated';
 import { IAtomEventType } from './events/interface';
-import { IAtomEvent, ICombEvent, IEventInstance, IOPBaseContext, IOPEvent, IRealAtomEvent, IVirtualAtomEvent } from './interface/event.interface';
+import {
+  IAtomEvent,
+  ICombEvent,
+  IEventInstance, IOPBaseContext, IOPEvent,
+  IRealAtomEvent, IVirtualAtomEvent
+} from './interface/event.interface';
 import { IEventResourceMap, IOP2Event } from './interface/op2event.interface';
 
 export class OP2Event implements IOP2Event {
@@ -38,23 +46,14 @@ export class OP2Event implements IOP2Event {
   }
   getOpsResources(events: IEventInstance<IOPEvent>[]): IEventResourceMap {
     const res: IEventResourceMap = new Map();
-    events.forEach((event) => {
+    events.forEach(event => {
       // datasheet resources
       if (event.scope === ResourceType.Datasheet) {
-        const { datasheetId, recordId, linkDatasheetId, change } = event.context;
+        const { datasheetId, recordId } = event.context;
         if (res.has(datasheetId)) {
           recordId && res.get(datasheetId)!.push(recordId);
         } else {
           recordId && res.set(datasheetId, [recordId]);
-        }
-        if (linkDatasheetId && linkDatasheetId != datasheetId && change?.to) {
-          if (res.has(linkDatasheetId)) {
-            // eslint-disable-next-line no-unsafe-optional-chaining
-            res.get(linkDatasheetId)!.push(...change?.to);
-          } else {
-            // eslint-disable-next-line no-unsafe-optional-chaining
-            res.set(linkDatasheetId, [...change?.to]);
-          }
         }
       }
     });
@@ -64,7 +63,7 @@ export class OP2Event implements IOP2Event {
   parseOps2Events(changesets: Omit<IChangeset, 'messageId'>[]): IEventInstance<IRealAtomEvent>[] {
     const events: IEventInstance<IRealAtomEvent>[] = [];
     changesets.forEach(({ operations, resourceId, resourceType }) => {
-      operations.forEach((op) => {
+      operations.forEach(op => {
         events.push(...this.parseOp2Event(op, resourceId, resourceType));
       });
     });
@@ -76,7 +75,7 @@ export class OP2Event implements IOP2Event {
     const virtualEvents: IEventInstance<IVirtualAtomEvent>[] = [];
     (Object.keys(this.eventNameClsInstanceMap) as OPEventNameEnums[]).forEach((eventName: OPEventNameEnums) => {
       const eventClsInstance = this.eventNameClsInstanceMap[eventName];
-      const _events = events.filter((event) => event.eventName === eventName);
+      const _events = events.filter(event => event.eventName === eventName);
       // The field update event only has the processing logic of the calculation event
       if (eventName === OPEventNameEnums.CellUpdated) {
         virtualEvents.push(...(eventClsInstance as OPEventCellUpdated).computeEvent(_events, state));
@@ -87,7 +86,7 @@ export class OP2Event implements IOP2Event {
 
   makeCombEvents(events: IEventInstance<IAtomEvent>[]): IEventInstance<ICombEvent>[] {
     const res: IEventInstance<ICombEvent>[] = [];
-    Object.entries(this.eventNameClsInstanceMap).forEach((eventCls) => {
+    Object.entries(this.eventNameClsInstanceMap).forEach(eventCls => {
       const [, eventClsInstance] = eventCls;
       if (eventClsInstance.atomType === EventAtomTypeEnums.COMB) {
         res.push(...eventClsInstance.comb(events));
@@ -97,12 +96,14 @@ export class OP2Event implements IOP2Event {
   }
 
   fillEvents(events: IEventInstance<IOPEvent>[], state: IReduxState): IEventInstance<IOPEvent>[] {
-    return Object.entries(this.eventNameClsInstanceMap).reduce((res, [, eventClsInstance]) => {
-      if (eventClsInstance.fill) {
-        res = eventClsInstance.fill(res, state);
+    return Object.entries(this.eventNameClsInstanceMap).reduce(
+      (res, [, eventClsInstance]) => {
+        if (eventClsInstance.fill) {
+          res = eventClsInstance.fill(res, state);
+        }
+        return res;
       }
-      return res;
-    }, events);
+      , events);
   }
 
   /**
@@ -110,14 +111,13 @@ export class OP2Event implements IOP2Event {
    */
   parseOp2Event(op: IOperation, resourceId: string, resourceType: ResourceType): IEventInstance<IRealAtomEvent>[] {
     const events: IEventInstance<IRealAtomEvent>[] = [];
-    op.actions.forEach((action) => {
+    op.actions.forEach(action => {
       const opContext: IOPBaseContext = { op, action, resourceId, resourceType };
       (Object.keys(this.eventNameClsInstanceMap) as OPEventNameEnums[]).forEach((eventName: OPEventNameEnums) => {
         const eventClsInstance = this.eventNameClsInstanceMap[eventName];
         if (eventClsInstance.scope !== resourceType || eventClsInstance.atomType !== EventAtomTypeEnums.ATOM) {
           return;
         }
-        // eslint-disable-next-line no-unsafe-optional-chaining
         const { pass, context } = (eventClsInstance as IAtomEventType<any>)?.test(opContext);
         if (pass) {
           events.push({

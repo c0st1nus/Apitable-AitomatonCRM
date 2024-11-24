@@ -16,22 +16,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { DatasheetRepository } from './datasheet.repository';
-import { DatasheetEntity } from '../entities/datasheet.entity';
-import { DeepPartial, getConnection } from 'typeorm';
-import { Test, TestingModule } from '@nestjs/testing';
-import { ConfigModule } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { DatabaseConfigService } from 'shared/services/config/database.config.service';
-import { clearDatabase } from 'shared/testing/test-util';
+import { DatasheetRepository } from './datasheet.repository';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule } from '@nestjs/config';
+import { Test, TestingModule } from '@nestjs/testing';
+import { DatasheetEntity } from '../entities/datasheet.entity';
+import { DeepPartial } from 'typeorm';
 
 describe('DatasheetRepositoryTest', () => {
-  let moduleFixture: TestingModule;
+  let module: TestingModule;
   let repository: DatasheetRepository;
   let entity: DatasheetEntity;
 
-  beforeEach(async() => {
-    moduleFixture = await Test.createTestingModule({
+  beforeAll(async() => {
+    module = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({ isGlobal: true }),
         TypeOrmModule.forRootAsync({
@@ -41,9 +40,10 @@ describe('DatasheetRepositoryTest', () => {
       ],
       providers: [DatasheetRepository],
     }).compile();
-    // clear database
-    await clearDatabase(getConnection());
-    repository = moduleFixture.get<DatasheetRepository>(DatasheetRepository);
+    repository = module.get<DatasheetRepository>(DatasheetRepository);
+  });
+
+  beforeEach(async() => {
     const datasheet: DeepPartial<DatasheetEntity> = {
       dstId: 'datasheetId',
       revision: 1,
@@ -53,7 +53,11 @@ describe('DatasheetRepositoryTest', () => {
   });
 
   afterEach(async() => {
-    await moduleFixture.close();
+    await repository.delete(entity.id);
+  });
+
+  afterAll(async() => {
+    await repository.manager.connection.close();
   });
 
   it('should get revisions by datasheet ids', async() => {

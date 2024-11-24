@@ -252,7 +252,7 @@ Um apitable mit docker compose zu installieren, öffnen Sie Ihr Terminal und fü
 curl https://apitable.github.io/install.sh | bash
 ```
 
-Öffne dann [http://localhost:80](http://localhost:80) in deinem Browser, um ihn zu besuchen.
+Öffne dann [https://localhost:80](https://localhost:80) in deinem Browser, um ihn zu besuchen.
 
 Wir bieten auch ein All-In-One-Bild basierend auf [pm2](https://pm2.keymetrics.io/) für Demo oder Testzwecke (nicht empfohlen für Unternehmen oder Produktionsnutzung):
 
@@ -317,6 +317,7 @@ APITable use these common convention:
 - Wie kann ich versionieren und taggingen? [Semantische Versionierung](https://semver.org/)
 - Was ist die Java Coding Guideline? [Java Coding Guideline](https://github.com/alibaba/Alibaba-Java-Coding-Guidelines) | [Intellij IDEA Plugin](https://plugins.jetbrains.com/plugin/10046-alibaba-java-coding-guidelines)
 - Was ist die TypeScript Coding Guideline? -> [TypeScript Style Guide](https://google.github.io/styleguide/tsguide.html) | [ESLint](https://www.npmjs.com/package/@typescript-eslint/eslint-plugin)
+- Was ist die Rust Coding Guideline? -> [Rust API Guidelines](https://rust-lang.github.io/api-guidelines/about.html)
 
 ### Dokumentationen
 

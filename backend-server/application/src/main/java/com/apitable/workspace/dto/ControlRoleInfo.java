@@ -20,9 +20,6 @@ package com.apitable.workspace.dto;
 
 import lombok.Data;
 
-/**
- * control role info.
- */
 @Data
 public class ControlRoleInfo {
 

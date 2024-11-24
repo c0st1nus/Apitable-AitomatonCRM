@@ -17,12 +17,12 @@
  */
 
 import { ResourceType } from 'types';
-import { getRecord } from 'modules/database/store/selectors/resource/datasheet/base';
+import { getRecord } from '../../exports/store/selectors';
 import { ExecuteResult, ICollaCommandDef, ICollaCommandExecuteContext } from 'command_manager';
-import { CollaCommandName } from 'commands/enum';
+import { CollaCommandName } from 'commands';
 import { IJOTAction } from 'engine';
-import { DatasheetActions } from 'commands_actions/datasheet';
-import { IComments } from '../../exports/store/interfaces';
+import { DatasheetActions } from 'model';
+import { IComments } from '../../exports/store';
 
 export interface IDeleteComment {
   cmd: CollaCommandName.DeleteComment;
@@ -35,7 +35,7 @@ export const deleteComment: ICollaCommandDef<IDeleteComment> = {
   undoable: false,
 
   execute(context: ICollaCommandExecuteContext, options: IDeleteComment) {
-    const { state: state } = context;
+    const { model: state } = context;
     const { recordId, datasheetId, comment } = options;
     const actions: IJOTAction[] = [];
     const record = getRecord(state, recordId, datasheetId);

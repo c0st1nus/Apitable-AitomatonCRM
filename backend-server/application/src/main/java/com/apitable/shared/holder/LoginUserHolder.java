@@ -22,7 +22,7 @@ import com.apitable.shared.cache.bean.LoginUserDto;
 
 /**
  * <p>
- * Temporary container for the currently logged in user.
+ * Temporary container for the currently logged in user
  * </p>
  *
  * @author Shawn Deng
@@ -37,11 +37,6 @@ public class LoginUserHolder {
         OPEN_UP_FLAG.set(true);
     }
 
-    /**
-     * setter.
-     *
-     * @param loginUserDto loginUserDto
-     */
     public static void set(LoginUserDto loginUserDto) {
         Boolean openUpFlag = OPEN_UP_FLAG.get();
         if (openUpFlag != null && openUpFlag.equals(true)) {
@@ -49,16 +44,12 @@ public class LoginUserHolder {
         }
     }
 
-    /**
-     * getter.
-     *
-     * @return LoginUserDto
-     */
     public static LoginUserDto get() {
         Boolean openUpFlag = OPEN_UP_FLAG.get();
         if (openUpFlag == null || openUpFlag.equals(false)) {
             return null;
-        } else {
+        }
+        else {
             return LOGIN_USER_HOLDER.get();
         }
     }

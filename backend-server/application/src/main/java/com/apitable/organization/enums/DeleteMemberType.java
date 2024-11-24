@@ -18,27 +18,26 @@
 
 package com.apitable.organization.enums;
 
-import static com.apitable.organization.enums.OrganizationException.DELETE_ACTION_ERROR;
+import java.util.HashMap;
+import java.util.Map;
+
+import lombok.Getter;
 
 import com.apitable.core.exception.BusinessException;
 import com.apitable.core.support.serializer.IBaseEnum;
-import java.util.HashMap;
-import java.util.Map;
-import lombok.AllArgsConstructor;
 
-/**
- * delete member type.
- */
-@AllArgsConstructor
-public enum DeleteMemberType implements IBaseEnum {
+import static com.apitable.organization.enums.OrganizationException.DELETE_ACTION_ERROR;
+
+@Getter
+public enum DeleteMemberType implements IBaseEnum{
 
     /**
-     * deleted from department.
+     * deleted from department
      */
     FROM_TEAM(0, "deleted from department"),
 
     /**
-     * deleted from organization.
+     * deleted from organization
      */
     FROM_SPACE(1, "deleted from organization");
 
@@ -46,35 +45,33 @@ public enum DeleteMemberType implements IBaseEnum {
 
     private final String desc;
 
-    private static final Map<Integer, DeleteMemberType> valueMap = new HashMap<>(16);
+    private static Map<Integer, DeleteMemberType> valueMap = new HashMap<>(16);
 
     static {
-        for (DeleteMemberType type : DeleteMemberType.values()) {
+        for(DeleteMemberType type : DeleteMemberType.values()) {
             valueMap.put(type.value, type);
         }
     }
 
-
-    /**
-     * obtain enum by value.
-     *
-     * @param value value
-     * @return enum
-     */
-    public static DeleteMemberType getByValue(int value) {
-        DeleteMemberType result = valueMap.get(value);
-        if (result == null) {
-            throw new BusinessException(DELETE_ACTION_ERROR);
-        }
-        return result;
+    DeleteMemberType(int value, String desc) {
+        this.value = value;
+        this.desc = desc;
     }
 
     @Override
     public Integer getValue() {
-        return value;
+        return this.value;
     }
 
     public String getDesc() {
-        return desc;
+        return this.desc;
+    }
+
+    public static DeleteMemberType getByValue(int value) {
+        DeleteMemberType result = valueMap.get(value);
+        if(result == null) {
+            throw new BusinessException(DELETE_ACTION_ERROR);
+        }
+        return result;
     }
 }

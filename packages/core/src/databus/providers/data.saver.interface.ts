@@ -17,7 +17,7 @@
  */
 
 import { IResourceOpsCollect } from 'command_manager';
-import { IReduxState } from 'exports/store/interfaces';
+import { IReduxState } from 'exports/store';
 import { Store } from 'redux';
 import { IResource } from '../logic';
 
@@ -32,12 +32,9 @@ export interface IDataSaver {
    * Save the OPs resulted from command execution to some storage system, such as a database or send them to the server.
    *
    * @param ops The OPs resulted from command execution.
-   * @param options save options
    * @return The return value of `saveOps` will be included in the return value of the `doCommand` method of `Database`.
    */
   saveOps(ops: IResourceOpsCollect[], options: ISaveOpsOptions): Promise<any> | any;
-
-  nestRoomChangeFromRust(roomId: string, data: any): any;
 }
 
 /**

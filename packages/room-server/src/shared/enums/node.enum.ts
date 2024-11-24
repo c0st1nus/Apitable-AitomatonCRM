@@ -22,5 +22,4 @@ export enum NodeTypeEnum {
   Form = 'Form',
   Dashboard = 'Dashboard',
   Mirror = 'Mirror',
-  Automation = 'Automation'
 }

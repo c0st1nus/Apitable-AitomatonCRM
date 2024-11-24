@@ -16,22 +16,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ICollaCommandDef, ILinkedActions } from 'command_manager/command';
-import { ExecuteResult } from 'command_manager/types';
+import { ICollaCommandDef, ExecuteResult, ILinkedActions } from 'command_manager';
 import { IJOTAction } from 'engine';
-import { IGridViewProperty } from '../../exports/store/interfaces';
-import { getActiveDatasheetId, getSnapshot, getDatasheet } from 'modules/database/store/selectors/resource/datasheet/base';
-
+import { IGridViewProperty, Selectors } from '../../exports/store';
 import { FieldType, IField } from 'types/field_types';
 import { getNewIds, IDPrefix } from 'utils';
 import { createNewBrotherField, createNewField, IInternalFix } from '../common/field';
-import { fixOneWayLinkDstId } from '..';
-import { CollaCommandName } from '../enum';
-import { Field } from 'model/field';
-import { CreatedByField } from 'model/field/created_by_field';
-import { getMaxFieldCountPerSheet } from 'model/utils';
-import { DatasheetActions } from 'commands_actions/datasheet';
+import { CollaCommandName, fixOneWayLinkDstId } from '..';
+import { Field, CreatedByField, getMaxFieldCountPerSheet, DatasheetActions } from 'model';
 import { Strings, t } from '../../exports/i18n';
+import { getDatasheet } from '../../exports/store/selectors';
 import { ResourceType } from 'types';
 import { ISetRecordOptions, setRecords } from './set_records';
 
@@ -45,16 +39,12 @@ export interface IAddFieldOptions {
   offset?: number;
   // whether to hide this newly created field
   hiddenColumn?: boolean;
-  // force hidden
-  forceColumnVisible?: boolean;
 }
 
 export interface IAddFieldsOptions {
   cmd: CollaCommandName.AddFields;
   data: IAddFieldOptions[];
-  resourceType?: ResourceType,
   datasheetId?: string;
-  resourceId?: string;
   copyCell?: boolean;
   fieldId?: string;
   internalFix?: IInternalFix;
@@ -65,11 +55,10 @@ export const addFields: ICollaCommandDef<IAddFieldsOptions, IAddFieldResult> = {
   undoable: true,
 
   execute: (context, options) => {
-    const { state: state } = context;
-    const activeDatasheetId = options.datasheetId ?? getActiveDatasheetId(state)!;
-    const datasheetId = activeDatasheetId;
-    const { data, copyCell, internalFix, fieldId } = options;
-    const snapshot = getSnapshot(state, activeDatasheetId);
+    const { model: state } = context;
+    const activeDatasheetId = Selectors.getActiveDatasheetId(state)!;
+    const { data, copyCell, internalFix, fieldId, datasheetId = activeDatasheetId } = options;
+    const snapshot = Selectors.getSnapshot(state, datasheetId);
     const recordMap = snapshot!.recordMap;
 
     const maxFieldCountPerSheet = getMaxFieldCountPerSheet();
@@ -79,11 +68,9 @@ export const addFields: ICollaCommandDef<IAddFieldsOptions, IAddFieldResult> = {
     }
     const isOverLimit = data.length + snapshot.meta.views[0]!.columns.length > maxFieldCountPerSheet;
     if (isOverLimit) {
-      throw new Error(
-        t(Strings.columns_count_limit_tips, {
-          column_limit: maxFieldCountPerSheet,
-        }),
-      );
+      throw new Error(t(Strings.columns_count_limit_tips, {
+        column_limit: maxFieldCountPerSheet,
+      }));
     }
     const newFieldIds = getNewIds(IDPrefix.Field, data.length, Object.keys(snapshot.meta.fieldMap));
     const frozenCountMap = new Map();
@@ -93,14 +80,17 @@ export const addFields: ICollaCommandDef<IAddFieldsOptions, IAddFieldResult> = {
     const actions = data.reduce<IJOTAction[]>((collected, fieldOption, index) => {
       newFieldId = newFieldIds[index]!;
       const { index: columnIndex, viewId } = fieldOption;
-      const view = snapshot.meta.views.find((view) => view.id === viewId);
+      const view = snapshot.meta.views.find(view => view.id === viewId);
       const frozenColumnCount = (view as IGridViewProperty)?.frozenColumnCount;
 
       // special handling for associated fields
-      // When the table associated with the newly added associated field cannot be queried in the state,
+      // When the table associated with the newly added associated field cannot be queried in the state, 
       // an association cannot be established at this time.
       // Here we convert this field directly to a text field.
-      if (fieldOption.data.type === FieldType.Link && !getDatasheet(state, fieldOption.data.property.foreignDatasheetId)) {
+      if (
+        fieldOption.data.type === FieldType.Link &&
+        !Selectors.getDatasheet(state, fieldOption.data.property.foreignDatasheetId)
+      ) {
         fieldOption = {
           ...fieldOption,
           data: {
@@ -117,7 +107,7 @@ export const addFields: ICollaCommandDef<IAddFieldsOptions, IAddFieldResult> = {
         property: fieldOption.data.property,
       } as IField;
 
-      // Calculated fields need to determine their own datasheet through the field property,
+      // Calculated fields need to determine their own datasheet through the field property, 
       // here we force him to specify the datasheetId of the current command
       if (Field.bindContext(field, state).isComputed) {
         field.property = {
@@ -135,7 +125,7 @@ export const addFields: ICollaCommandDef<IAddFieldsOptions, IAddFieldResult> = {
       // AutoNumber needs to record the current view index
       if (field.type === FieldType.AutoNumber) {
         const datasheet = getDatasheet(state, datasheetId);
-        const viewIdx = snapshot.meta.views.findIndex((item) => item.id === datasheet?.activeView) || 0;
+        const viewIdx = snapshot.meta.views.findIndex(item => item.id === datasheet?.activeView) || 0;
         field.property = { ...field.property, viewIdx };
       }
 
